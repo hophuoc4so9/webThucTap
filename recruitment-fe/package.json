@@ -13,6 +13,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.2",
+    "clsx": "^2.1.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
@@ -20,6 +21,7 @@
     "react-hook-form": "^7.71.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.12.0",
+    "tailwind-merge": "^3.4.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {
