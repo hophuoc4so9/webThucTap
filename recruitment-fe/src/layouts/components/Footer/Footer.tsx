@@ -6,7 +6,7 @@ export const Footer = () => {
     <div className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* About Section */}
+          
           <div>
             <h3 className="text-white font-bold text-lg mb-4">
               TDMU Jobs
@@ -17,7 +17,7 @@ export const Footer = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
+          
           <div>
             <h4 className="text-white font-semibold mb-4">Liên kết</h4>
             <ul className="space-y-2 text-sm">
@@ -44,7 +44,7 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Support */}
+          
           <div>
             <h4 className="text-white font-semibold mb-4">Hỗ trợ</h4>
             <ul className="space-y-2 text-sm">
@@ -71,7 +71,7 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
+          
           <div>
             <h4 className="text-white font-semibold mb-4">Liên hệ</h4>
             <ul className="space-y-3 text-sm">
@@ -81,7 +81,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 flex-shrink-0" />
-                <span>(0274) 3831 531</span>
+                <span>(0123) 3456 789</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 flex-shrink-0" />
@@ -91,7 +91,7 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        
         <div className="border-t border-gray-800 mt-8 pt-6 text-center text-sm text-gray-500">
           <p>© 2024 TDMU Jobs - Đại học Thủ Dầu Một. All rights reserved.</p>
         </div>
