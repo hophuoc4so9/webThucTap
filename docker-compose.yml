@@ -1,0 +1,90 @@
+services:
+  # ============ FRONTEND ============
+  frontend:
+    build:
+      context: ./recruitment-fe
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - recruitment-network
+
+  # ============ BACKEND ============
+  backend:
+    build:
+      context: ./recruitment-be
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    networks:
+      - recruitment-network
+
+  # ============ INFRASTRUCTURE ============
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - recruitment-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - recruitment-network
+
+  # ============ DATABASE ============
+  # postgres:
+  #   image: postgres:15-alpine
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres123
+  #     - POSTGRES_DB=recruitment
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - recruitment-network
+
+  # mongodb:
+  #   image: mongo:7
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     - MONGO_INITDB_ROOT_USERNAME=admin
+  #     - MONGO_INITDB_ROOT_PASSWORD=admin123
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   networks:
+  #     - recruitment-network
+
+networks:
+  recruitment-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  rabbitmq-data:
+  # postgres-data:
+  # mongo-data:

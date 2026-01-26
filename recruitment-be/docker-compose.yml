@@ -1,18 +1,40 @@
+version: "3.9"
+
 services:
   api-gateway:
-    build: ./api-gateway
+    build: ./recruitment-be/api-gateway
     ports:
       - "8080:8080"
     depends_on:
       - auth-service
       - job-service
+      - redis
+      - rabbitmq
+    networks: [recruitment-be]
 
   auth-service:
-    build: ./auth-service
-    ports:
-      - "8001:8001"
+    build: ./recruitment-be/services/auth-service
+    expose: ["8001"]
+    networks: [recruitment-be]
 
   job-service:
-    build: ./job-service
+    build: ./recruitment-be/services/job-service
+    expose: ["8003"]
+    networks: [recruitment-be]
+
+  redis:
+    image: redis:7
     ports:
-      - "8003:8003"
+      - "6379:6379"
+    networks: [recruitment-be]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks: [recruitment-be]
+
+networks:
+  recruitment-be:
+    driver: bridge
