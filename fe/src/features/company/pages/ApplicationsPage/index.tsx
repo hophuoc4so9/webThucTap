@@ -381,10 +381,10 @@ export function CompanyApplicationsPage() {
             <h1 className="text-xl font-bold text-gray-800">
               Ứng viên &amp; Hồ sơ ứng tuyển
             </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
+            {/* <p className="text-sm text-gray-400 mt-0.5">
               Quản lý hồ sơ ứng viên —{" "}
               <span className="font-medium text-gray-600">{companyName || email}</span>
-            </p>
+            </p> */}
           </div>
           <button
             onClick={load}
