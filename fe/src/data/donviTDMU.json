@@ -1,0 +1,91 @@
+{
+  "ten_truong": "Đại học Thủ Dầu Một",
+  "he_dao_tao": "Đại học chính quy",
+  "du_lieu_nganh": [
+    {
+      "nhom": "SƯ PHẠM",
+      "nganh_hoc": [
+        { "ten": "SƯ PHẠM NGỮ VĂN", "id_news": "2800" },
+        { "ten": "GIÁO DỤC TIỂU HỌC", "id_news": "1404" },
+        { "ten": "GIÁO DỤC MẦM NON", "id_news": "1403" }
+      ]
+    },
+    {
+      "nhom": "KINH TẾ",
+      "nganh_hoc": [
+        { "ten": "THƯƠNG MẠI ĐIỆN TỬ", "id_news": "3087" },
+        { "ten": "KIỂM TOÁN", "id_news": "3086" },
+        { "ten": "MARKETING", "id_news": "3085" },
+        { "ten": "LOGISTICS VÀ QUẢN LÝ CHUỖI CUNG ỨNG", "id_news": "2753" },
+        { "ten": "QUẢN LÝ CÔNG NGHIỆP", "id_news": "1394" },
+        { "ten": "QUẢN TRỊ KINH DOANH", "id_news": "1382" },
+        { "ten": "TÀI CHÍNH - NGÂN HÀNG", "id_news": "1381" },
+        { "ten": "KẾ TOÁN", "id_news": "1380" }
+      ]
+    },
+    {
+      "nhom": "NGOẠI NGỮ",
+      "nganh_hoc": [
+        { "ten": "NGÔN NGỮ HÀN QUỐC", "id_news": "2956" },
+        { "ten": "NGÔN NGỮ TRUNG QUỐC", "id_news": "1401" },
+        { "ten": "NGÔN NGỮ ANH", "id_news": "1399" }
+      ]
+    },
+    {
+      "nhom": "ÂM NHẠC - MỸ THUẬT",
+      "nganh_hoc": [
+        { "ten": "TRUYỀN THÔNG ĐA PHƯƠNG TIỆN", "id_news": "2957" },
+        { "ten": "ÂM NHẠC", "id_news": "2821" },
+        { "ten": "DU LỊCH", "id_news": "2795" },
+        { "ten": "THIẾT KẾ ĐỒ HỌA", "id_news": "2695" }
+      ]
+    },
+    {
+      "nhom": "TỰ NHIÊN - THỰC PHẨM",
+      "nganh_hoc": [
+        { "ten": "TOÁN HỌC", "id_news": "2960" },
+        { "ten": "CÔNG NGHỆ SINH HỌC", "id_news": "2959" },
+        { "ten": "CÔNG NGHỆ THỰC PHẨM", "id_news": "2796" },
+        { "ten": "HÓA HỌC", "id_news": "1387" }
+      ]
+    },
+    {
+      "nhom": "KHOA HỌC QUẢN LÝ",
+      "nganh_hoc": [
+        { "ten": "TÂM LÝ HỌC", "id_news": "2703" },
+        { "ten": "QUẢN LÝ ĐẤT ĐAI", "id_news": "1441" },
+        { "ten": "LUẬT", "id_news": "1398" },
+        { "ten": "GIÁO DỤC HỌC", "id_news": "1397" },
+        { "ten": "QUẢN LÝ NHÀ NƯỚC", "id_news": "1393" },
+        { "ten": "QUẢN LÝ TÀI NGUYÊN VÀ MÔI TRƯỜNG", "id_news": "1392" },
+        { "ten": "KỸ THUẬT MÔI TRƯỜNG", "id_news": "1379" }
+      ]
+    },
+    {
+      "nhom": "KỸ THUẬT - CÔNG NGHỆ",
+      "nganh_hoc": [
+        { "ten": "CÔNG NGHỆ THÔNG TIN", "id_news": "2819" },
+        { "ten": "CÔNG NGHỆ KỸ THUẬT Ô TÔ", "id_news": "2748" },
+        { "ten": "KỸ THUẬT ĐIỀU KHIỂN VÀ TỰ ĐỘNG HÓA", "id_news": "2705" },
+        { "ten": "KỸ THUẬT CƠ ĐIỆN TỬ", "id_news": "2693" },
+        { "ten": "KỸ THUẬT ĐIỆN", "id_news": "1383" },
+        { "ten": "KỸ THUẬT PHẦN MỀM", "id_news": "1377" }
+      ]
+    },
+    {
+      "nhom": "KIẾN TRÚC - XÂY DỰNG",
+      "nganh_hoc": [
+        { "ten": "CÔNG NGHỆ CHẾ BIẾN LÂM SẢN", "id_news": "2698" },
+        { "ten": "KIẾN TRÚC", "id_news": "1385" },
+        { "ten": "KỸ THUẬT XÂY DỰNG", "id_news": "1384" }
+      ]
+    },
+    {
+      "nhom": "XÃ HỘI VÀ NHÂN VĂN",
+      "nganh_hoc": [
+        { "ten": "QUAN HỆ QUỐC TẾ", "id_news": "2701" },
+        { "ten": "CÔNG TÁC XÃ HỘI", "id_news": "1402" }
+      ]
+    }
+  ]
+}

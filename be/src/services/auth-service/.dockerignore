@@ -1,0 +1,4 @@
+# Auth Service
+/node_modules
+/dist
+.env

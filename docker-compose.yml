@@ -1,90 +1,148 @@
 services:
-  # ============ FRONTEND ============
-  frontend:
-    build:
-      context: ./recruitment-fe
-      dockerfile: Dockerfile
+  api-gateway:
+    build: ./be
     ports:
-      - "3000:80"
+      - "8080:8080"
+    restart: unless-stopped
     depends_on:
-      - backend
-    networks:
-      - recruitment-network
+      auth-service:
+        condition: service_started
+      job-service:
+        condition: service_started
+      cv-service:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - uploads:/uploads
+    networks: [be]
 
-  # ============ BACKEND ============
-  backend:
+  auth-service:
     build:
-      context: ./recruitment-be
+      context: ./be/src/services/auth-service
       dockerfile: Dockerfile
-    ports:
-      - "8080:3000"
+    expose: ["8001"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/auth-service/.env
     depends_on:
-      - redis
-      - rabbitmq
-    environment:
-      - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-    networks:
-      - recruitment-network
+      postgres-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks: [be]
 
-  # ============ INFRASTRUCTURE ============
+  job-service:
+    build:
+      context: ./be/src/services/job-service
+      dockerfile: Dockerfile
+    expose: ["8003"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/job-service/.env
+    depends_on:
+      postgres-job:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks: [be]
+
   redis:
-    image: redis:7-alpine
+    image: redis:7
+    restart: unless-stopped
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - recruitment-network
+    networks: [be]
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3-management
+    restart: unless-stopped
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks: [be]
+
+  postgres-auth:
+    image: postgres:15
+    restart: unless-stopped
     environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phuoc123456
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    networks:
-      - recruitment-network
+      - pgdata:/var/lib/postgresql/data
+    networks: [be]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
-  # ============ DATABASE ============
-  # postgres:
-  #   image: postgres:15-alpine
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres123
-  #     - POSTGRES_DB=recruitment
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-  #   networks:
-  #     - recruitment-network
+  postgres-job:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phuoc123456
+      POSTGRES_DB: jobdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata-job:/var/lib/postgresql/data
+    networks: [be]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jobdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
-  # mongodb:
-  #   image: mongo:7
-  #   ports:
-  #     - "27017:27017"
-  #   environment:
-  #     - MONGO_INITDB_ROOT_USERNAME=admin
-  #     - MONGO_INITDB_ROOT_PASSWORD=admin123
-  #   volumes:
-  #     - mongo-data:/data/db
-  #   networks:
-  #     - recruitment-network
+  cv-service:
+    build:
+      context: ./be/src/services/cv-service
+      dockerfile: Dockerfile
+    expose: ["8004"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/cv-service/.env
+    depends_on:
+      postgres-cv:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - uploads:/uploads
+    networks: [be]
+
+  postgres-cv:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phuoc123456
+      POSTGRES_DB: cvdb
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata-cv:/var/lib/postgresql/data
+    networks: [be]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cvdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
 networks:
-  recruitment-network:
+  be:
     driver: bridge
-
 volumes:
-  redis-data:
-  rabbitmq-data:
-  # postgres-data:
-  # mongo-data:
+  pgdata:
+  pgdata-job:
+  pgdata-cv:
+  uploads:
