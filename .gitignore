@@ -1,6 +1,10 @@
 ﻿be/node_modules
 tailieu
 
+# Large data files
+data-crawl/data_jobs.csv
+data-crawl/data_jobs.json
+
 # Logs
 logs
 *.log
