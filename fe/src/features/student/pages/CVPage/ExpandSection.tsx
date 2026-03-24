@@ -19,9 +19,13 @@ export const ExpandSection = ({
         {title}
       </button>
       {open && (
-        <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap">
-          {children}
-        </p>
+        <div className="mt-2 text-xs text-gray-600">
+          {typeof children === "string" ? (
+            <p className="whitespace-pre-wrap">{children}</p>
+          ) : (
+            children
+          )}
+        </div>
       )}
     </div>
   );

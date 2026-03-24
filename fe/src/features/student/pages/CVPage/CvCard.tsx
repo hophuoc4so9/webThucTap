@@ -1,8 +1,25 @@
-import { FileText, Pencil, Star, StarOff, Trash2, Paperclip } from "lucide-react";
+import { useState } from "react";
+import { FileText, Pencil, Star, StarOff, Trash2, Paperclip, Download, FileDown, Loader2, Printer } from "lucide-react";
 import type { Cv } from "@/features/student/types";
-import { fmtDate, FILE_COLOR, fileExt } from "./helpers";
+import { fmtDate, FILE_COLOR, fileExt, getCvPrintFullHtml, getCvExperiences, getCvSkills } from "./helpers";
+import { exportCvToPdf } from "./cvPdfExport";
 import { SkillTag } from "./SkillTag";
 import { ExpandSection } from "./ExpandSection";
+
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined ?? "http://localhost:8080").replace(/\/$/, "");
+
+/** URL tải file CV (filePath có thể là "uuid.pdf" hoặc "/uploads/uuid.pdf") */
+const getCvFileUrl = (filePath: string | undefined) =>
+  filePath ? `${API_BASE}/uploads/${filePath.replace(/^.*[/\\]/, "")}` : null;
+
+const printTextCv = (cv: Cv) => {
+  const win = window.open("", "_blank");
+  if (win) {
+    win.document.write(getCvPrintFullHtml(cv));
+    win.document.close();
+    setTimeout(() => win.print(), 300);
+  }
+};
 
 export const CvCard = ({
   cv,
@@ -15,14 +32,47 @@ export const CvCard = ({
   onSetDefault: (id: number) => void;
   onEdit: (cv: Cv) => void;
 }) => {
-  const skills = (() => {
-    try {
-      return JSON.parse(cv.skills ?? "[]") as string[];
-    } catch {
-      return cv.skills ? [cv.skills] : [];
-    }
-  })();
+  const skills = getCvSkills(cv);
+  const experienceTags = getCvExperiences(cv);
   const ext = fileExt(cv.fileOriginalName);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [fileDownloading, setFileDownloading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+
+  const handleDownloadFile = async () => {
+    const url = getCvFileUrl(cv.filePath);
+    if (!url || !cv.filePath) return;
+    setFileDownloading(true);
+    try {
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Không tải được file");
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = cv.fileOriginalName || cv.filePath.replace(/^.*[/\\]/, "") || "cv.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(url, "_blank");
+    } finally {
+      setFileDownloading(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setPdfLoading(true);
+    setDownloadSuccess(false);
+    try {
+      await exportCvToPdf(cv);
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 2500);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   return (
     <div
@@ -36,8 +86,11 @@ export const CvCard = ({
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-gray-800 truncate">
-                {cv.title || "CV chưa đặt tên"}
+                {cv.fullName || cv.title || "CV chưa đặt tên"}
               </p>
+              {cv.jobPosition && (
+                <p className="text-xs text-blue-500 font-medium mt-0.5 truncate">{cv.jobPosition}</p>
+              )}
               <p className="text-xs text-gray-400 mt-0.5">
                 Cập nhật {fmtDate(cv.updatedAt)}
               </p>
@@ -49,6 +102,15 @@ export const CvCard = ({
             </span>
           )}
         </div>
+
+        {/* Contact info */}
+        {(cv.phone || cv.contactEmail || cv.address) && (
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5">
+            {cv.phone && <span className="text-xs text-gray-500">📞 {cv.phone}</span>}
+            {cv.contactEmail && <span className="text-xs text-gray-500">✉️ {cv.contactEmail}</span>}
+            {cv.address && <span className="text-xs text-gray-500">📍 {cv.address}</span>}
+          </div>
+        )}
 
         {cv.fileOriginalName && (
           <div
@@ -80,8 +142,21 @@ export const CvCard = ({
         {cv.education && (
           <ExpandSection title="Học vấn">{cv.education}</ExpandSection>
         )}
-        {cv.experience && (
-          <ExpandSection title="Kinh nghiệm">{cv.experience}</ExpandSection>
+        {experienceTags.length > 0 && (
+          <ExpandSection title="Kinh nghiệm">
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {experienceTags.map((item, i) => (
+                <span key={i} className="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-medium">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </ExpandSection>
+        )}
+        {cv.projectExperience && (
+          <ExpandSection title="Dự án đã thực hiện">
+            <p className="text-xs text-gray-600 whitespace-pre-wrap mt-1">{cv.projectExperience}</p>
+          </ExpandSection>
         )}
       </div>
 
@@ -101,6 +176,37 @@ export const CvCard = ({
           </button>
         )}
         <div className="flex-1" />
+        {cv.filePath ? (
+          <button
+            type="button"
+            onClick={handleDownloadFile}
+            disabled={fileDownloading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-60"
+          >
+            {fileDownloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+            {fileDownloading ? "Đang tải..." : "Tải file"}
+          </button>
+        ) : (
+          <>
+            {downloadSuccess && (
+              <span className="text-xs text-green-600 font-medium">Đã tải CV</span>
+            )}
+            <button
+              onClick={handleExportPdf}
+              disabled={pdfLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-60"
+            >
+              {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />}
+              {pdfLoading ? "Đang tạo..." : "Tải PDF"}
+            </button>
+            <button
+              onClick={() => printTextCv(cv)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Printer size={13} /> In
+            </button>
+          </>
+        )}
         <button
           onClick={() => onDelete(cv.id)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 rounded-lg transition-colors"

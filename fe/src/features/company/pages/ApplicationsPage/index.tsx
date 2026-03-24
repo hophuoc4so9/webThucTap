@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import {
@@ -24,11 +24,8 @@ import { jobService } from "@/features/student/pages/JobsPage/services/jobServic
 import { applicationApi } from "@/api/api/services/application.api";
 import { cvApi } from "@/api/api/services/cv.api";
 import type { Job } from "@/features/student/pages/JobsPage/types";
-import type {
-  Application,
-  ApplicationStatus,
-  Cv,
-} from "@/features/student/types";
+import type { Application, ApplicationStatus, Cv } from "@/features/student/types";
+import { getCvPrintBodyHtml, VIEW_CV_STYLE } from "@/features/student/pages/CVPage/helpers";
 
 const API_BASE = "http://localhost:8080";
 
@@ -85,10 +82,22 @@ const parseJson = <T,>(s: string | undefined): T[] => {
 interface CvPanelProps {
   cvId: number;
   cachedCv?: Cv;
+  app: Application;
+  currentStatus: ApplicationStatus;
+  isUpdating: boolean;
+  onChangeStatus: (status: ApplicationStatus) => void;
   onClose: () => void;
 }
 
-function CvPanel({ cvId, cachedCv, onClose }: CvPanelProps) {
+function CvPanel({
+  cvId,
+  cachedCv,
+  app,
+  currentStatus,
+  isUpdating,
+  onChangeStatus,
+  onClose,
+}: CvPanelProps) {
   const [cv, setCv] = useState<Cv | null>(cachedCv ?? null);
   const [loading, setLoading] = useState(!cachedCv);
 
@@ -102,7 +111,7 @@ function CvPanel({ cvId, cachedCv, onClose }: CvPanelProps) {
   }, [cvId, cachedCv]);
 
   const skills = parseJson<string>(cv?.skills);
-  const fileUrl = cv?.filePath ? `${API_BASE}${cv.filePath}` : null;
+  const fileUrl = cv?.filePath ? `${API_BASE}/uploads/${cv.filePath.replace(/^.*[/\\]/, "")}` : null;
 
   return (
     <>
@@ -114,14 +123,54 @@ function CvPanel({ cvId, cachedCv, onClose }: CvPanelProps) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <FileText size={18} className="text-green-500" />
-            <h2 className="font-semibold text-gray-800">Chi tiết CV</h2>
+            <div>
+              <h2 className="font-semibold text-gray-800">Chi tiết CV</h2>
+              <p className="text-[11px] text-gray-500">
+                Ứng viên #{app.userId} · {app.jobTitle ?? `Job #${app.jobId}`}
+              </p>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex flex-col items-end gap-1">
+              <span
+                className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${STATUS_CONFIG[currentStatus].bg} ${STATUS_CONFIG[currentStatus].color}`}
+              >
+                {STATUS_CONFIG[currentStatus].label}
+              </span>
+              <div className="relative">
+                <select
+                  value={currentStatus}
+                  disabled={isUpdating}
+                  onChange={(e) =>
+                    onChangeStatus(e.target.value as ApplicationStatus)
+                  }
+                  className="text-[11px] border border-gray-200 rounded-md px-2 pr-5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-green-400 cursor-pointer appearance-none"
+                >
+                  {STATUS_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                {isUpdating ? (
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <div className="w-3 h-3 border border-green-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <ChevronDown
+                    size={10}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  />
+                )}
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
@@ -136,84 +185,76 @@ function CvPanel({ cvId, cachedCv, onClose }: CvPanelProps) {
             </div>
           ) : (
             <>
-              <div>
-                <h3 className="text-lg font-bold text-gray-800">
-                  {cv.title ?? "CV không tiêu đề"}
-                </h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Tạo: {fmtDate(cv.createdAt)}
-                </p>
+              {/* Header CV */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {cv.fullName || cv.title || "CV không tiêu đề"}
+                  </h3>
+                  {cv.jobPosition && (
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {cv.jobPosition}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Tạo: {fmtDate(cv.createdAt)}
+                  </p>
+                </div>
+                <div className="text-right text-[11px] text-gray-500 space-y-1">
+                  {cv.phone && <p>{cv.phone}</p>}
+                  {cv.contactEmail && <p>{cv.contactEmail}</p>}
+                  {cv.address && <p>{cv.address}</p>}
+                  {cv.linkedIn && (
+                    <p className="truncate max-w-[160px]">
+                      {cv.linkedIn}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {fileUrl && (
-                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                  <FileText size={20} className="text-blue-500 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-blue-800 truncate">
-                      {cv.fileOriginalName ?? "CV file"}
-                    </p>
-                    <p className="text-xs text-blue-500">{cv.fileMimeType}</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                    <FileText size={20} className="text-blue-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-blue-800 truncate">
+                        {cv.fileOriginalName ?? "CV file"}
+                      </p>
+                      <p className="text-xs text-blue-500">{cv.fileMimeType}</p>
+                    </div>
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={cv.fileOriginalName}
+                      className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors shrink-0"
+                    >
+                      <Download size={12} /> Tải xuống
+                    </a>
                   </div>
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={cv.fileOriginalName}
-                    className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors shrink-0"
-                  >
-                    <Download size={12} /> Tải xuống
-                  </a>
+                  {cv.fileMimeType?.includes("pdf") && (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden h-[480px] bg-gray-50">
+                      <iframe
+                        src={fileUrl}
+                        title={cv.fileOriginalName ?? "CV PDF"}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
-              {cv.summary && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Giới thiệu
-                  </h4>
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    {cv.summary}
-                  </p>
-                </div>
-              )}
-
-              {skills.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                    <Star size={11} /> Kỹ năng
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {skills.map((sk, i) => (
-                      <span
-                        key={i}
-                        className="text-xs px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full"
-                      >
-                        {sk}
-                      </span>
-                    ))}
+              {/* Nội dung CV dạng form (nếu có) – render lại theo layout PDF giống bên sinh viên */}
+              {(cv.summary || cv.skills || cv.education || cv.experience || cv.projectExperience) && (
+                <div className="border border-gray-200 rounded-2xl bg-gray-100/70 p-3">
+                  <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <style>{VIEW_CV_STYLE}</style>
+                    <div
+                      className="cv-view-document"
+                      // sử dụng cùng HTML body với view PDF bên sinh viên
+                      dangerouslySetInnerHTML={{ __html: getCvPrintBodyHtml(cv as Cv) }}
+                    />
                   </div>
-                </div>
-              )}
-
-              {cv.education && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                    <GraduationCap size={12} /> Học vấn
-                  </h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {cv.education}
-                  </p>
-                </div>
-              )}
-
-              {cv.experience && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                    <BookOpen size={12} /> Kinh nghiệm
-                  </h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {cv.experience}
-                  </p>
                 </div>
               )}
 
@@ -253,9 +294,7 @@ export function CompanyApplicationsPage() {
     msg: string;
     type: "success" | "error";
   } | null>(null);
-  const [cvPanel, setCvPanel] = useState<{ cvId: number; cv?: Cv } | null>(
-    null,
-  );
+  const [cvPanel, setCvPanel] = useState<{ cvId: number; cv?: Cv; app: Application } | null>(null);
   const [cvCache, setCvCache] = useState<Record<number, Cv>>({});
   const [noteModal, setNoteModal] = useState<{
     app: Application;
@@ -316,7 +355,7 @@ export function CompanyApplicationsPage() {
   const openCv = (app: Application) => {
     if (!app.cvId) return;
     const cached = cvCache[app.cvId];
-    setCvPanel({ cvId: app.cvId, cv: cached });
+    setCvPanel({ cvId: app.cvId, cv: cached, app });
     if (!cached) {
       cvApi
         .getById(app.cvId)
@@ -593,6 +632,10 @@ export function CompanyApplicationsPage() {
         <CvPanel
           cvId={cvPanel.cvId}
           cachedCv={cvPanel.cv}
+          app={cvPanel.app}
+          currentStatus={cvPanel.app.status}
+          isUpdating={updating === cvPanel.app.id}
+          onChangeStatus={(status) => handleStatusChange(cvPanel.app, status)}
           onClose={() => setCvPanel(null)}
         />
       )}

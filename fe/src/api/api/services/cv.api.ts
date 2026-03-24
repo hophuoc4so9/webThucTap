@@ -50,7 +50,7 @@ export const cvApi = {
     return res.data;
   },
 
-  /** Cập nhật thông tin text CV */
+  /** Cập nhật thông tin CV (text). BE trả về bản ghi đã lưu (có updatedAt). */
   update: async (id: number, dto: UpdateCvDto): Promise<Cv> => {
     const res = await axiosClient.put<Cv>(`cvs/${id}`, dto);
     return res.data;

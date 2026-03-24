@@ -6,6 +6,30 @@ export class CreateCvDto {
 
   @IsOptional()
   @IsString()
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  jobPosition?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  contactEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  linkedIn?: string;
+
+  @IsOptional()
+  @IsString()
   title?: string;
 
   @IsOptional()
@@ -24,6 +48,10 @@ export class CreateCvDto {
   @IsString()
   experience?: string;
 
+  @IsOptional()
+  @IsString()
+  projectExperience?: string;
+
   /** Đường dẫn file (điền bởi API Gateway sau khi upload) */
   @IsOptional()
   @IsString()
@@ -40,4 +68,9 @@ export class CreateCvDto {
   @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
+
+  /** 'form' | 'file' — mặc định 'form' nếu không gửi */
+  @IsOptional()
+  @IsString()
+  source?: "form" | "file";
 }

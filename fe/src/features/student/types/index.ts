@@ -2,38 +2,62 @@
 export interface Cv {
   id: number;
   userId: number;
+  fullName?: string;
+  jobPosition?: string;
+  phone?: string;
+  contactEmail?: string;
+  address?: string;
+  linkedIn?: string;
   title?: string;
   summary?: string;
   /** JSON string — array of skill strings */
   skills?: string;
-  /** JSON string — array of education objects */
+  /** Học vấn */
   education?: string;
-  /** JSON string — array of experience objects */
+  /** JSON string — array of experience tag strings */
   experience?: string;
+  /** Kinh nghiệm dự án — đoạn văn */
+  projectExperience?: string;
   filePath?: string;
   fileOriginalName?: string;
   fileMimeType?: string;
   isDefault: boolean;
+  /** 'form' = tạo từ form (sửa đầy đủ), 'file' = chỉ tải file (chỉ sửa tiêu đề/mặc định/file) */
+  source?: "form" | "file";
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateCvDto {
   userId: number;
+  fullName?: string;
+  jobPosition?: string;
+  phone?: string;
+  contactEmail?: string;
+  address?: string;
+  linkedIn?: string;
   title?: string;
   summary?: string;
   skills?: string;
   education?: string;
   experience?: string;
+  projectExperience?: string;
   isDefault?: boolean;
 }
 
 export interface UpdateCvDto {
+  fullName?: string;
+  jobPosition?: string;
+  phone?: string;
+  contactEmail?: string;
+  address?: string;
+  linkedIn?: string;
   title?: string;
   summary?: string;
   skills?: string;
   education?: string;
   experience?: string;
+  projectExperience?: string;
   isDefault?: boolean;
 }
 

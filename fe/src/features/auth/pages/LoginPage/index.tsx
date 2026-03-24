@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { GoogleLogin } from "@react-oauth/google";
 import SampleInput from "@/components/common/Input/SampleInput";
 import SampleButton from "@/components/common/Button/SampleButton";
 import SampleModal from "@/components/common/Modal/SampleModal";
 import { Footer } from "@/layouts/components/Footer/Footer";
-import { loginApi } from "@/api/api/services/auth.api";
+import { loginApi, googleLoginApi } from "@/api/api/services/auth.api";
 import { setCredentials } from "@/store/slices/authSlice";
 import type { AppDispatch } from "@/store";
 
@@ -22,6 +23,24 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) {
+      setError("Không nhận được credential từ Google");
+      return;
+    }
+    setError("");
+    try {
+      const res = await googleLoginApi(credentialResponse.credential);
+      const { accessToken, user } = res.data;
+      const role = (user.role as string).toUpperCase() as "STUDENT" | "COMPANY" | "ADMIN";
+      dispatch(setCredentials({ user: { id: String(user.id), email: user.email, role }, token: accessToken }));
+      navigate(ROLE_ROUTES[role] || "/login");
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg || "Đăng nhập Google thất bại");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +123,20 @@ const LoginPage: React.FC = () => {
             >
               Đăng nhập
             </SampleButton>
+            <div className="flex items-center my-4">
+              <div className="flex-1 border-t border-gray-300" />
+              <span className="px-3 text-gray-400 text-sm">hoặc</span>
+              <div className="flex-1 border-t border-gray-300" />
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Đăng nhập Google thất bại")}
+                text="signin_with"
+                shape="rectangular"
+                width="320"
+              />
+            </div>
             <div className="mt-6 text-center">
               <a
                 href="/register"

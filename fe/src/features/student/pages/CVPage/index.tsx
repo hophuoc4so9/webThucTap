@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { RootState } from "@/store";
 import { Plus, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { cvApi } from "@/api/api/services/cv.api";
 import type { Cv } from "@/features/student/types";
 import { CvCard } from "./CvCard";
-import { CvModal, type ModalMode } from "./CvModal";
 
 export const CVPage = () => {
   const user = useSelector((s: RootState) => s.auth.user);
   const userId = user ? Number(user.id) : 0;
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cvs, setCvs] = useState<Cv[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState<{
-    open: boolean;
-    mode: ModalMode;
-    cv?: Cv;
-  }>({ open: false, mode: "create-text" });
   const [toast, setToast] = useState("");
 
   const showToast = (msg: string) => {
@@ -32,6 +29,17 @@ export const CVPage = () => {
       .catch(() => showToast("Không thể tải danh sách CV"))
       .finally(() => setLoading(false));
   }, [userId]);
+
+  // Sau khi tạo/sửa CV từ form → cập nhật danh sách và thông báo
+  useEffect(() => {
+    const state = location.state as { saved?: boolean; savedType?: "create" | "update" } | null;
+    if (state?.saved) {
+      showToast(state.savedType === "update" ? "Đã cập nhật thông tin CV" : "Đã tạo CV thành công");
+      window.history.replaceState({}, "", window.location.pathname);
+      cvApi.getByUser(userId).then((data) => setCvs(data)).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Xác nhận xoá CV này?")) return;
@@ -59,19 +67,6 @@ export const CVPage = () => {
     }
   };
 
-  const handleSaved = (cv: Cv) => {
-    setModal({ open: false, mode: "create-text" });
-    setCvs((prev) => {
-      const idx = prev.findIndex((c) => c.id === cv.id);
-      const base =
-        idx >= 0 ? prev.map((c, i) => (i === idx ? cv : c)) : [cv, ...prev];
-      return cv.isDefault
-        ? base.map((c) => (c.id === cv.id ? c : { ...c, isDefault: false }))
-        : base;
-    });
-    showToast(modal.mode === "edit" ? "Đã cập nhật CV" : "Đã tạo CV mới");
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Toast */}
@@ -82,25 +77,25 @@ export const CVPage = () => {
       )}
 
       {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Hồ sơ của tôi</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900">Hồ sơ của tôi</h1>
+          <p className="text-sm text-gray-500 mt-1">
             {cvs.length} CV · Quản lý hồ sơ ứng tuyển
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setModal({ open: true, mode: "create-text" })}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+            onClick={() => navigate("/student/cv/new?tab=text")}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors shadow-sm"
           >
-            <Plus size={15} /> CV text
+            <Plus size={16} /> Tạo CV theo form
           </button>
           <button
-            onClick={() => setModal({ open: true, mode: "create-file" })}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors"
+            onClick={() => navigate("/student/cv/new?tab=file")}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm"
           >
-            <Upload size={15} /> Upload CV
+            <Upload size={16} /> Tải CV từ file
           </button>
         </div>
       </div>
@@ -128,24 +123,26 @@ export const CVPage = () => {
           ))}
         </div>
       ) : cvs.length === 0 ? (
-        <div className="text-center py-20">
-          <FileText size={48} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 font-medium">Bạn chưa có CV nào</p>
-          <p className="text-sm text-gray-400 mt-1">
-            Tạo CV text hoặc upload file để bắt đầu ứng tuyển
+        <div className="text-center py-16 px-6 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50">
+          <div className="w-16 h-16 rounded-2xl bg-gray-200/80 flex items-center justify-center mx-auto mb-4">
+            <FileText size={32} className="text-gray-500" />
+          </div>
+          <p className="text-gray-800 font-semibold text-lg">Bạn chưa có CV nào</p>
+          <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
+            Tạo CV theo form hoặc tải file CV có sẵn (PDF, DOC, DOCX) để bắt đầu ứng tuyển
           </p>
-          <div className="flex justify-center gap-3 mt-5">
+          <div className="flex flex-wrap justify-center gap-3 mt-6">
             <button
-              onClick={() => setModal({ open: true, mode: "create-text" })}
-              className="px-5 py-2 text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl"
+              onClick={() => navigate("/student/cv/new?tab=text")}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-white rounded-xl shadow-sm"
             >
-              ✏️ Tạo CV text
+              <Plus size={16} /> Tạo CV theo form
             </button>
             <button
-              onClick={() => setModal({ open: true, mode: "create-file" })}
-              className="px-5 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
+              onClick={() => navigate("/student/cv/new?tab=file")}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm"
             >
-              📎 Upload CV
+              <Upload size={16} /> Tải CV từ file
             </button>
           </div>
         </div>
@@ -157,21 +154,12 @@ export const CVPage = () => {
               cv={cv}
               onDelete={handleDelete}
               onSetDefault={handleSetDefault}
-              onEdit={(c) => setModal({ open: true, mode: "edit", cv: c })}
+              onEdit={(c) => navigate(`/student/cv/${c.id}/edit`)}
             />
           ))}
         </div>
       )}
 
-      {modal.open && (
-        <CvModal
-          mode={modal.mode}
-          initial={modal.cv}
-          userId={userId}
-          onClose={() => setModal({ open: false, mode: "create-text" })}
-          onSaved={handleSaved}
-        />
-      )}
     </div>
   );
 };

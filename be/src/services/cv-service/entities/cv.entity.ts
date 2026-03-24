@@ -17,6 +17,30 @@ export class Cv {
   @Column()
   userId: number;
 
+  /** Họ và tên đầy đủ */
+  @Column({ nullable: true })
+  fullName: string;
+
+  /** Vị trí / chức danh mong muốn */
+  @Column({ nullable: true })
+  jobPosition: string;
+
+  /** Số điện thoại liên hệ */
+  @Column({ nullable: true })
+  phone: string;
+
+  /** Email liên hệ */
+  @Column({ nullable: true })
+  contactEmail: string;
+
+  /** Địa chỉ / thành phố */
+  @Column({ nullable: true })
+  address: string;
+
+  /** LinkedIn URL */
+  @Column({ nullable: true })
+  linkedIn: string;
+
   /** Tiêu đề CV, vd: "CV Frontend Developer" */
   @Column({ nullable: true })
   title: string;
@@ -33,9 +57,13 @@ export class Cv {
   @Column({ type: "text", nullable: true })
   education: string;
 
-  /** Kinh nghiệm làm việc (JSON string) */
+  /** Kinh nghiệm làm việc — tags (JSON string) */
   @Column({ type: "text", nullable: true })
   experience: string;
+
+  /** Mô tả kinh nghiệm & dự án đã thực hiện (đoạn văn) */
+  @Column({ type: "text", nullable: true })
+  projectExperience: string;
 
   /** Đường dẫn file CV tải lên (nếu có) */
   @Column({ nullable: true })
@@ -52,6 +80,10 @@ export class Cv {
   /** Đánh dấu CV mặc định */
   @Column({ default: false })
   isDefault: boolean;
+
+  /** Nguồn: 'form' = tạo từ form hệ thống (được sửa đầy đủ), 'file' = chỉ tải file (không sửa nội dung) */
+  @Column({ type: "varchar", length: 10, default: "form" })
+  source: string;
 
   @CreateDateColumn()
   createdAt: Date;

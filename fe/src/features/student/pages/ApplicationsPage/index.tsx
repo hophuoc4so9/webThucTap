@@ -36,7 +36,7 @@ const fmtDateShort = (d: string) =>
 /* ── CV Modal ─────────────────────────────────────── */
 function CvModal({ cv, onClose }: { cv: Cv; onClose: () => void }) {
   const skills = parseJson<string>(cv.skills);
-  const fileUrl = cv.filePath ? `${API_BASE}${cv.filePath}` : null;
+  const fileUrl = cv.filePath ? `${API_BASE}/uploads/${cv.filePath.replace(/^.*[/\\]/, "")}` : null;
 
   return (
     <>

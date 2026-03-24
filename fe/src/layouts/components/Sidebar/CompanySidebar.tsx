@@ -1,4 +1,4 @@
-import { LayoutDashboard, Briefcase, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, Briefcase, FileText, Settings, FolderOpen } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const menuItems = [
@@ -8,6 +8,7 @@ const menuItems = [
     path: "/company/dashboard",
   },
   { icon: Briefcase, label: "Quản lý tin tuyển dụng", path: "/company/jobs" },
+  { icon: FolderOpen, label: "Đặt hàng dự án", path: "/company/projects" },
   { icon: FileText, label: "Ứng viên & Hồ sơ", path: "/company/applications" },
   { icon: Settings, label: "Cài đặt công ty", path: "/company/settings" },
 ];

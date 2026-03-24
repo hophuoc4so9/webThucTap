@@ -89,9 +89,10 @@ export class CvGatewayController {
         userId: +body.userId,
         title: body.title,
         isDefault: body.isDefault === "true",
-        filePath: file.path,
+        filePath: file.filename,
         fileOriginalName: file.originalname,
         fileMimeType: file.mimetype,
+        source: "file",
       };
       return await firstValueFrom(this.cvClient.send("cv_create", dto));
     } catch (err) {
@@ -115,7 +116,7 @@ export class CvGatewayController {
     try {
       const payload = {
         id,
-        filePath: file.path,
+        filePath: file.filename,
         fileOriginalName: file.originalname,
         fileMimeType: file.mimetype,
       };
@@ -155,11 +156,15 @@ export class CvGatewayController {
     }
   }
 
-  /** PUT /cvs/:id */
+  /**
+   * PUT /cvs/:id — Cập nhật thông tin CV (text).
+   * Body: fullName, jobPosition, phone, contactEmail, address, linkedIn, title, summary, skills, education, experience, projectExperience, isDefault
+   */
   @Put(":id")
   async update(@Param("id", ParseIntPipe) id: number, @Body() dto: any) {
     try {
-      return await firstValueFrom(this.cvClient.send("cv_update", { id, dto }));
+      const updated = await firstValueFrom(this.cvClient.send("cv_update", { id, dto }));
+      return updated;
     } catch (err) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};

@@ -17,6 +17,7 @@ import { User } from "../entities/user.entity";
       database: process.env.DB_DATABASE,
       autoLoadEntities: true,
       synchronize: true, // chỉ dùng cho dev!
+      extra: { max: 5, idleTimeoutMillis: 30000 },
     }),
     TypeOrmModule.forFeature([User]),
   ],

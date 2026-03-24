@@ -69,4 +69,9 @@ export class AuthController {
   getStats() {
     return this.authService.getStats();
   }
+
+  @MessagePattern("auth_google_login")
+  async googleLogin(@Payload() payload: { token: string }) {
+    return this.authService.googleLogin(payload.token);
+  }
 }

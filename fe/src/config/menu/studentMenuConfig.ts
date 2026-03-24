@@ -4,6 +4,7 @@ import {
   Briefcase,
   Building2,
   BookOpen,
+  FolderOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,6 +32,11 @@ export const studentMenuItems: MenuItem[] = [
     path: "/student/companies",
   },
   {
+    icon: FolderOpen,
+    label: "Dự án từ doanh nghiệp",
+    path: "/student/projects",
+  },
+  {
     icon: FileText,
     label: "Hồ sơ của tôi",
     path: "/student/cv",
@@ -40,15 +46,4 @@ export const studentMenuItems: MenuItem[] = [
     label: "Đã ứng tuyển",
     path: "/student/applications",
   },
-  // {
-  //   icon: MessageSquare,
-  //   label: 'Tin nhắn',
-  //   path: '/student/messages',
-  //   badge: 5
-  // },
-  // {
-  //   icon: Settings,
-  //   label: 'Cài đặt',
-  //   path: '/student/settings'
-  // },
 ];

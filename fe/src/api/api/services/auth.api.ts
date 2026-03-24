@@ -24,3 +24,7 @@ export const registerApi = async (data: {
 }) => {
   return axiosClient.post("/auth/register", data);
 };
+
+export const googleLoginApi = async (token: string) => {
+  return axiosClient.post("/auth/google", { token });
+};

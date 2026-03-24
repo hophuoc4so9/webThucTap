@@ -7,6 +7,8 @@ import { CompanyController } from "./controller/company.controller";
 import { CvGatewayController } from "./controller/cv.controller";
 import { ApplicationGatewayController } from "./controller/application.controller";
 import { UserController } from "./controller/user.controller";
+import { ProjectOrderGatewayController } from "./controller/project-order.controller";
+import { UploadsController } from "./controller/uploads.controller";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 
 @Module({
@@ -51,6 +53,8 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
     CvGatewayController,
     ApplicationGatewayController,
     UserController,
+    ProjectOrderGatewayController,
+    UploadsController,
   ],
 })
 export class ApiGatewayModule {}

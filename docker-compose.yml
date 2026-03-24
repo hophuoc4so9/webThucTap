@@ -14,7 +14,7 @@ services:
       redis:
         condition: service_started
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - uploads:/uploads
     networks: [be]
@@ -27,11 +27,13 @@ services:
     restart: unless-stopped
     env_file:
       - ./be/src/services/auth-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation"
     depends_on:
       postgres-auth:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks: [be]
 
   job-service:
@@ -42,11 +44,13 @@ services:
     restart: unless-stopped
     env_file:
       - ./be/src/services/job-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation"
     depends_on:
       postgres-job:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks: [be]
 
   redis:
@@ -62,6 +66,12 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
     networks: [be]
 
   postgres-auth:
@@ -110,11 +120,13 @@ services:
     restart: unless-stopped
     env_file:
       - ./be/src/services/cv-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation"
     depends_on:
       postgres-cv:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - uploads:/uploads
     networks: [be]

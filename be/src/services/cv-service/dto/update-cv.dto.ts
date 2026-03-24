@@ -3,6 +3,30 @@ import { IsOptional, IsString, IsBoolean } from "class-validator";
 export class UpdateCvDto {
   @IsOptional()
   @IsString()
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  jobPosition?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  contactEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  linkedIn?: string;
+
+  @IsOptional()
+  @IsString()
   title?: string;
 
   @IsOptional()
@@ -20,6 +44,10 @@ export class UpdateCvDto {
   @IsOptional()
   @IsString()
   experience?: string;
+
+  @IsOptional()
+  @IsString()
+  projectExperience?: string;
 
   @IsOptional()
   @IsString()

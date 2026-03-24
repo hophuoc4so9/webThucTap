@@ -57,4 +57,17 @@ export class AuthController {
       throw new HttpException({ success: false, message }, statusCode);
     }
   }
+
+  @Post("google")
+  async googleLogin(@Body() body: { token: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_google_login", { token: body.token }),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
 }
