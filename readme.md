@@ -16,4 +16,3 @@ Tạo file .env từ .env.example:
 
 FE: .env → thay VITE_GOOGLE_CLIENT_ID=<YOUR_CLIENT_ID>
 BE: be/.env → thay GOOGLE_CLIENT_ID=<YOUR_CLIENT_ID>
-Claude Sonnet 4.6 • 1x
