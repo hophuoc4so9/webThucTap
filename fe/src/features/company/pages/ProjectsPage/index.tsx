@@ -17,6 +17,10 @@ import {
   projectOrderApi,
   type ProjectOrder,
 } from "@/api/api/services/project-order.api";
+import { AppPagination } from "@/components/common/AppPagination";
+import { formatDateDisplay } from "@/utils/date";
+
+const DEFAULT_PAGE_SIZE = 12;
 
 const STATUS_CONFIG: Record<
   ProjectOrder["status"],
@@ -30,10 +34,17 @@ const STATUS_CONFIG: Record<
 
 const parseTags = (s?: string): string[] => {
   if (!s) return [];
-  try { return JSON.parse(s) as string[]; } catch { return []; }
+  try {
+    return JSON.parse(s) as string[];
+  } catch {
+    return [];
+  }
 };
 
-interface Toast { message: string; type: "success" | "error" }
+interface Toast {
+  message: string;
+  type: "success" | "error";
+}
 
 export function CompanyProjectsPage() {
   const navigate = useNavigate();
@@ -42,9 +53,14 @@ export function CompanyProjectsPage() {
   const [projects, setProjects] = useState<ProjectOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<ProjectOrder["status"] | "">("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState(0);
   const [toast, setToast] = useState<Toast | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProjectOrder | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   const showToast = (message: string, type: Toast["type"] = "success") => {
     setToast({ message, type });
@@ -58,17 +74,26 @@ export function CompanyProjectsPage() {
       const res = await projectOrderApi.findAll({
         companyId: +user.id,
         status: statusFilter || undefined,
-        limit: 100,
+        page,
+        limit,
       });
       setProjects(res.data ?? []);
+      setTotal(res.total ?? 0);
     } catch {
       showToast("Không thể tải danh sách dự án.", "error");
     } finally {
       setLoading(false);
     }
-  }, [user?.id, statusFilter]);
+  }, [user?.id, statusFilter, page, limit]);
 
-  useEffect(() => { fetchProjects(); }, [fetchProjects]);
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const handlePageSizeChange = (value: number) => {
+    setLimit(value);
+    setPage(1);
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -88,7 +113,6 @@ export function CompanyProjectsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-5">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-800">Đặt hàng dự án</h1>
@@ -114,22 +138,25 @@ export function CompanyProjectsPage() {
           </div>
         </div>
 
-        {/* Filter by status */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-500">Lọc:</span>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter((e.target.value || "") as ProjectOrder["status"] | "")}
+            onChange={(e) => {
+              setStatusFilter((e.target.value || "") as ProjectOrder["status"] | "");
+              setPage(1);
+            }}
             className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-indigo-300"
           >
             <option value="">Tất cả</option>
             {(["open", "in_progress", "closed", "cancelled"] as ProjectOrder["status"][]).map((s) => (
-              <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+              <option key={s} value={s}>
+                {STATUS_CONFIG[s].label}
+              </option>
             ))}
           </select>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {(["open", "in_progress", "closed", "cancelled"] as ProjectOrder["status"][]).map((s) => {
             const count = projects.filter((p) => p.status === s).length;
@@ -138,7 +165,10 @@ export function CompanyProjectsPage() {
               <button
                 key={s}
                 type="button"
-                onClick={() => setStatusFilter(statusFilter === s ? "" : s)}
+                onClick={() => {
+                  setStatusFilter(statusFilter === s ? "" : s);
+                  setPage(1);
+                }}
                 className={`rounded-xl border px-4 py-3 text-left transition-colors hover:opacity-90 ${cfg.bg} ${statusFilter === s ? "ring-2 ring-indigo-400" : ""}`}
               >
                 <p className={`text-xl font-bold ${cfg.color}`}>{count}</p>
@@ -148,7 +178,6 @@ export function CompanyProjectsPage() {
           })}
         </div>
 
-        {/* List */}
         {loading ? (
           <div className="flex justify-center py-16">
             <RefreshCw size={28} className="animate-spin text-gray-400" />
@@ -173,9 +202,7 @@ export function CompanyProjectsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-gray-800 truncate">
-                          {project.title}
-                        </h3>
+                        <h3 className="font-semibold text-gray-800 truncate">{project.title}</h3>
                         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${cfg.bg} ${cfg.color}`}>
                           {cfg.label}
                         </span>
@@ -193,7 +220,7 @@ export function CompanyProjectsPage() {
                         )}
                         {project.deadline && (
                           <span className="flex items-center gap-1">
-                            <Calendar size={12} /> {project.deadline}
+                            <Calendar size={12} /> {formatDateDisplay(project.deadline)}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
@@ -206,14 +233,16 @@ export function CompanyProjectsPage() {
                       {techTags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {techTags.map((t) => (
-                            <span key={t} className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">
+                            <span
+                              key={t}
+                              className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full"
+                            >
                               {t}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                    {/* Actions */}
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => navigate(`/company/projects/${project.id}/applicants`)}
@@ -243,9 +272,19 @@ export function CompanyProjectsPage() {
             })}
           </div>
         )}
+
+        <AppPagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={handlePageSizeChange}
+          pageSizeOptions={[12, 24, 48]}
+          activeLinkClassName="!bg-green-600 !text-white !border-green-600"
+        />
       </div>
 
-      {/* Delete Confirm Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
@@ -275,9 +314,10 @@ export function CompanyProjectsPage() {
         </div>
       )}
 
-      {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === "success" ? "bg-green-600" : "bg-red-500"}`}>
+        <div
+          className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === "success" ? "bg-green-600" : "bg-red-500"}`}
+        >
           {toast.message}
         </div>
       )}

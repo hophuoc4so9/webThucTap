@@ -7,8 +7,6 @@ import {
   CheckCircle2,
   Clock,
   DollarSign,
-  GraduationCap,
-  BookOpen,
   Users,
   Briefcase,
 } from "lucide-react";
@@ -18,7 +16,8 @@ import { cvApi } from "@/api/api/services/cv.api";
 import { applicationApi } from "@/api/api/services/application.api";
 import type { Job } from "../types";
 import type { Company } from "@/features/company/types";
-import type { Cv } from "@/features/student/types";
+import type { ApplicationFitResponse, Cv } from "@/features/student/types";
+import { formatDateDisplay } from "@/utils/date";
 
 import { JobHeader } from "./components/JobHeader";
 import { JobMetaInfo } from "./components/JobMetaInfo";
@@ -54,6 +53,9 @@ export const JobDetailPage = () => {
   const [applying, setApplying] = useState(false);
   const [applyError, setApplyError] = useState("");
   const [applySuccess, setApplySuccess] = useState(false);
+  const [fitPreview, setFitPreview] = useState<ApplicationFitResponse | null>(null);
+  const [fitAnalyzing, setFitAnalyzing] = useState(false);
+  const [fitError, setFitError] = useState("");
 
   /* Fetch job + company */
   useEffect(() => {
@@ -101,6 +103,40 @@ export const JobDetailPage = () => {
       cancelled = true;
     };
   }, [id, userId]); // eslint-disable-line
+
+  useEffect(() => {
+    if (!applyOpen || !job?.id || !userId || selectedCvId === "") {
+      setFitPreview(null);
+      setFitError("");
+      setFitAnalyzing(false);
+      return;
+    }
+
+    let cancelled = false;
+    setFitAnalyzing(true);
+    setFitError("");
+    jobService
+      .fitCheck(job.id, { cvId: selectedCvId, userId })
+      .then((result) => {
+        if (!cancelled) setFitPreview(result);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setFitPreview(null);
+          setFitError(
+            (error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+              "Không thể so khớp CV với công việc lúc này",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFitAnalyzing(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyOpen, job?.id, selectedCvId, userId]);
 
   const handleApply = async () => {
     if (!job || !userId) return;
@@ -160,10 +196,8 @@ export const JobDetailPage = () => {
   const resolvedCompany = job.companyRef ?? company;
 
   const metaItems = [
-    { icon: Clock, label: "Hạn nộp", value: job.deadline },
+    { icon: Clock, label: "Hạn nộp", value: job.deadline ? formatDateDisplay(job.deadline) : null },
     { icon: DollarSign, label: "Mức lương", value: job.salary },
-    { icon: GraduationCap, label: "Kinh nghiệm", value: job.experience },
-    { icon: BookOpen, label: "Học vấn", value: job.degree },
     {
       icon: Users,
       label: "Số lượng",
@@ -290,6 +324,9 @@ export const JobDetailPage = () => {
           coverLetter={coverLetter}
           applying={applying}
           applyError={applyError}
+          fitPreview={fitPreview}
+          fitAnalyzing={fitAnalyzing}
+          fitError={fitError}
           onSelectCv={setSelectedCvId}
           onCoverLetterChange={setCoverLetter}
           onApply={handleApply}

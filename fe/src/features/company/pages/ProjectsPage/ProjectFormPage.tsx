@@ -7,6 +7,7 @@ import {
   projectOrderApi,
   type ProjectOrder,
 } from "@/api/api/services/project-order.api";
+import { toDateInputValue, toEndOfDayIso } from "@/utils/date";
 
 // ─── TagInput ────────────────────────────────────────────────────────────────
 interface TagInputProps {
@@ -88,7 +89,7 @@ export function ProjectFormPage() {
         setDescription(p.description ?? "");
         setRequirements(p.requirements ?? "");
         setBudget(p.budget ?? "");
-        setDeadline(p.deadline ?? "");
+        setDeadline(toDateInputValue(p.deadline));
         setMaxStudents(p.maxStudents ?? 1);
         setStatus(p.status);
         setTechTags(p.techStack ? JSON.parse(p.techStack) : []);
@@ -109,7 +110,7 @@ export function ProjectFormPage() {
       description: description.trim() || undefined,
       requirements: requirements.trim() || undefined,
       budget: budget.trim() || undefined,
-      deadline: deadline.trim() || undefined,
+      deadline: deadline.trim() ? toEndOfDayIso(deadline.trim()) : undefined,
       maxStudents,
       techStack: techTags.length > 0 ? JSON.stringify(techTags) : undefined,
       status,
@@ -251,9 +252,9 @@ export function ProjectFormPage() {
                 Thời hạn
               </label>
               <input
+                type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                placeholder="VD: 31/12/2025 hoặc 3 tháng"
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
               />
             </div>

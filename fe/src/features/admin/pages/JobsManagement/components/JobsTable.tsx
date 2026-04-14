@@ -10,6 +10,7 @@ import {
 import { StatusBadge } from "./StatusBadge";
 import { PAGE_SIZE } from "../constants";
 import type { Job } from "@/features/student/pages/JobsPage/types";
+import { formatDateDisplay } from "@/utils/date";
 
 interface JobsTableProps {
   jobs: Job[];
@@ -145,7 +146,7 @@ export function JobsTable({
                       size={11}
                       className="text-gray-400 flex-shrink-0"
                     />
-                    <span>{job.deadline}</span>
+                    <span>{formatDateDisplay(job.deadline)}</span>
                   </div>
                 ) : (
                   "—"

@@ -1,3 +1,13 @@
+export interface CvProjectItem {
+  name: string;
+  role: string;
+  description: string;
+  technologies: string[];
+  startDate?: string;
+  endDate?: string;
+  link?: string;
+}
+
 /* ── CV ─────────────────────────────────────────────────────── */
 export interface Cv {
   id: number;
@@ -16,8 +26,8 @@ export interface Cv {
   education?: string;
   /** JSON string — array of experience tag strings */
   experience?: string;
-  /** Kinh nghiệm dự án — đoạn văn */
-  projectExperience?: string;
+  /** JSON string — array of project objects */
+  projects?: string;
   filePath?: string;
   fileOriginalName?: string;
   fileMimeType?: string;
@@ -26,6 +36,13 @@ export interface Cv {
   source?: "form" | "file";
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CvListResponse {
+  data: Cv[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface CreateCvDto {
@@ -41,7 +58,7 @@ export interface CreateCvDto {
   skills?: string;
   education?: string;
   experience?: string;
-  projectExperience?: string;
+  projects?: string;
   isDefault?: boolean;
 }
 
@@ -57,8 +74,44 @@ export interface UpdateCvDto {
   skills?: string;
   education?: string;
   experience?: string;
-  projectExperience?: string;
+  projects?: string;
   isDefault?: boolean;
+}
+
+export type AiRecommendation =
+  | "use-current-cv"
+  | "revise-current-cv"
+  | "create-new-cv";
+
+export interface CvImprovementItem {
+  section: "summary" | "skills" | "experience" | "projects" | "general";
+  issue: string;
+  suggestion: string;
+  priority: "high" | "medium" | "low";
+}
+
+export interface CvSuggestionResponse {
+  cvId: number;
+  userId: number;
+  score: number;
+  summary: string;
+  strengths: string[];
+  improvements: CvImprovementItem[];
+  keywordsToAdd: string[];
+  recommendation: Exclude<AiRecommendation, "use-current-cv">;
+}
+
+export interface ApplicationFitResponse {
+  applicationId: number;
+  jobId: number;
+  cvId?: number;
+  fitScore: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  missingKeywords: string[];
+  recommendation: AiRecommendation;
+  explanation: string;
+  actionPlan: string[];
 }
 
 /* ── Application ────────────────────────────────────────────── */
@@ -95,6 +148,8 @@ export interface CreateApplicationDto {
 export interface ApplicationListResponse {
   data: Application[];
   total: number;
+  page: number;
+  limit: number;
 }
 
 export interface ApplicationQuery {

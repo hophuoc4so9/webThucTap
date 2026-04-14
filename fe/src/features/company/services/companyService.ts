@@ -2,10 +2,18 @@ import axiosClient from "@/api/api/clients/axiosClient";
 import type { CompanyListResponse, Company } from "../types";
 
 export const companyService = {
-  getCompanies: async (page = 1, limit = 20): Promise<CompanyListResponse> => {
-    const res = await axiosClient.get<CompanyListResponse>(
-      `companies?page=${page}&limit=${limit}`,
-    );
+  getCompanies: async (
+    page = 1,
+    limit = 20,
+    name?: string,
+  ): Promise<CompanyListResponse> => {
+    const res = await axiosClient.get<CompanyListResponse>("companies", {
+      params: {
+        page,
+        limit,
+        ...(name ? { name } : {}),
+      },
+    });
     return res.data;
   },
 

@@ -16,6 +16,7 @@ import { companyService } from "@/features/company/services/companyService";
 import { jobService } from "@/features/student/pages/JobsPage/services/jobService";
 import type { Company } from "@/features/company/types";
 import type { Job } from "@/features/student/pages/JobsPage/types";
+import { formatDateDisplay } from "@/utils/date";
 import { safeParse } from "./utils";
 import { InfoRow, WebsiteRow } from "./components/InfoRow";
 import { SocialIcon } from "./components/SocialIcon";
@@ -248,7 +249,7 @@ export const CompanyDetailPage = () => {
                                   {job.deadline && (
                                     <span className="text-xs text-gray-500 flex items-center gap-1">
                                       <span>⏰</span>
-                                      {job.deadline}
+                                      {formatDateDisplay(job.deadline)}
                                     </span>
                                   )}
                                 </div>

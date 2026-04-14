@@ -16,6 +16,8 @@ import { CompanyDetailPage } from "@/features/student/pages/CompanyDetailPage/in
 import { CVPage } from "@/features/student/pages/CVPage/index";
 import { CvFormPage } from "@/features/student/pages/CVPage/CvFormPage";
 import { ApplicationsPage } from "@/features/student/pages/ApplicationsPage/index";
+import { StudentProfilePage } from "@/features/student/pages/ProfilePage/index";
+import { StudentRecruiterPage } from "@/features/student/pages/RecruiterPage/index";
 
 // Student Project Pages
 import { StudentProjectsPage } from "@/features/student/pages/ProjectsPage/index";
@@ -74,6 +76,8 @@ export const router = createBrowserRouter([
       { path: "cv/new", element: <CvFormPage /> },
       { path: "cv/:id/edit", element: <CvFormPage /> },
       { path: "applications", element: <ApplicationsPage /> },
+      { path: "profile", element: <StudentProfilePage /> },
+      { path: "recruiter", element: <StudentRecruiterPage /> },
       { path: "projects", element: <StudentProjectsPage /> },
       { path: "projects/:id", element: <ProjectDetailPage /> },
       { path: "messages", element: <div>Messages</div> },

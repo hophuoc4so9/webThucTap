@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Building2, DollarSign, MapPin, Clock } from "lucide-react";
 import type { Job } from "../types";
+import { formatDateDisplay } from "@/utils/date";
 
 export function JobCard({ job }: { job: Job }) {
   const tags = (() => {
@@ -46,7 +47,7 @@ export function JobCard({ job }: { job: Job }) {
         {job.deadline && (
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Clock size={12} className="flex-shrink-0" />
-            <span>Hết hạn {job.deadline}</span>
+            <span>Hết hạn {formatDateDisplay(job.deadline)}</span>
           </div>
         )}
       </div>

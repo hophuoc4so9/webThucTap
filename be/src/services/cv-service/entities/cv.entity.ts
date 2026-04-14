@@ -61,9 +61,9 @@ export class Cv {
   @Column({ type: "text", nullable: true })
   experience: string;
 
-  /** Mô tả kinh nghiệm & dự án đã thực hiện (đoạn văn) */
+  /** Danh sách dự án (JSON string) */
   @Column({ type: "text", nullable: true })
-  projectExperience: string;
+  projects: string;
 
   /** Đường dẫn file CV tải lên (nếu có) */
   @Column({ nullable: true })

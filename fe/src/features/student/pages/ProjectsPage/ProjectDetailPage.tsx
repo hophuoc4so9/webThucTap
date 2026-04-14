@@ -16,6 +16,7 @@ import {
   type ProjectOrder,
   type ProjectApplication,
 } from "@/api/api/services/project-order.api";
+import { formatDateDisplay } from "@/utils/date";
 
 const parseTags = (s?: string): string[] => {
   if (!s) return [];
@@ -117,7 +118,7 @@ export function ProjectDetailPage() {
             )}
             {project.deadline && (
               <span className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full">
-                <Calendar size={13} /> Hạn: {project.deadline}
+                <Calendar size={13} /> Hạn: {formatDateDisplay(project.deadline)}
               </span>
             )}
             <span className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full">

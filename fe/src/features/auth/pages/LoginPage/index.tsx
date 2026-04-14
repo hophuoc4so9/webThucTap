@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
       const res = await googleLoginApi(credentialResponse.credential);
       const { accessToken, user } = res.data;
       const role = (user.role as string).toUpperCase() as "STUDENT" | "COMPANY" | "ADMIN";
-      dispatch(setCredentials({ user: { id: String(user.id), email: user.email, role }, token: accessToken }));
+      dispatch(setCredentials({ user: { id: String(user.id), email: user.email, role, name: user.name ?? null }, token: accessToken }));
       navigate(ROLE_ROUTES[role] || "/login");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -58,7 +58,7 @@ const LoginPage: React.FC = () => {
         | "ADMIN";
       dispatch(
         setCredentials({
-          user: { id: String(user.id), email: user.email, role },
+          user: { id: String(user.id), email: user.email, role, name: user.name ?? null },
           token: accessToken,
         }),
       );

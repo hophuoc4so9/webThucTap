@@ -8,7 +8,7 @@ async function bootstrap() {
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   });
-  await app.listen(8080);
-  console.log("API Gateway running on http://localhost:8080");
+  await app.listen(8082);
+  console.log("API Gateway running on http://localhost:8082");
 }
 bootstrap();

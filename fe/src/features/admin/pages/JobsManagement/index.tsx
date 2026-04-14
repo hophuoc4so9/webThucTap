@@ -93,9 +93,7 @@ export const JobsManagement = () => {
       <Pagination
         page={page}
         totalPages={totalPages}
-        total={total}
-        loading={loading}
-        goPage={goPage}
+        onPageChange={goPage}
       />
 
       <JobDetailDrawer job={previewJob} onClose={() => setPreviewJob(null)} />

@@ -1,4 +1,5 @@
 import axiosClient from "@/api/api/clients/axiosClient";
+import type { ApplicationFitResponse } from "@/features/student/types";
 import type { JobListResponse, JobQuery, Job } from "../types";
 
 export const jobService = {
@@ -36,6 +37,17 @@ export const jobService = {
 
   updateJob: async (id: string | number, dto: Partial<Job>): Promise<Job> => {
     const res = await axiosClient.put<Job>(`jobs/${id}`, dto);
+    return res.data;
+  },
+
+  fitCheck: async (
+    id: string | number,
+    payload: { cvId: number; userId?: number },
+  ): Promise<ApplicationFitResponse> => {
+    const res = await axiosClient.post<ApplicationFitResponse>(
+      `jobs/${id}/fit-check`,
+      payload,
+    );
     return res.data;
   },
 };

@@ -1,4 +1,4 @@
-import { Bell, Search, User, GraduationCap, LogOut } from "lucide-react";
+import { Search, User, GraduationCap, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/slices/authSlice";

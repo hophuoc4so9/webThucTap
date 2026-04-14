@@ -3,12 +3,12 @@ Script tạo tài khoản mặc định (admin, company, student) qua API Gatewa
 
 Cách dùng:
     python seed_accounts.py
-    python seed_accounts.py --url http://localhost:8080
+    python seed_accounts.py --url http://localhost:8082
 """
 import argparse
 import requests
 
-GATEWAY_URL = "http://localhost:8080"
+GATEWAY_URL = "http://localhost:8082"
 
 DEFAULT_ACCOUNTS = [
     {

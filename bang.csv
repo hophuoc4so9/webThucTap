@@ -1,0 +1,14 @@
+stt,tên,kiểu dữ liệu,mô tả
+1,id,number,ID tự tăng (Khóa chính)
+2,companyId,number,ID công ty đăng dự án
+3,companyName,text,Tên công ty đăng dự án
+4,title,text,Tiêu đề dự án / đơn hàng
+5,description,text,Mô tả yêu cầu dự án
+6,requirements,text,Yêu cầu kỹ năng cần thiết
+7,budget,text,Ngân sách dự kiến
+8,deadline,text,Thời hạn hoàn thành
+9,techStack,text,Danh sách công nghệ (JSON string)
+10,maxStudents,int,Số lượng sinh viên tối đa cho dự án
+11,status,enum,Trạng thái: OPEN | IN_PROGRESS | CLOSED | CANCELLED
+12,createdAt,date,Ngày đăng tin
+13,updatedAt,date,Ngày cập nhật gần nhất

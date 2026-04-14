@@ -1,39 +1,30 @@
 import { useState } from "react";
-import { FileText, Pencil, Star, StarOff, Trash2, Paperclip, Download, FileDown, Loader2, Printer } from "lucide-react";
+import { FileText, Pencil, Star, StarOff, Trash2, Paperclip, Download, FileDown, Loader2, Sparkles } from "lucide-react";
 import type { Cv } from "@/features/student/types";
-import { fmtDate, FILE_COLOR, fileExt, getCvPrintFullHtml, getCvExperiences, getCvSkills } from "./helpers";
+import { getCvFileUrl } from "@/api/api/clients/apiConfig";
+import { fmtDate, FILE_COLOR, fileExt, getCvExperiences, getCvProjects, getCvSkills } from "./helpers";
 import { exportCvToPdf } from "./cvPdfExport";
 import { SkillTag } from "./SkillTag";
 import { ExpandSection } from "./ExpandSection";
-
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined ?? "http://localhost:8080").replace(/\/$/, "");
-
-/** URL tải file CV (filePath có thể là "uuid.pdf" hoặc "/uploads/uuid.pdf") */
-const getCvFileUrl = (filePath: string | undefined) =>
-  filePath ? `${API_BASE}/uploads/${filePath.replace(/^.*[/\\]/, "")}` : null;
-
-const printTextCv = (cv: Cv) => {
-  const win = window.open("", "_blank");
-  if (win) {
-    win.document.write(getCvPrintFullHtml(cv));
-    win.document.close();
-    setTimeout(() => win.print(), 300);
-  }
-};
 
 export const CvCard = ({
   cv,
   onDelete,
   onSetDefault,
   onEdit,
+  onAnalyze,
+  analyzing,
 }: {
   cv: Cv;
   onDelete: (id: number) => void;
   onSetDefault: (id: number) => void;
   onEdit: (cv: Cv) => void;
+  onAnalyze: (id: number) => void;
+  analyzing?: boolean;
 }) => {
   const skills = getCvSkills(cv);
   const experienceTags = getCvExperiences(cv);
+  const projects = getCvProjects(cv);
   const ext = fileExt(cv.fileOriginalName);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [fileDownloading, setFileDownloading] = useState(false);
@@ -153,9 +144,31 @@ export const CvCard = ({
             </div>
           </ExpandSection>
         )}
-        {cv.projectExperience && (
+        {projects.length > 0 && (
           <ExpandSection title="Dự án đã thực hiện">
-            <p className="text-xs text-gray-600 whitespace-pre-wrap mt-1">{cv.projectExperience}</p>
+            <div className="space-y-2 mt-1">
+              {projects.slice(0, 3).map((project, idx) => (
+                <div key={idx} className="rounded-lg border border-gray-200 p-2.5 bg-gray-50">
+                  <p className="text-xs font-semibold text-gray-800">
+                    {project.name || "Dự án"}
+                    {project.role ? ` - ${project.role}` : ""}
+                  </p>
+                  {project.description && (
+                    <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">{project.description}</p>
+                  )}
+                  {(project.startDate || project.endDate) && (
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      {project.startDate || "?"} - {project.endDate || "Hiện tại"}
+                    </p>
+                  )}
+                </div>
+              ))}
+              {projects.length > 3 && (
+                <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                  +{projects.length - 3} dự án khác
+                </span>
+              )}
+            </div>
           </ExpandSection>
         )}
       </div>
@@ -166,6 +179,14 @@ export const CvCard = ({
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <Pencil size={13} /> Sửa
+        </button>
+        <button
+          onClick={() => onAnalyze(cv.id)}
+          disabled={analyzing}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-violet-700 hover:bg-violet-50 rounded-lg transition-colors disabled:opacity-60"
+        >
+          {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+          {analyzing ? "Đang phân tích..." : "AI góp ý"}
         </button>
         {!cv.isDefault && (
           <button
@@ -199,12 +220,7 @@ export const CvCard = ({
               {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />}
               {pdfLoading ? "Đang tạo..." : "Tải PDF"}
             </button>
-            <button
-              onClick={() => printTextCv(cv)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Printer size={13} /> In
-            </button>
+            
           </>
         )}
         <button

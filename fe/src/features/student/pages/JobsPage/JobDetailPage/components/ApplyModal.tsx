@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { X, AlertCircle, FileText, Send } from "lucide-react";
-import type { Cv } from "@/features/student/types";
+import { X, AlertCircle, FileText, Send, Sparkles, Loader2 } from "lucide-react";
+import type { ApplicationFitResponse, Cv } from "@/features/student/types";
 
 interface ApplyModalProps {
   jobTitle: string;
@@ -9,6 +9,9 @@ interface ApplyModalProps {
   coverLetter: string;
   applying: boolean;
   applyError: string;
+  fitPreview?: ApplicationFitResponse | null;
+  fitAnalyzing?: boolean;
+  fitError?: string;
   onSelectCv: (id: number | "") => void;
   onCoverLetterChange: (text: string) => void;
   onApply: () => void;
@@ -22,11 +25,20 @@ export function ApplyModal({
   coverLetter,
   applying,
   applyError,
+  fitPreview,
+  fitAnalyzing,
+  fitError,
   onSelectCv,
   onCoverLetterChange,
   onApply,
   onClose,
 }: ApplyModalProps) {
+  const recMap: Record<ApplicationFitResponse["recommendation"], string> = {
+    "use-current-cv": "Dùng CV hiện tại",
+    "revise-current-cv": "Nên sửa CV hiện tại",
+    "create-new-cv": "Nên tạo CV mới cho job này",
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
@@ -133,6 +145,53 @@ export function ApplyModal({
               </div>
             )}
           </div>
+
+          {selectedCvId !== "" && (
+            <div className="p-3 rounded-xl border border-violet-100 bg-violet-50/80">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles size={14} className="text-violet-600" />
+                <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+                  So khớp CV với công việc
+                </p>
+              </div>
+              {fitAnalyzing ? (
+                <div className="flex items-center gap-2 text-sm text-violet-700">
+                  <Loader2 size={14} className="animate-spin" /> Đang phân tích độ phù hợp...
+                </div>
+              ) : fitError ? (
+                <p className="text-sm text-red-600">{fitError}</p>
+              ) : fitPreview ? (
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-violet-700">Điểm phù hợp</p>
+                      <p className="text-2xl font-bold text-violet-800">{fitPreview.fitScore}/100</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-white border border-violet-200 text-xs font-semibold text-violet-700">
+                      {recMap[fitPreview.recommendation]}
+                    </span>
+                  </div>
+                  <p className="text-sm text-violet-800">{fitPreview.explanation}</p>
+                  {fitPreview.missingSkills.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-violet-700 mb-2">Thiếu kỹ năng / từ khóa</p>
+                      <div className="flex flex-wrap gap-2">
+                        {fitPreview.missingSkills.slice(0, 6).map((item) => (
+                          <span key={item} className="px-2.5 py-1 rounded-full bg-white border border-violet-200 text-[11px] text-violet-700">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-violet-700">
+                  Chọn một CV để hệ thống so khớp tự động trước khi gửi đơn.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Cover letter */}
           <div>

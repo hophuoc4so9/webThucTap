@@ -1,4 +1,4 @@
-import type { Cv } from "@/features/student/types";
+import type { Cv, CvProjectItem } from "@/features/student/types";
 
 export const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("vi-VN", {
@@ -35,6 +35,45 @@ export const getCvExperiences = (cv: Cv): string[] => {
   }
 };
 
+const normalizeProject = (raw: unknown): CvProjectItem | null => {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw as Record<string, unknown>;
+  const name = String(obj.name ?? "").trim();
+  const role = String(obj.role ?? "").trim();
+  const description = String(obj.description ?? "").trim();
+  const technologiesRaw = obj.technologies;
+  const technologies = Array.isArray(technologiesRaw)
+    ? technologiesRaw.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const startDate = String(obj.startDate ?? "").trim() || undefined;
+  const endDate = String(obj.endDate ?? "").trim() || undefined;
+  const link = String(obj.link ?? "").trim() || undefined;
+
+  if (!name && !role && !description && technologies.length === 0 && !startDate && !endDate && !link) {
+    return null;
+  }
+  return {
+    name,
+    role,
+    description,
+    technologies,
+    startDate,
+    endDate,
+    link,
+  };
+};
+
+/** Chuẩn bị mảng projects từ CV */
+export const getCvProjects = (cv: Cv): CvProjectItem[] => {
+  try {
+    const parsed = JSON.parse(cv.projects ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeProject).filter(Boolean) as CvProjectItem[];
+  } catch {
+    return [];
+  }
+};
+
 const escapeHtml = (s: string): string =>
   s
     .replace(/&/g, "&amp;")
@@ -46,6 +85,7 @@ const escapeHtml = (s: string): string =>
 export const getCvPrintBodyHtml = (cv: Cv): string => {
   const skills = getCvSkills(cv);
   const experiences = getCvExperiences(cv);
+  const projects = getCvProjects(cv);
   const rawName = cv.fullName || cv.title || "Hồ sơ xin việc";
   const name = escapeHtml(rawName).toUpperCase();
   const rawPosition = cv.jobPosition || "";
@@ -72,8 +112,25 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
   const expBody = experiences.length
     ? `<ul class="pdf-bullet-list">${experiences.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul>`
     : "";
-  const projectBody = cv.projectExperience
-    ? `<div class="pdf-pre">${escapeHtml(cv.projectExperience).replace(/\n/g, "<br>")}</div>`
+  const projectBody = projects.length
+    ? `<div>${projects
+        .map((p) => {
+          const heading = [p.name, p.role ? `(${p.role})` : ""].filter(Boolean).join(" ");
+          const date = p.startDate || p.endDate
+            ? `<p class="pdf-p"><strong>Thời gian:</strong> ${escapeHtml(p.startDate ?? "")} - ${escapeHtml(p.endDate ?? "Hiện tại")}</p>`
+            : "";
+          const tech = p.technologies.length
+            ? `<p class="pdf-p"><strong>Công nghệ:</strong> ${p.technologies.map((t) => escapeHtml(t)).join(", ")}</p>`
+            : "";
+          const link = p.link
+            ? `<p class="pdf-p"><strong>Link:</strong> ${escapeHtml(p.link)}</p>`
+            : "";
+          const desc = p.description
+            ? `<p class="pdf-p">${escapeHtml(p.description).replace(/\n/g, "<br>")}</p>`
+            : "";
+          return `<div class="pdf-project-item"><p class="pdf-p"><strong>${escapeHtml(heading || "Dự án")}</strong></p>${date}${tech}${link}${desc}</div>`;
+        })
+        .join("")}</div>`
     : "";
 
   return `
@@ -106,8 +163,8 @@ export const formStateToCv = (state: {
   skills: string[];
   education: string;
   experience: string[];
-  projectExperience: string;
-}): Pick<Cv, "fullName" | "jobPosition" | "phone" | "contactEmail" | "address" | "linkedIn" | "title" | "summary" | "skills" | "education" | "experience" | "projectExperience"> => ({
+  projects: CvProjectItem[];
+}): Pick<Cv, "fullName" | "jobPosition" | "phone" | "contactEmail" | "address" | "linkedIn" | "title" | "summary" | "skills" | "education" | "experience" | "projects"> => ({
   fullName: state.fullName,
   jobPosition: state.jobPosition,
   phone: state.phone,
@@ -119,7 +176,7 @@ export const formStateToCv = (state: {
   skills: JSON.stringify(state.skills),
   education: state.education,
   experience: JSON.stringify(state.experience),
-  projectExperience: state.projectExperience,
+  projects: JSON.stringify(state.projects),
 });
 
 /** Style chung cho khung xem CV (view + edit preview) — document, section gạch dưới */
@@ -136,6 +193,7 @@ export const VIEW_CV_STYLE = `
   .pdf-section-title { font-size: 11px; font-weight: 700; color: #000; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1.2px solid #000; display: block; }
   .pdf-section-body { font-size: 11px; color: #2d2d2d; line-height: 1.55; }
   .pdf-p { margin: 0 0 8px; line-height: 1.55; }
+  .pdf-project-item { margin-bottom: 10px; }
   .pdf-pre { white-space: pre-wrap; line-height: 1.55; margin: 0; }
   .pdf-bullet-list { list-style: none; padding-left: 0; margin: 0; }
   .pdf-bullet-list li { position: relative; padding-left: 14px; margin-bottom: 6px; line-height: 1.5; }
@@ -159,6 +217,7 @@ export const getCvPrintFullHtml = (cv: Cv): string => {
     .pdf-section-title{font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;padding-bottom:4px;border-bottom:1.2px solid #000;display:block;}
     .pdf-section-body{font-size:11px;color:#2d2d2d;line-height:1.55;}
     .pdf-p{margin:0 0 8px;line-height:1.55;}
+    .pdf-project-item{margin-bottom:10px;}
     .pdf-pre{white-space:pre-wrap;line-height:1.55;margin:0;}
     .pdf-bullet-list{list-style:none;padding-left:0;margin:0;}
     .pdf-bullet-list li{position:relative;padding-left:14px;margin-bottom:6px;line-height:1.5;}

@@ -50,7 +50,7 @@ export class CreateCvDto {
 
   @IsOptional()
   @IsString()
-  projectExperience?: string;
+  projects?: string;
 
   /** Đường dẫn file (điền bởi API Gateway sau khi upload) */
   @IsOptional()

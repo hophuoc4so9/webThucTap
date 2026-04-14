@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { ClientsModule, Transport } from "@nestjs/microservices";
 import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Cv } from "../entities/cv.entity";
@@ -7,6 +8,7 @@ import { CvController } from "../controllers/cv.controller";
 import { ApplicationController } from "../controllers/application.controller";
 import { CvService } from "../services/cv.service";
 import { ApplicationService } from "../services/application.service";
+import { GemmaService } from "../services/gemma.service";
 
 @Module({
   imports: [
@@ -23,8 +25,19 @@ import { ApplicationService } from "../services/application.service";
       extra: { max: 5, idleTimeoutMillis: 30000 },
     }),
     TypeOrmModule.forFeature([Cv, Application]),
+    ClientsModule.register([
+      {
+        name: "JOB_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL || "amqp://rabbitmq:5672"],
+          queue: "job_queue",
+          queueOptions: { durable: false },
+        },
+      },
+    ]),
   ],
   controllers: [CvController, ApplicationController],
-  providers: [CvService, ApplicationService],
+  providers: [CvService, ApplicationService, GemmaService],
 })
 export class CvModule {}

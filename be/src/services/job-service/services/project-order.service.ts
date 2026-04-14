@@ -34,7 +34,7 @@ export class ProjectOrderService {
     companyId?: number;
     page?: number;
     limit?: number;
-  }): Promise<{ data: ProjectOrder[]; total: number }> {
+  }): Promise<{ data: ProjectOrder[]; total: number; page: number; limit: number }> {
     const { status, companyId, page = 1, limit = 10 } = params;
     const qb = this.projectRepo
       .createQueryBuilder("po")
@@ -47,7 +47,7 @@ export class ProjectOrderService {
     qb.skip((page - 1) * limit).take(limit);
 
     const [data, total] = await qb.getManyAndCount();
-    return { data, total };
+    return { data, total, page, limit };
   }
 
   async findOne(id: number): Promise<ProjectOrder> {

@@ -4,7 +4,6 @@ import {
   MapPin,
   DollarSign,
   Clock,
-  GraduationCap,
   Users,
   Globe,
   ExternalLink,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 import type { Job } from "@/features/student/pages/JobsPage/types";
 import { StatusBadge } from "./StatusBadge";
+import { formatDateDisplay } from "@/utils/date";
 
 interface JobDetailDrawerProps {
   job: Job | null;
@@ -23,9 +23,7 @@ export function JobDetailDrawer({ job, onClose }: JobDetailDrawerProps) {
 
   const metaItems = [
     { icon: DollarSign, label: "Mức lương", value: job.salary },
-    { icon: Clock, label: "Hạn nộp", value: job.deadline },
-    { icon: GraduationCap, label: "Kinh nghiệm", value: job.experience },
-    { icon: Users, label: "Học vấn", value: job.degree },
+    { icon: Clock, label: "Hạn nộp", value: job.deadline ? formatDateDisplay(job.deadline) : undefined },
     { icon: Briefcase, label: "Loại công việc", value: job.jobType },
     {
       icon: Users,

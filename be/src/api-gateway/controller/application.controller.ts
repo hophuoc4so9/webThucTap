@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Delete,
   Body,
@@ -99,6 +100,27 @@ export class ApplicationGatewayController {
     }
   }
 
+  /** PUT /applications/:id/cv */
+  @Put(":id/cv")
+  async updateCv(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { cvId: number | null; userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("application_update_cv", {
+          id,
+          cvId: body?.cvId ?? null,
+          userId: body?.userId,
+        }),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
   /**
    * GET /applications/check?userId=&jobId=
    * Kiểm tra user đã ứng tuyển job chưa
@@ -111,6 +133,26 @@ export class ApplicationGatewayController {
     try {
       return await firstValueFrom(
         this.cvClient.send("application_check_applied", { userId, jobId }),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /applications/:id/fit-check */
+  @Post(":id/fit-check")
+  async fitCheck(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("application_analyze_fit", {
+          id,
+          userId: body?.userId,
+        }),
       );
     } catch (err) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =

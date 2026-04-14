@@ -16,7 +16,10 @@ import { firstValueFrom } from "rxjs";
 
 @Controller("jobs")
 export class JobController {
-  constructor(@Inject("JOB_SERVICE") private readonly jobClient: ClientProxy) {}
+  constructor(
+    @Inject("JOB_SERVICE") private readonly jobClient: ClientProxy,
+    @Inject("CV_SERVICE") private readonly cvClient: ClientProxy,
+  ) {}
 
   /** GET /jobs/ping */
   @Get("ping")
@@ -41,6 +44,27 @@ export class JobController {
   async findOne(@Param("id", ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(this.jobClient.send("job_find_one", { id }));
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /jobs/:id/fit-check */
+  @Post(":id/fit-check")
+  async fitCheck(
+    @Param("id", ParseIntPipe) jobId: number,
+    @Body() body: { cvId: number; userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("application_analyze_job_cv_fit", {
+          jobId,
+          cvId: body?.cvId,
+          userId: body?.userId,
+        }),
+      );
     } catch (err) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};

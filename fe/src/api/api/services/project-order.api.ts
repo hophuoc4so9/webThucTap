@@ -33,6 +33,8 @@ export interface ProjectApplication {
 export interface ProjectOrderListResponse {
   data: ProjectOrder[];
   total: number;
+  page: number;
+  limit: number;
 }
 
 export const projectOrderApi = {

@@ -1,5 +1,6 @@
 import { Search, Trash2, ShieldCheck, X } from "lucide-react";
 import { useUserManagement } from "../../hooks/useUserManagement";
+import { AppPagination } from "@/components/common/AppPagination";
 
 const ROLE_LABELS: Record<string, string> = {
   student: "Sinh viên",
@@ -141,27 +142,14 @@ const CompaniesManagement = () => {
       </div>
 
       {vm.totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">
-            Trang {vm.page} / {vm.totalPages} &nbsp;•&nbsp; {vm.total} kết quả
-          </span>
-          <div className="flex gap-1">
-            <button
-              disabled={vm.page <= 1}
-              onClick={() => vm.goPage(vm.page - 1)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
-            >
-              &laquo; Trước
-            </button>
-            <button
-              disabled={vm.page >= vm.totalPages}
-              onClick={() => vm.goPage(vm.page + 1)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
-            >
-              Sau &raquo;
-            </button>
-          </div>
-        </div>
+        <AppPagination
+          page={vm.page}
+          totalPages={vm.totalPages}
+          total={vm.total}
+          limit={vm.PAGE_SIZE}
+          onPageChange={vm.goPage}
+          activeLinkClassName="!bg-blue-600 !text-white !border-blue-600"
+        />
       )}
 
       {vm.deleteTarget && (

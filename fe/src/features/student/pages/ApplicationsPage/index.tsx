@@ -18,12 +18,14 @@ import {
   GraduationCap,
   BookOpen,
   AlertCircle,
+  Sparkles,
+  Pencil,
 } from "lucide-react";
 import { applicationApi } from "@/api/api/services/application.api";
 import { cvApi } from "@/api/api/services/cv.api";
-import type { Application, ApplicationStatus, Cv } from "@/features/student/types";
-
-const API_BASE = "http://localhost:8080";
+import type { Application, ApplicationFitResponse, ApplicationStatus, Cv } from "@/features/student/types";
+import { getCvFileUrl } from "@/api/api/clients/apiConfig";
+import { AppPagination } from "@/components/common/AppPagination";
 
 const parseJson = <T,>(s: string | undefined): T[] => {
   if (!s) return [];
@@ -36,7 +38,7 @@ const fmtDateShort = (d: string) =>
 /* ── CV Modal ─────────────────────────────────────── */
 function CvModal({ cv, onClose }: { cv: Cv; onClose: () => void }) {
   const skills = parseJson<string>(cv.skills);
-  const fileUrl = cv.filePath ? `${API_BASE}/uploads/${cv.filePath.replace(/^.*[/\\]/, "")}` : null;
+  const fileUrl = getCvFileUrl(cv.filePath);
 
   return (
     <>
@@ -131,6 +133,203 @@ function CvModal({ cv, onClose }: { cv: Cv; onClose: () => void }) {
   );
 }
 
+function FitModal({
+  result,
+  onClose,
+}: {
+  result: ApplicationFitResponse;
+  onClose: () => void;
+}) {
+  const recMap: Record<ApplicationFitResponse["recommendation"], string> = {
+    "use-current-cv": "Dùng CV hiện tại",
+    "revise-current-cv": "Nên sửa CV hiện tại",
+    "create-new-cv": "Nên tạo CV mới cho job này",
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-800">Đánh giá độ phù hợp CV</h2>
+            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="px-6 py-5 space-y-4">
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
+              <p className="text-xs text-blue-700">Điểm phù hợp</p>
+              <p className="text-2xl font-bold text-blue-800">{result.fitScore}/100</p>
+              <p className="text-sm text-blue-700 mt-1">{recMap[result.recommendation]}</p>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Giải thích</p>
+              <p className="text-sm text-gray-700">{result.explanation}</p>
+            </div>
+
+            {result.missingSkills.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Kỹ năng còn thiếu</p>
+                <div className="flex flex-wrap gap-2">
+                  {result.missingSkills.map((item) => (
+                    <span key={item} className="px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-xs border border-red-200">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {result.actionPlan.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Kế hoạch cải thiện</p>
+                <ul className="space-y-1.5">
+                  {result.actionPlan.map((item, idx) => (
+                    <li key={`${idx}-${item}`} className="text-sm text-gray-700">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function EditCvModal({
+  application,
+  userCvs,
+  selectedCvId,
+  saving,
+  onSelectCv,
+  onSave,
+  onSaveAndCheck,
+  onClose,
+}: {
+  application: Application;
+  userCvs: Cv[];
+  selectedCvId: number | "";
+  saving: boolean;
+  onSelectCv: (id: number | "") => void;
+  onSave: () => void;
+  onSaveAndCheck: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div>
+              <h2 className="font-semibold text-gray-800">Đổi CV đã nộp</h2>
+              <p className="text-xs text-gray-500 mt-0.5 truncate max-w-xs">
+                {application.jobTitle || `Việc làm #${application.jobId}`}
+              </p>
+            </div>
+            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+            <div className="p-3 rounded-xl bg-violet-50 border border-violet-100 text-sm text-violet-800">
+              Đổi CV hiện tại rồi kiểm tra lại độ phù hợp ngay nếu cần.
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+                Chọn CV mới
+              </label>
+              {userCvs.length === 0 ? (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-700">
+                  Bạn chưa có CV nào. Vui lòng tạo CV trước.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-300 transition-colors">
+                    <input
+                      type="radio"
+                      name="edit-cv"
+                      value=""
+                      checked={selectedCvId === ""}
+                      onChange={() => onSelectCv("")}
+                      className="accent-violet-500"
+                    />
+                    <span className="text-sm text-gray-600">
+                      Không đính kèm CV
+                    </span>
+                  </label>
+
+                  {userCvs.map((cv) => (
+                    <label
+                      key={cv.id}
+                      className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedCvId === cv.id
+                          ? "border-violet-400 bg-violet-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="edit-cv"
+                        value={cv.id}
+                        checked={selectedCvId === cv.id}
+                        onChange={() => onSelectCv(cv.id)}
+                        className="accent-violet-500"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-700 truncate">
+                          {cv.title || cv.fullName || `CV #${cv.id}`}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {cv.fileOriginalName || cv.jobPosition || "CV dạng form"}
+                        </p>
+                      </div>
+                      {cv.isDefault && (
+                        <span className="ml-auto flex-shrink-0 px-1.5 py-0.5 bg-violet-100 text-violet-700 text-[10px] font-bold rounded">
+                          Mặc định
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t px-6 py-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              Huỷ
+            </button>
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            >
+              {saving ? "Đang lưu..." : "Lưu CV mới"}
+            </button>
+            <button
+              onClick={onSaveAndCheck}
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            >
+              {saving ? "Đang kiểm tra..." : "Lưu và kiểm tra lại"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ── helpers ── */
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("vi-VN", {
@@ -180,10 +379,16 @@ const AppCard = ({
   app,
   onWithdraw,
   onViewCv,
+  onFitCheck,
+  onEditCv,
+  fitChecking,
 }: {
   app: Application;
   onWithdraw: (id: number) => void;
   onViewCv: (app: Application) => void;
+  onFitCheck: (id: number) => void;
+  onEditCv: (app: Application) => void;
+  fitChecking: boolean;
 }) => {
   const sc = STATUS_CONFIG[app.status] ?? STATUS_CONFIG.pending;
   const Icon = sc.icon;
@@ -236,15 +441,33 @@ const AppCard = ({
         </div>
       )}
 
-      {/* CV chip */}
-      {(app.cv || app.cvId) && (
+      {/* CV actions */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(app.cv || app.cvId) && (
+          <button
+            onClick={() => onViewCv(app)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-medium transition-colors"
+          >
+            <Eye size={12} /> Xem CV {app.cv?.title ? `– ${app.cv.title}` : app.cvId ? `#${app.cvId}` : ""}
+          </button>
+        )}
+        {(app.cv || app.cvId) && (
+          <button
+            onClick={() => onFitCheck(app.id)}
+            disabled={fitChecking}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-100 rounded-lg text-xs font-medium transition-colors disabled:opacity-60"
+          >
+            {fitChecking ? <span className="w-3.5 h-3.5 border-2 border-violet-700 border-t-transparent rounded-full animate-spin" /> : <Sparkles size={12} />}
+            {fitChecking ? "Đang phân tích..." : "So khớp CV-job"}
+          </button>
+        )}
         <button
-          onClick={() => onViewCv(app)}
-          className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-medium transition-colors"
+          onClick={() => onEditCv(app)}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-lg text-xs font-medium transition-colors"
         >
-          <Eye size={12} /> Xem CV {app.cv?.title ? `– ${app.cv.title}` : app.cvId ? `#${app.cvId}` : ""}
+          <Pencil size={12} /> {app.cv || app.cvId ? "Đổi CV" : "Gắn CV"}
         </button>
-      )}
+      </div>
 
       {/* Footer */}
       <div className="mt-4 flex items-center justify-between">
@@ -273,9 +496,17 @@ export const ApplicationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("all");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(6);
   const [toast, setToast] = useState("");
   const [cvModal, setCvModal] = useState<Cv | null>(null);
   const [cvLoading, setCvLoading] = useState(false);
+  const [userCvs, setUserCvs] = useState<Cv[]>([]);
+  const [fitCheckingId, setFitCheckingId] = useState<number | null>(null);
+  const [fitResult, setFitResult] = useState<ApplicationFitResponse | null>(null);
+  const [editApp, setEditApp] = useState<Application | null>(null);
+  const [selectedEditCvId, setSelectedEditCvId] = useState<number | "">("");
+  const [savingEditCv, setSavingEditCv] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -284,9 +515,11 @@ export const ApplicationsPage = () => {
 
   useEffect(() => {
     if (!userId) return;
-    applicationApi
-      .getAll({ userId })
-      .then((res) => setApps(res.data))
+    Promise.all([applicationApi.getAll({ userId }), cvApi.getByUser(userId)])
+      .then(([appsRes, cvs]) => {
+        setApps(appsRes.data);
+        setUserCvs(cvs);
+      })
       .catch(() => showToast("Không thể tải danh sách ứng tuyển"))
       .finally(() => setLoading(false));
   }, [userId]);
@@ -316,6 +549,57 @@ export const ApplicationsPage = () => {
     }
   };
 
+  const handleFitCheck = async (id: number) => {
+    if (!userId) return;
+    setFitCheckingId(id);
+    try {
+      const result = await applicationApi.fitCheck(id, userId);
+      setFitResult(result);
+    } catch (error) {
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Không thể phân tích độ phù hợp lúc này";
+      showToast(message);
+    } finally {
+      setFitCheckingId(null);
+    }
+  };
+
+  const openEditCvModal = (app: Application) => {
+    setEditApp(app);
+    setSelectedEditCvId(app.cvId ?? "");
+  };
+
+  const saveApplicationCv = async (checkAfterSave: boolean) => {
+    if (!editApp || !userId) return;
+    setSavingEditCv(true);
+    try {
+      const nextCvId = selectedEditCvId === "" ? null : selectedEditCvId;
+      const updated = await applicationApi.updateCv(editApp.id, {
+        cvId: nextCvId,
+        userId,
+      });
+      setApps((prev) =>
+        prev.map((item) =>
+          item.id === updated.id
+            ? { ...item, cvId: updated.cvId, cv: updated.cv }
+            : item,
+        ),
+      );
+      setEditApp(null);
+      showToast("Đã cập nhật CV của đơn ứng tuyển");
+
+      if (checkAfterSave && updated.cvId) {
+        const result = await applicationApi.fitCheck(updated.id, userId);
+        setFitResult(result);
+      }
+    } catch {
+      showToast("Không thể cập nhật CV của đơn ứng tuyển");
+    } finally {
+      setSavingEditCv(false);
+    }
+  };
+
   /* client-side filter */
   const filtered = apps.filter((a) => {
     const matchStatus = filter === "all" || a.status === filter;
@@ -327,16 +611,37 @@ export const ApplicationsPage = () => {
     return matchStatus && matchSearch;
   });
 
+  const paged = filtered.slice((page - 1) * limit, page * limit);
+  const pagedTotalPages = Math.max(1, Math.ceil(filtered.length / limit));
+
   /* counts per status */
   const counts = apps.reduce<Record<string, number>>((acc, a) => {
     acc[a.status] = (acc[a.status] ?? 0) + 1;
     return acc;
   }, {});
 
+  const handlePageSizeChange = (value: number) => {
+    setLimit(value);
+    setPage(1);
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* CV Modal */}
       {cvModal && <CvModal cv={cvModal} onClose={() => setCvModal(null)} />}
+      {fitResult && <FitModal result={fitResult} onClose={() => setFitResult(null)} />}
+      {editApp && (
+        <EditCvModal
+          application={editApp}
+          userCvs={userCvs}
+          selectedCvId={selectedEditCvId}
+          saving={savingEditCv}
+          onSelectCv={setSelectedEditCvId}
+          onSave={() => saveApplicationCv(false)}
+          onSaveAndCheck={() => saveApplicationCv(true)}
+          onClose={() => setEditApp(null)}
+        />
+      )}
 
       {/* CV loading overlay */}
       {cvLoading && (
@@ -372,7 +677,10 @@ export const ApplicationsPage = () => {
             return (
               <button
                 key={key}
-                onClick={() => setFilter(filter === key ? "all" : key)}
+                  onClick={() => {
+                    setFilter(filter === key ? "all" : key);
+                    setPage(1);
+                  }}
                 className={`rounded-xl p-3 text-left border transition-all ${filter === key ? "ring-2 ring-offset-1 ring-red-400" : ""} ${sc.color}`}
               >
                 <div className="flex items-center gap-1.5 mb-1">
@@ -405,7 +713,10 @@ export const ApplicationsPage = () => {
           {FILTER_TABS.map((t) => (
             <button
               key={t.key}
-              onClick={() => setFilter(t.key)}
+              onClick={() => {
+                setFilter(t.key);
+                setPage(1);
+              }}
               className={`flex-shrink-0 px-3 py-2 text-xs font-medium rounded-xl transition-colors ${filter === t.key ? "bg-red-500 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}
             >
               {t.label}
@@ -453,10 +764,31 @@ export const ApplicationsPage = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((app) => (
-            <AppCard key={app.id} app={app} onWithdraw={handleWithdraw} onViewCv={handleViewCv} />
+          {paged.map((app) => (
+            <AppCard
+              key={app.id}
+              app={app}
+              onWithdraw={handleWithdraw}
+              onViewCv={handleViewCv}
+              onFitCheck={handleFitCheck}
+              onEditCv={openEditCvModal}
+              fitChecking={fitCheckingId === app.id}
+            />
           ))}
         </div>
+      )}
+
+      {filtered.length > 0 && (
+        <AppPagination
+          page={page}
+          totalPages={pagedTotalPages}
+          total={filtered.length}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={handlePageSizeChange}
+          pageSizeOptions={[6, 12, 24]}
+          activeLinkClassName="!bg-red-500 !text-white !border-red-500"
+        />
       )}
     </div>
   );

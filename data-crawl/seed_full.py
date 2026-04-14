@@ -11,7 +11,7 @@ Thứ tự thực hiện:
 
 Cách dùng:
     python seed_full.py
-    python seed_full.py --url http://localhost:8080 --limit 1000 --batch 100 --file data_jobs.json
+    python seed_full.py --url http://localhost:8082 --limit 1000 --batch 100 --file data_jobs.json
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from datetime import date, timedelta
 import requests
 
 # ──────────────────────────────────────────────────────────────────────────────
-GATEWAY_URL = "http://localhost:8080"
+GATEWAY_URL = "http://localhost:8082"
 DATA_FILE   = os.path.join(os.path.dirname(__file__), "data_jobs.json")
 JOB_LIMIT   = 1000
 BATCH_SIZE  = 20

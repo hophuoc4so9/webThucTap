@@ -1,6 +1,7 @@
 import axiosClient from "../clients/axiosClient";
 import type {
   Application,
+  ApplicationFitResponse,
   ApplicationListResponse,
   ApplicationQuery,
   CreateApplicationDto,
@@ -56,6 +57,25 @@ export const applicationApi = {
     const res = await axiosClient.patch<Application>(
       `applications/${id}/status`,
       dto,
+    );
+    return res.data;
+  },
+
+  updateCv: async (
+    id: number,
+    payload: { cvId: number | null; userId?: number },
+  ): Promise<Application> => {
+    const res = await axiosClient.put<Application>(`applications/${id}/cv`, payload);
+    return res.data;
+  },
+
+  fitCheck: async (
+    id: number,
+    userId?: number,
+  ): Promise<ApplicationFitResponse> => {
+    const res = await axiosClient.post<ApplicationFitResponse>(
+      `applications/${id}/fit-check`,
+      { userId },
     );
     return res.data;
   },

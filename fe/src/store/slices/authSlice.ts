@@ -5,6 +5,10 @@ export interface User {
   id: string;
   email: string;
   role: "STUDENT" | "COMPANY" | "ADMIN";
+  name?: string | null;
+  recruiterStatus?: "none" | "pending" | "approved" | "rejected";
+  companyName?: string | null;
+  companyWebsite?: string | null;
 }
 
 interface AuthState {

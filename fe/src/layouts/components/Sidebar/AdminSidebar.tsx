@@ -1,20 +1,13 @@
 import {
   LayoutDashboard,
   Users,
-  Building2,
   Briefcase,
-  FileText,
-  BarChart3,
-  Settings,
-  Shield,
-  Bell,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/admin/dashboard" },
   { icon: Users, label: "Quản lý sinh viên", path: "/admin/students" },
-  { icon: Building2, label: "Quản lý doanh nghiệp", path: "/admin/companies" },
   { icon: Briefcase, label: "Quản lý tin tuyển dụng", path: "/admin/jobs" },
   // { icon: FileText, label: 'Quản lý thực tập', path: '/admin/internships' },
   // { icon: BarChart3, label: 'Báo cáo & Thống kê', path: '/admin/reports' },

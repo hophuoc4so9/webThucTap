@@ -1,4 +1,4 @@
-import { Bell, Plus, User, Building2, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/slices/authSlice";
@@ -17,8 +17,8 @@ export const CompanyHeader = () => {
   return (
     <div className="flex items-center justify-between px-6 py-4">
       <Link to="/company/dashboard" className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-          <Building2 className="w-6 h-6 text-white" />
+        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+          T
         </div>
         <div>
           <h1 className="font-bold text-lg text-gray-900">TDMU Jobs</h1>
@@ -45,7 +45,7 @@ export const CompanyHeader = () => {
             <User className="w-5 h-5 text-green-600" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-medium">{user?.email ?? "Công ty"}</p>
+            <p className="text-sm font-medium">{user?.companyName || user?.name || user?.email || "Công ty"}</p>
             <p className="text-xs text-gray-500">Nhà tuyển dụng</p>
           </div>
         </div>

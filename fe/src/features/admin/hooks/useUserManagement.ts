@@ -98,6 +98,32 @@ export function useUserManagement(defaultRole?: string) {
     }
   };
 
+  const handleApproveRecruiter = async (id: number) => {
+    setLoading(true);
+    try {
+      await userApi.approveRecruiter(id);
+      showToast("Đã duyệt nhà tuyển dụng");
+      fetch(page, email);
+    } catch {
+      showToast("Duyệt thất bại", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectRecruiter = async (id: number) => {
+    setLoading(true);
+    try {
+      await userApi.rejectRecruiter(id, "Từ chối bởi admin");
+      showToast("Đã từ chối nhà tuyển dụng");
+      fetch(page, email);
+    } catch {
+      showToast("Từ chối thất bại", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return {
@@ -119,6 +145,8 @@ export function useUserManagement(defaultRole?: string) {
     setRoleTarget,
     roleSaving,
     handleUpdateRole,
+    handleApproveRecruiter,
+    handleRejectRecruiter,
     toast,
     totalPages,
     PAGE_SIZE,

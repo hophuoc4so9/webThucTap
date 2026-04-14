@@ -1,0 +1,40 @@
+HỌ VÀ TÊN: Nguyễn Văn A
+VỊ TRÍ MONG MUỐN: Frontend Developer
+SỐ ĐIỆN THOẠI: 0901234567
+EMAIL: nguyenvana@example.com
+ĐỊA CHỈ: Thành phố Hồ Chí Minh
+LINKEDIN: https://www.linkedin.com/in/nguyenvana
+
+TÓM TẮT:
+Frontend developer có kinh nghiệm xây dựng giao diện web với React, TypeScript và Tailwind CSS. Có khả năng làm việc với API, tối ưu giao diện phản hồi và phối hợp nhóm để triển khai sản phẩm.
+
+KỸ NĂNG:
+- React
+- TypeScript
+- JavaScript
+- HTML
+- CSS
+- Tailwind CSS
+- REST API
+- Git
+
+KINH NGHIỆM:
+- Phát triển giao diện quản lý CV và ứng tuyển trong dự án web nội bộ.
+- Tích hợp API, xử lý form, modal, phân trang và trạng thái người dùng.
+- Tối ưu trải nghiệm người dùng trên desktop và mobile.
+
+DỰ ÁN:
+1. CV Management System
+- Xây dựng tính năng tạo, sửa, xóa CV.
+- Tích hợp tính năng AI góp ý CV và so khớp CV-job.
+- Công nghệ: React, TypeScript, NestJS, PostgreSQL.
+
+2. Job Application Portal
+- Xây dựng luồng ứng tuyển, đổi CV đã nộp và kiểm tra độ phù hợp.
+- Hiển thị trạng thái đơn ứng tuyển và danh sách CV đã tạo.
+- Công nghệ: React, Redux Toolkit, NestJS, RabbitMQ.
+
+HỌC VẤN:
+- Đại học Công nghệ Thông tin
+- Chuyên ngành: Công nghệ thông tin
+- Năm tốt nghiệp: 2026

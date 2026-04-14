@@ -3,45 +3,39 @@ import { Search, Building2 } from "lucide-react";
 import { companyService } from "@/features/company/services/companyService";
 import type { Company } from "@/features/company/types";
 import { CompanyCard } from "./components/CompanyCard";
+import { AppPagination } from "@/components/common/AppPagination";
 
-const PAGE_SIZE = 12;
+const DEFAULT_PAGE_SIZE = 12;
 
 export const CompaniesPage = () => {
-  const [all, setAll] = useState<Company[]>([]);
   const [results, setResults] = useState<Company[]>([]);
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const totalPages = Math.ceil(results.length / PAGE_SIZE);
-  const paged = results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(total / limit);
 
   useEffect(() => {
+    setLoading(true);
     companyService
-      .getCompanies(1, 500)
+      .getCompanies(page, limit, keyword.trim() || undefined)
       .then((res) => {
-        setAll(res.data);
         setResults(res.data);
+        setTotal(res.total ?? 0);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, keyword, limit]);
 
   const handleSearch = () => {
-    const q = keyword.trim().toLowerCase();
     setPage(1);
-    if (!q) {
-      setResults(all);
-      return;
-    }
-    setResults(
-      all.filter(
-        (c) =>
-          c.name?.toLowerCase().includes(q) ||
-          c.shortDescription?.toLowerCase().includes(q) ||
-          c.industry?.toLowerCase().includes(q),
-      ),
-    );
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setLimit(value);
+    setPage(1);
   };
 
   return (
@@ -88,7 +82,7 @@ export const CompaniesPage = () => {
         <p className="text-sm text-gray-500 mb-5">
           {loading
             ? "Đang tải..."
-            : `${results.length.toLocaleString()} công ty`}
+            : `${total.toLocaleString()} công ty`}
         </p>
 
         {loading ? (
@@ -100,7 +94,7 @@ export const CompaniesPage = () => {
               />
             ))}
           </div>
-        ) : paged.length === 0 ? (
+        ) : results.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <Building2 size={48} className="mx-auto mb-3 opacity-30" />
             <p>Không tìm thấy công ty phù hợp.</p>
@@ -108,46 +102,21 @@ export const CompaniesPage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {paged.map((c) => (
+              {results.map((c) => (
                 <CompanyCard key={c.id} company={c} />
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg border border-blue-200 text-sm disabled:opacity-40 hover:bg-blue-50"
-                >
-                  ←
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const start = Math.max(1, Math.min(page - 2, totalPages - 4));
-                  const pg = start + i;
-                  return (
-                    <button
-                      key={pg}
-                      onClick={() => setPage(pg)}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium border transition-colors ${
-                        pg === page
-                          ? "bg-blue-500 text-white border-blue-500"
-                          : "border-blue-200 text-gray-600 hover:bg-blue-50"
-                      }`}
-                    >
-                      {pg}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-blue-200 text-sm disabled:opacity-40 hover:bg-blue-50"
-                >
-                  →
-                </button>
-              </div>
-            )}
+            <AppPagination
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              limit={limit}
+              onPageChange={setPage}
+              onLimitChange={handlePageSizeChange}
+              pageSizeOptions={[12, 24, 48]}
+              activeLinkClassName="!bg-red-500 !text-white !border-red-500"
+            />
           </>
         )}
       </div>

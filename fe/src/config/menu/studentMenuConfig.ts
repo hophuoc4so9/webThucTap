@@ -46,4 +46,5 @@ export const studentMenuItems: MenuItem[] = [
     label: "Đã ứng tuyển",
     path: "/student/applications",
   },
+ 
 ];

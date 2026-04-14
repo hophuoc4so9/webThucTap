@@ -1,9 +1,10 @@
 import axios from "axios";
 import { store } from "@/store";
 import { logout } from "@/store/slices/authSlice";
+import { API_BASE } from "./apiConfig";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/",
+  baseURL: API_BASE,
 });
 
 axiosClient.interceptors.request.use((config) => {

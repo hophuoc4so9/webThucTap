@@ -130,12 +130,20 @@ export class CvGatewayController {
     }
   }
 
-  /** GET /cvs?userId=xxx — Lấy danh sách CV của user */
+  /** GET /cvs?userId=xxx&page=&limit= — Lấy danh sách CV của user */
   @Get()
-  async findByUser(@Query("userId", ParseIntPipe) userId: number) {
+  async findByUser(
+    @Query("userId", ParseIntPipe) userId: number,
+    @Query("page") page = 1,
+    @Query("limit") limit = 10,
+  ) {
     try {
       return await firstValueFrom(
-        this.cvClient.send("cv_find_by_user", { userId }),
+        this.cvClient.send("cv_find_by_user", {
+          userId,
+          page: +page,
+          limit: +limit,
+        }),
       );
     } catch (err) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
@@ -156,9 +164,23 @@ export class CvGatewayController {
     }
   }
 
+  /** POST /cvs/preview-suggestions */
+  @Post("preview-suggestions")
+  async previewSuggestions(@Body() body: any) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_suggest_draft_improvements", body),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
   /**
    * PUT /cvs/:id — Cập nhật thông tin CV (text).
-   * Body: fullName, jobPosition, phone, contactEmail, address, linkedIn, title, summary, skills, education, experience, projectExperience, isDefault
+  * Body: fullName, jobPosition, phone, contactEmail, address, linkedIn, title, summary, skills, education, experience, projects, isDefault
    */
   @Put(":id")
   async update(@Param("id", ParseIntPipe) id: number, @Body() dto: any) {
@@ -177,6 +199,26 @@ export class CvGatewayController {
   async remove(@Param("id", ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(this.cvClient.send("cv_remove", { id }));
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /cvs/:id/suggestions */
+  @Post(":id/suggestions")
+  async suggestImprovements(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_suggest_improvements", {
+          id,
+          userId: body?.userId,
+        }),
+      );
     } catch (err) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};

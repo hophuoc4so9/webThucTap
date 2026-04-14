@@ -1,9 +1,6 @@
 import {
-  Building2,
   Plus,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { useCompanyJobs } from "./hooks/useCompanyJobs";
 import { StatsRow } from "./components/StatsRow";
@@ -13,6 +10,7 @@ import { ConfirmModal } from "./components/ConfirmModal";
 import { JobDetailDrawer } from "./components/JobDetailDrawer";
 import { Toast } from "./components/Toast";
 import { PAGE_SIZE } from "./constants";
+import { AppPagination } from "@/components/common/AppPagination";
 
 export function JobsPage() {
   const h = useCompanyJobs();
@@ -75,45 +73,14 @@ export function JobsPage() {
               onCreateFirst={h.openCreate}
             />
 
-            {/* Pagination */}
-            {h.total > PAGE_SIZE && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-500">
-                <span>
-                  {(h.page - 1) * PAGE_SIZE + 1}–
-                  {Math.min(h.page * PAGE_SIZE, h.total)} / {h.total} tin
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => h.setPage((p) => Math.max(1, p - 1))}
-                    disabled={h.page === 1}
-                    className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  {Array.from({ length: h.totalPages }, (_, i) => i + 1)
-                    .filter((p) => Math.abs(p - h.page) <= 2)
-                    .map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => h.setPage(p)}
-                        className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors
-                          ${p === h.page ? "bg-red-500 text-white" : "hover:bg-gray-200 text-gray-600"}`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  <button
-                    onClick={() =>
-                      h.setPage((p) => Math.min(h.totalPages, p + 1))
-                    }
-                    disabled={h.page === h.totalPages}
-                    className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <AppPagination
+              page={h.page}
+              totalPages={h.totalPages}
+              total={h.total}
+              limit={PAGE_SIZE}
+              onPageChange={h.setPage}
+              activeLinkClassName="!bg-red-500 !text-white !border-red-500"
+            />
           </div>
         )}
       </div>

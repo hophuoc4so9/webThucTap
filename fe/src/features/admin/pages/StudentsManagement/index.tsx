@@ -1,5 +1,6 @@
 import { Search, Trash2, ShieldCheck, X } from "lucide-react";
 import { useUserManagement } from "../../hooks/useUserManagement";
+import { AppPagination } from "@/components/common/AppPagination";
 
 const ROLE_LABELS: Record<string, string> = {
   student: "Sinh viên",
@@ -11,6 +12,13 @@ const ROLE_BADGE: Record<string, string> = {
   student: "bg-blue-100 text-blue-700",
   company: "bg-green-100 text-green-700",
   admin: "bg-purple-100 text-purple-700",
+};
+
+const RECRUITER_BADGE: Record<string, string> = {
+  none: "bg-gray-100 text-gray-600",
+  pending: "bg-amber-100 text-amber-700",
+  approved: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-700",
 };
 
 const StudentsManagement = () => {
@@ -80,6 +88,9 @@ const StudentsManagement = () => {
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">
                 Vai trò
               </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">
+                Nhà tuyển dụng
+              </th>
               <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">
                 Hành động
               </th>
@@ -88,13 +99,13 @@ const StudentsManagement = () => {
           <tbody className="divide-y divide-gray-100">
             {vm.loading ? (
               <tr>
-                <td colSpan={4} className="text-center py-12 text-gray-400">
+                <td colSpan={5} className="text-center py-12 text-gray-400">
                   Đang tải...
                 </td>
               </tr>
             ) : vm.users.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center py-12 text-gray-400">
+                <td colSpan={5} className="text-center py-12 text-gray-400">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -115,8 +126,38 @@ const StudentsManagement = () => {
                       {ROLE_LABELS[u.role] ?? u.role}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="space-y-2">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${RECRUITER_BADGE[u.recruiterStatus ?? "none"]}`}
+                      >
+                        {u.recruiterStatus ?? "none"}
+                      </span>
+                      {u.companyName && (
+                        <p className="text-xs text-gray-500 truncate max-w-[180px]">{u.companyName}</p>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      {u.recruiterStatus === "pending" && (
+                        <>
+                          <button
+                            title="Duyệt nhà tuyển dụng"
+                            onClick={() => vm.handleApproveRecruiter(u.id)}
+                            className="px-2.5 py-1.5 rounded-md hover:bg-green-50 text-green-600 transition-colors text-xs font-medium"
+                          >
+                            Duyệt
+                          </button>
+                          <button
+                            title="Từ chối nhà tuyển dụng"
+                            onClick={() => vm.handleRejectRecruiter(u.id)}
+                            className="px-2.5 py-1.5 rounded-md hover:bg-red-50 text-red-600 transition-colors text-xs font-medium"
+                          >
+                            Từ chối
+                          </button>
+                        </>
+                      )}
                       <button
                         title="Đổi vai trò"
                         onClick={() => vm.setRoleTarget(u)}
@@ -141,27 +182,14 @@ const StudentsManagement = () => {
       </div>
 
       {vm.totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">
-            Trang {vm.page} / {vm.totalPages} &nbsp;•&nbsp; {vm.total} kết quả
-          </span>
-          <div className="flex gap-1">
-            <button
-              disabled={vm.page <= 1}
-              onClick={() => vm.goPage(vm.page - 1)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
-            >
-              &laquo; Trước
-            </button>
-            <button
-              disabled={vm.page >= vm.totalPages}
-              onClick={() => vm.goPage(vm.page + 1)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
-            >
-              Sau &raquo;
-            </button>
-          </div>
-        </div>
+        <AppPagination
+          page={vm.page}
+          totalPages={vm.totalPages}
+          total={vm.total}
+          limit={vm.PAGE_SIZE}
+          onPageChange={vm.goPage}
+          activeLinkClassName="!bg-blue-600 !text-white !border-blue-600"
+        />
       )}
 
       {vm.deleteTarget && (

@@ -6,13 +6,13 @@ import {
   DollarSign,
   Calendar,
   Users,
-  Clock,
   Save,
 } from "lucide-react";
 import type { Job } from "@/features/student/pages/JobsPage/types";
 import type { JobFormData } from "../types";
 import { EMPTY_FORM } from "../types";
 import { JOB_TYPES, INDUSTRIES } from "../constants";
+import { toDateInputValue, toEndOfDayIso } from "@/utils/date";
 
 interface JobModalProps {
   open: boolean;
@@ -34,7 +34,7 @@ export function JobModal({
         title: editJob.title ?? "",
         location: editJob.location ?? "",
         salary: editJob.salary ?? "",
-        deadline: editJob.deadline ?? "",
+        deadline: toDateInputValue(editJob.deadline),
         industry: editJob.industry ?? "",
         jobType: editJob.jobType ?? "Toàn thời gian",
         experience: editJob.experience ?? "",
@@ -93,7 +93,12 @@ export function JobModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (validate()) onSave(form);
+            if (validate()) {
+              onSave({
+                ...form,
+                deadline: toEndOfDayIso(form.deadline),
+              });
+            }
           }}
           className="p-6 space-y-5"
         >
@@ -167,10 +172,9 @@ export function JobModal({
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
                 <input
-                  type="text"
+                  type="date"
                   value={form.deadline}
                   onChange={set("deadline")}
-                  placeholder="dd/mm/yyyy"
                   className={`w-full pl-8 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300
                     ${errors.deadline ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
@@ -234,40 +238,6 @@ export function JobModal({
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
-
-          {/* Experience + Degree */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Kinh nghiệm
-              </label>
-              <div className="relative">
-                <Clock
-                  size={13}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
-                <input
-                  type="text"
-                  value={form.experience}
-                  onChange={set("experience")}
-                  placeholder="1 – 2 năm"
-                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Học vấn
-              </label>
-              <input
-                type="text"
-                value={form.degree}
-                onChange={set("degree")}
-                placeholder="Đại học"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300"
-              />
             </div>
           </div>
 

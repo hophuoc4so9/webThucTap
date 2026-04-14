@@ -1,5 +1,6 @@
 import {
   Controller,
+  Post,
   Get,
   Put,
   Delete,
@@ -48,6 +49,83 @@ export class UserController {
   async stats() {
     try {
       return await firstValueFrom(this.authClient.send("user_stats", {}));
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /users/:id */
+  @Get(":id")
+  async getById(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(this.authClient.send("user_get_by_id", { id }));
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /users/:id/profile */
+  @Put(":id/profile")
+  async updateProfile(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { name?: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.authClient.send("user_update_profile", { id, dto: body }),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /users/:id/recruiter-request */
+  @Post(":id/recruiter-request")
+  async requestRecruiter(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { companyName: string; companyWebsite?: string; note?: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.authClient.send("user_request_recruiter", { id, dto: body }),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /users/:id/recruiter-approve */
+  @Put(":id/recruiter-approve")
+  async approveRecruiter(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(
+        this.authClient.send("user_approve_recruiter", { id }),
+      );
+    } catch (err) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /users/:id/recruiter-reject */
+  @Put(":id/recruiter-reject")
+  async rejectRecruiter(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { reason?: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.authClient.send("user_reject_recruiter", { id, reason: body.reason }),
+      );
     } catch (err) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};

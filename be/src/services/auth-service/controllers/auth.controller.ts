@@ -3,6 +3,7 @@ import { MessagePattern, Payload } from "@nestjs/microservices";
 import { AuthService } from "../services/auth.service";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
+import { RecruiterRequestDto } from "../dto/recruiter-request.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -68,6 +69,31 @@ export class AuthController {
   @MessagePattern("user_stats")
   getStats() {
     return this.authService.getStats();
+  }
+
+  @MessagePattern("user_get_by_id")
+  getById(@Payload() payload: { id: number }) {
+    return this.authService.getUserById(payload.id);
+  }
+
+  @MessagePattern("user_update_profile")
+  updateProfile(@Payload() payload: { id: number; dto: { name?: string } }) {
+    return this.authService.updateUserProfile(payload.id, payload.dto);
+  }
+
+  @MessagePattern("user_request_recruiter")
+  requestRecruiter(@Payload() payload: { id: number; dto: RecruiterRequestDto }) {
+    return this.authService.requestRecruiter(payload.id, payload.dto);
+  }
+
+  @MessagePattern("user_approve_recruiter")
+  approveRecruiter(@Payload() payload: { id: number }) {
+    return this.authService.approveRecruiter(payload.id);
+  }
+
+  @MessagePattern("user_reject_recruiter")
+  rejectRecruiter(@Payload() payload: { id: number; reason?: string }) {
+    return this.authService.rejectRecruiter(payload.id, payload.reason);
   }
 
   @MessagePattern("auth_google_login")

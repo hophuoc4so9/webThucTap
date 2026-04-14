@@ -1,0 +1,41 @@
+TIN TUYỂN DỤNG 1
+VỊ TRÍ: Frontend Developer
+CÔNG TY: TechNova
+ĐỊA ĐIỂM: TP. Hồ Chí Minh
+MỨC LƯƠNG: 2 - 4 triệu
+MÔ TẢ:
+- Phát triển giao diện web bằng React, TypeScript và Tailwind CSS.
+- Làm việc với API, tối ưu trải nghiệm người dùng.
+- Phối hợp với backend và UI/UX để triển khai sản phẩm.
+YÊU CẦU:
+- Có kinh nghiệm React, TypeScript.
+- Biết REST API, Git, responsive design.
+- Ưu tiên có kinh nghiệm với Next.js và testing.
+
+TIN TUYỂN DỤNG 2
+VỊ TRÍ: Backend Developer
+CÔNG TY: CloudBridge
+ĐỊA ĐIỂM: Hà Nội
+MỨC LƯƠNG: 2 - 4 triệu
+MÔ TẢ:
+- Xây dựng API cho hệ thống quản lý người dùng và đơn hàng.
+- Thiết kế cơ sở dữ liệu, tối ưu truy vấn.
+- Tích hợp Redis, RabbitMQ và triển khai Docker.
+YÊU CẦU:
+- Có kinh nghiệm NestJS, Node.js, PostgreSQL.
+- Hiểu về message queue, cache và authentication.
+- Có khả năng viết code sạch, dễ bảo trì.
+
+TIN TUYỂN DỤNG 3
+VỊ TRÍ: Fullstack Developer
+CÔNG TY: NovaWorks
+ĐỊA ĐIỂM: Đà Nẵng
+MỨC LƯƠNG: 20 - 35 triệu
+MÔ TẢ:
+- Phát triển cả frontend và backend cho nền tảng tuyển dụng.
+- Xây dựng tính năng ứng tuyển, quản lý CV và phân quyền người dùng.
+- Tối ưu hiệu năng và trải nghiệm sử dụng trên web.
+YÊU CẦU:
+- Thành thạo React, TypeScript, NestJS.
+- Có kinh nghiệm làm việc với PostgreSQL, Redis, Docker.
+- Biết phân tích yêu cầu và phối hợp nhóm tốt.

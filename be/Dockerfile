@@ -26,15 +26,16 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Reuse dependencies already installed in build stage to avoid flaky network fetches
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
 
-# Install only production dependencies
-RUN npm install --omit=dev
+# Keep runtime image lean by removing dev-only dependencies without reinstalling
+RUN npm prune --omit=dev
 
 # Copy built files
 COPY --from=build /app/dist ./dist
 
-EXPOSE 8080
+EXPOSE 8082
 
 CMD ["node", "dist/main.js"]

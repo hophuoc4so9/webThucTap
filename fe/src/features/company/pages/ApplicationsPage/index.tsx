@@ -16,9 +16,6 @@ import {
   Eye,
   X,
   Download,
-  GraduationCap,
-  BookOpen,
-  Star,
 } from "lucide-react";
 import { jobService } from "@/features/student/pages/JobsPage/services/jobService";
 import { applicationApi } from "@/api/api/services/application.api";
@@ -26,8 +23,8 @@ import { cvApi } from "@/api/api/services/cv.api";
 import type { Job } from "@/features/student/pages/JobsPage/types";
 import type { Application, ApplicationStatus, Cv } from "@/features/student/types";
 import { getCvPrintBodyHtml, VIEW_CV_STYLE } from "@/features/student/pages/CVPage/helpers";
-
-const API_BASE = "http://localhost:8080";
+import { getCvFileUrl } from "@/api/api/clients/apiConfig";
+import { AppPagination } from "@/components/common/AppPagination";
 
 const STATUS_CONFIG: Record<
   ApplicationStatus,
@@ -111,7 +108,7 @@ function CvPanel({
   }, [cvId, cachedCv]);
 
   const skills = parseJson<string>(cv?.skills);
-  const fileUrl = cv?.filePath ? `${API_BASE}/uploads/${cv.filePath.replace(/^.*[/\\]/, "")}` : null;
+  const fileUrl = getCvFileUrl(cv?.filePath);
 
   return (
     <>
@@ -245,7 +242,7 @@ function CvPanel({
               )}
 
               {/* Nội dung CV dạng form (nếu có) – render lại theo layout PDF giống bên sinh viên */}
-              {(cv.summary || cv.skills || cv.education || cv.experience || cv.projectExperience) && (
+              {(cv.summary || cv.skills || cv.education || cv.experience || cv.projects) && (
                 <div className="border border-gray-200 rounded-2xl bg-gray-100/70 p-3">
                   <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                     <style>{VIEW_CV_STYLE}</style>
@@ -262,6 +259,7 @@ function CvPanel({
                 skills.length === 0 &&
                 !cv.education &&
                 !cv.experience &&
+                !cv.projects &&
                 !fileUrl && (
                   <p className="text-sm text-gray-400 text-center py-8">
                     CV chưa có nội dung
@@ -285,6 +283,8 @@ export function CompanyApplicationsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(8);
   const [selectedJobId, setSelectedJobId] = useState<number | "all">("all");
   const [filterStatus, setFilterStatus] = useState<ApplicationStatus | "all">(
     "all",
@@ -341,6 +341,7 @@ export function CompanyApplicationsPage() {
           new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime(),
       );
       setApps(merged);
+      setPage(1);
     } catch {
       showToast("Không thể tải dữ liệu.", "error");
     } finally {
@@ -409,8 +410,15 @@ export function CompanyApplicationsPage() {
     if (filterStatus !== "all" && a.status !== filterStatus) return false;
     return true;
   });
+  const paged = filtered.slice((page - 1) * limit, page * limit);
+  const pagedTotalPages = Math.max(1, Math.ceil(filtered.length / limit));
   const countOf = (s: ApplicationStatus) =>
     apps.filter((a) => a.status === s).length;
+
+  const handlePageSizeChange = (value: number) => {
+    setLimit(value);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -477,11 +485,12 @@ export function CompanyApplicationsPage() {
         <div className="flex flex-wrap gap-3">
           <select
             value={selectedJobId}
-            onChange={(e) =>
+            onChange={(e) => {
               setSelectedJobId(
                 e.target.value === "all" ? "all" : Number(e.target.value),
-              )
-            }
+              );
+              setPage(1);
+            }}
             className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"
           >
             <option value="all">Tất cả tin tuyển dụng ({jobs.length})</option>
@@ -493,23 +502,26 @@ export function CompanyApplicationsPage() {
           </select>
 
           <div className="flex flex-wrap gap-1 bg-white border border-gray-200 rounded-lg p-1">
-            {(
-              ["all", "pending", "reviewing", "accepted", "rejected"] as const
-            ).map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilterStatus(s)}
-                className={`text-xs px-3 py-1.5 rounded-md transition-colors font-medium ${
-                  filterStatus === s
-                    ? "bg-green-500 text-white"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {s === "all"
-                  ? `Tất cả (${apps.length})`
-                  : `${STATUS_CONFIG[s].label} (${countOf(s)})`}
-              </button>
-            ))}
+            {(["all", "pending", "reviewing", "accepted", "rejected"] as const).map(
+              (s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setFilterStatus(s);
+                    setPage(1);
+                  }}
+                  className={`text-xs px-3 py-1.5 rounded-md transition-colors font-medium ${
+                    filterStatus === s
+                      ? "bg-green-500 text-white"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {s === "all"
+                    ? `Tất cả (${apps.length})`
+                    : `${STATUS_CONFIG[s].label} (${countOf(s)})`}
+                </button>
+              ),
+            )}
           </div>
         </div>
 
@@ -526,7 +538,7 @@ export function CompanyApplicationsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filtered.map((app) => {
+            {paged.map((app) => {
               const cfg = STATUS_CONFIG[app.status];
               const isUpdating = updating === app.id;
               return (
@@ -550,10 +562,7 @@ export function CompanyApplicationsPage() {
 
                       {app.coverLetter && (
                         <p className="mt-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 line-clamp-3">
-                          <Mail
-                            size={12}
-                            className="inline mr-1 text-gray-400"
-                          />
+                          <Mail size={12} className="inline mr-1 text-gray-400" />
                           {app.coverLetter}
                         </p>
                       )}
@@ -625,6 +634,19 @@ export function CompanyApplicationsPage() {
               );
             })}
           </div>
+        )}
+
+        {filtered.length > 0 && (
+          <AppPagination
+            page={page}
+            totalPages={pagedTotalPages}
+            total={filtered.length}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={handlePageSizeChange}
+            pageSizeOptions={[8, 12, 24]}
+            activeLinkClassName="!bg-green-500 !text-white !border-green-500"
+          />
         )}
       </div>
 

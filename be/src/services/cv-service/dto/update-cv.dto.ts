@@ -47,7 +47,7 @@ export class UpdateCvDto {
 
   @IsOptional()
   @IsString()
-  projectExperience?: string;
+  projects?: string;
 
   @IsOptional()
   @IsString()

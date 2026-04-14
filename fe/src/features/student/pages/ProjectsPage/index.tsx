@@ -18,6 +18,10 @@ import {
   type ProjectOrder,
   type ProjectApplication,
 } from "@/api/api/services/project-order.api";
+import { AppPagination } from "@/components/common/AppPagination";
+import { formatDateDisplay } from "@/utils/date";
+
+const DEFAULT_PAGE_SIZE = 12;
 
 const parseTags = (s?: string): string[] => {
   if (!s) return [];
@@ -41,24 +45,35 @@ export function StudentProjectsPage() {
   const [myApplications, setMyApplications] = useState<ProjectApplication[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState(0);
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   const fetch = useCallback(async () => {
     setLoading(true);
     try {
       const [res, apps] = await Promise.all([
-        projectOrderApi.findAll({ status: "open", limit: 100 }),
+        projectOrderApi.findAll({ status: "open", page, limit }),
         user?.id ? projectOrderApi.getStudentApplications(+user.id) : Promise.resolve([]),
       ]);
       setProjects(res.data ?? []);
+      setTotal(res.total ?? 0);
       setMyApplications(apps ?? []);
     } catch {
       /* silent */
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, page, limit]);
 
   useEffect(() => { fetch(); }, [fetch]);
+
+  const handlePageSizeChange = (value: number) => {
+    setLimit(value);
+    setPage(1);
+  };
 
   const filtered = projects.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -162,7 +177,7 @@ export function StudentProjectsPage() {
                         )}
                         {project.deadline && (
                           <span className="flex items-center gap-1">
-                            <Calendar size={11} /> {project.deadline}
+                            <Calendar size={11} /> {formatDateDisplay(project.deadline)}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
@@ -191,6 +206,17 @@ export function StudentProjectsPage() {
             })}
           </div>
         )}
+
+        <AppPagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={handlePageSizeChange}
+          pageSizeOptions={[12, 24, 48]}
+          activeLinkClassName="!bg-indigo-500 !text-white !border-indigo-500"
+        />
       </div>
     </div>
   );

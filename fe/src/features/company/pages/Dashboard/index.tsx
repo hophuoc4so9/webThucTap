@@ -13,7 +13,6 @@ import {
   Plus,
   Eye,
   TrendingUp,
-  Building2,
 } from "lucide-react";
 import type { RootState } from "@/store";
 import { jobService } from "@/features/student/pages/JobsPage/services/jobService";
@@ -88,7 +87,6 @@ export function CompanyDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!email) return;
@@ -115,7 +113,6 @@ export function CompanyDashboard() {
         (a: Application) => myJobIds.has(a.jobId),
       );
       setApps(myApps);
-      setLastUpdated(new Date());
     } finally {
       setLoading(false);
     }

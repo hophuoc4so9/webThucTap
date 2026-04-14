@@ -25,8 +25,12 @@ export class CvController {
 
   /** Lấy danh sách CV của user */
   @MessagePattern("cv_find_by_user")
-  findByUser(@Payload() payload: { userId: number }) {
-    return this.cvService.findAllByUser(payload.userId);
+  findByUser(@Payload() payload: { userId: number; page?: number; limit?: number }) {
+    return this.cvService.findAllByUser(
+      payload.userId,
+      payload.page,
+      payload.limit,
+    );
   }
 
   /** Lấy chi tiết CV */
@@ -60,5 +64,33 @@ export class CvController {
   @MessagePattern("cv_remove")
   remove(@Payload() payload: { id: number }) {
     return this.cvService.remove(payload.id);
+  }
+
+  @MessagePattern("cv_suggest_improvements")
+  suggestImprovements(@Payload() payload: { id: number; userId?: number }) {
+    return this.cvService.suggestImprovements(payload.id, payload.userId);
+  }
+
+  @MessagePattern("cv_suggest_draft_improvements")
+  suggestDraftImprovements(
+    @Payload()
+    payload: {
+      userId: number;
+      fullName?: string;
+      jobPosition?: string;
+      phone?: string;
+      contactEmail?: string;
+      address?: string;
+      linkedIn?: string;
+      title?: string;
+      summary?: string;
+      skills?: string;
+      education?: string;
+      experience?: string;
+      projects?: string;
+      source?: "form" | "file";
+    },
+  ) {
+    return this.cvService.suggestDraftImprovements(payload);
   }
 }

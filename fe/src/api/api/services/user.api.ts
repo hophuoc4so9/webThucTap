@@ -4,6 +4,20 @@ export interface UserItem {
   id: number;
   email: string;
   role: "student" | "company" | "admin";
+  name?: string | null;
+  recruiterStatus?: "none" | "pending" | "approved" | "rejected";
+  companyName?: string | null;
+  companyWebsite?: string | null;
+}
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  role: "student" | "company" | "admin";
+  name?: string | null;
+  recruiterStatus?: "none" | "pending" | "approved" | "rejected";
+  companyName?: string | null;
+  companyWebsite?: string | null;
 }
 
 export interface UserListResponse {
@@ -42,6 +56,34 @@ export const userApi = {
 
   updateRole: async (id: number, role: string): Promise<UserItem> => {
     const res = await axiosClient.put<UserItem>(`users/${id}/role`, { role });
+    return res.data;
+  },
+
+  getById: async (id: number): Promise<UserProfile> => {
+    const res = await axiosClient.get<UserProfile>(`users/${id}`);
+    return res.data;
+  },
+
+  updateProfile: async (id: number, payload: { name?: string }): Promise<UserProfile> => {
+    const res = await axiosClient.put<UserProfile>(`users/${id}/profile`, payload);
+    return res.data;
+  },
+
+  requestRecruiter: async (
+    id: number,
+    payload: { companyName: string; companyWebsite?: string; note?: string },
+  ): Promise<UserProfile> => {
+    const res = await axiosClient.post<UserProfile>(`users/${id}/recruiter-request`, payload);
+    return res.data;
+  },
+
+  approveRecruiter: async (id: number): Promise<UserProfile> => {
+    const res = await axiosClient.put<UserProfile>(`users/${id}/recruiter-approve`);
+    return res.data;
+  },
+
+  rejectRecruiter: async (id: number, reason?: string): Promise<UserProfile> => {
+    const res = await axiosClient.put<UserProfile>(`users/${id}/recruiter-reject`, { reason });
     return res.data;
   },
 

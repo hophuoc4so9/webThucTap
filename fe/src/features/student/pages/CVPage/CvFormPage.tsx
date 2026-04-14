@@ -13,10 +13,50 @@ import {
   Loader2,
   ZoomIn,
   ZoomOut,
+  Sparkles,
 } from "lucide-react";
 import { cvApi } from "@/api/api/services/cv.api";
-import type { Cv, CreateCvDto, UpdateCvDto } from "@/features/student/types";
+import type { Cv, CreateCvDto, CvProjectItem, CvSuggestionResponse, CvImprovementItem, UpdateCvDto } from "@/features/student/types";
 import { VIEW_CV_STYLE } from "./helpers";
+import { toMonthDisplayValue, toMonthInputValue } from "@/utils/date";
+
+const makeEmptyProject = (): CvProjectItem => ({
+  name: "",
+  role: "",
+  description: "",
+  technologies: [],
+  startDate: "",
+  endDate: "",
+  link: "",
+});
+
+const parseProjectsFromValue = (raw: string | undefined): CvProjectItem[] => {
+  if (!raw) return [makeEmptyProject()];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [makeEmptyProject()];
+    const projects = parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const obj = item as Record<string, unknown>;
+        return {
+          name: String(obj.name ?? "").trim(),
+          role: String(obj.role ?? "").trim(),
+          description: String(obj.description ?? "").trim(),
+          technologies: Array.isArray(obj.technologies)
+            ? obj.technologies.map((t) => String(t).trim()).filter(Boolean)
+            : [],
+          startDate: toMonthInputValue(String(obj.startDate ?? "").trim()),
+          endDate: toMonthInputValue(String(obj.endDate ?? "").trim()),
+          link: String(obj.link ?? "").trim(),
+        };
+      })
+      .filter(Boolean) as CvProjectItem[];
+    return projects.length > 0 ? projects : [makeEmptyProject()];
+  } catch {
+    return [makeEmptyProject()];
+  }
+};
 
 /** Chuẩn hóa CV từ API — hỗ trợ cả camelCase và snake_case (backend có thể trả về khác nhau) */
 function normalizeCvFromApi(raw: Record<string, unknown>): Cv {
@@ -34,7 +74,7 @@ function normalizeCvFromApi(raw: Record<string, unknown>): Cv {
     skills: (raw.skills ?? raw.skills) as string | undefined,
     education: (raw.education ?? raw.education) as string | undefined,
     experience: (raw.experience ?? raw.experience) as string | undefined,
-    projectExperience: (raw.projectExperience ?? raw.project_experience) as string | undefined,
+    projects: (raw.projects ?? raw.projects) as string | undefined,
     filePath: (raw.filePath ?? raw.file_path) as string | undefined,
     fileOriginalName: (raw.fileOriginalName ?? raw.file_original_name) as string | undefined,
     fileMimeType: (raw.fileMimeType ?? raw.file_mime_type) as string | undefined,
@@ -156,16 +196,233 @@ export const CvFormPage = () => {
   const [skills, setSkills] = useState<string[]>([]);
   const [education, setEducation] = useState("");
   const [experience, setExperience] = useState<string[]>([]);
-  const [projectExperience, setProjectExperience] = useState("");
+  const [projects, setProjects] = useState<CvProjectItem[]>([makeEmptyProject()]);
   const [isDefault, setIsDefault] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [analysisResult, setAnalysisResult] = useState<CvSuggestionResponse | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [sidebarTab, setSidebarTab] = useState<"content" | "design">("content");
   const [zoom, setZoom] = useState(100);
   const [previewFont, setPreviewFont] = useState("Times New Roman");
+
+  const updateProject = <K extends keyof CvProjectItem>(
+    index: number,
+    key: K,
+    value: CvProjectItem[K],
+  ) => {
+    setProjects((prev) =>
+      prev.map((project, idx) =>
+        idx === index ? { ...project, [key]: value } : project,
+      ),
+    );
+  };
+
+  const addProject = () => {
+    setProjects((prev) => [...prev, makeEmptyProject()]);
+  };
+
+  const removeProject = (index: number) => {
+    setProjects((prev) => {
+      if (prev.length === 1) return [makeEmptyProject()];
+      return prev.filter((_, idx) => idx !== index);
+    });
+  };
+
+  const handleAnalyzeDraft = async () => {
+    if (!userId) return;
+    setAnalysisLoading(true);
+    try {
+      const result = await cvApi.previewSuggestions({
+        userId,
+        fullName,
+        jobPosition,
+        phone,
+        contactEmail,
+        address,
+        linkedIn,
+        title,
+        summary,
+        skills: JSON.stringify(skills),
+        education,
+        experience: JSON.stringify(experience),
+        projects: JSON.stringify(
+          projects
+            .map((project) => ({
+              name: project.name.trim(),
+              role: project.role.trim(),
+              description: project.description.trim(),
+              technologies: project.technologies,
+              startDate: project.startDate?.trim() || "",
+              endDate: project.endDate?.trim() || "",
+              link: project.link?.trim() || "",
+            }))
+            .filter(
+              (project) =>
+                project.name ||
+                project.role ||
+                project.description ||
+                project.technologies.length > 0 ||
+                project.startDate ||
+                project.endDate ||
+                project.link,
+            ),
+        ),
+        source: isEdit ? initial?.source ?? "form" : "form",
+      });
+      setAnalysisResult(result);
+    } catch (error) {
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Không thể phân tích CV bằng API lúc này";
+      setError(message);
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
+  const renderAnalysisPanel = () => (
+    <div className="mb-3 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-[11px] text-violet-800 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-semibold flex items-center gap-1.5">
+          <Sparkles size={12} /> Góp ý CV từ API
+        </p>
+        <button
+          type="button"
+          onClick={handleAnalyzeDraft}
+          disabled={analysisLoading}
+          className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white text-violet-700 border border-violet-200 text-[11px] font-semibold disabled:opacity-60"
+        >
+          {analysisLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+          {analysisLoading ? "Đang phân tích..." : "Phân tích bằng API"}
+        </button>
+      </div>
+
+      {analysisResult ? (
+        <div className="space-y-2 rounded-md bg-white/80 border border-violet-100 p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold text-violet-700">Điểm tổng quan</p>
+            <p className="text-sm font-bold text-violet-800">{analysisResult.score}/100</p>
+          </div>
+          <p className="text-[11px] text-violet-800">{analysisResult.summary}</p>
+          {analysisResult.improvements.length > 0 && (
+            <div className="space-y-1">
+              {analysisResult.improvements.slice(0, 2).map((item: CvImprovementItem, idx: number) => (
+                <div key={`${item.section}-${idx}`} className="rounded-md border border-violet-100 bg-violet-50/70 px-2 py-1.5">
+                  <p className="text-[10px] font-semibold uppercase text-violet-700">[{item.priority}] {item.section}</p>
+                  <p className="text-[11px] text-violet-800">{item.suggestion}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {analysisResult.keywordsToAdd.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {analysisResult.keywordsToAdd.slice(0, 6).map((kw: string) => (
+                <span key={kw} className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 border border-violet-200 text-[10px]">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-[11px] text-violet-700">
+          Bấm nút bên phải để lấy góp ý từ API cho CV hiện tại thay vì nội dung gợi ý tĩnh.
+        </p>
+      )}
+    </div>
+  );
+
+  const renderProjectsSection = () => (
+    <section className="mb-4">
+      <div className="flex items-center justify-between gap-2 mb-2 pb-1 border-b border-black">
+        <h2 className="text-[11px] font-bold text-black uppercase tracking-wider">PROJECTS</h2>
+        <button
+          type="button"
+          onClick={addProject}
+          className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-semibold"
+        >
+          <Plus size={12} /> Thêm dự án
+        </button>
+      </div>
+
+      {renderAnalysisPanel()}
+
+      <div className="space-y-3">
+        {projects.map((project, index) => (
+          <div key={index} className="rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-[11px] font-semibold text-slate-700">Dự án {index + 1}</p>
+              <button
+                type="button"
+                onClick={() => removeProject(index)}
+                className="text-[11px] px-2 py-1 rounded border border-red-200 text-red-600 bg-white hover:bg-red-50"
+              >
+                Xóa
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={project.name}
+                onChange={(e) => updateProject(index, "name", e.target.value)}
+                placeholder="Tên dự án"
+                className="w-full text-[11px] text-slate-800 bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none"
+              />
+              <input
+                type="text"
+                value={project.role}
+                onChange={(e) => updateProject(index, "role", e.target.value)}
+                placeholder="Vai trò (Frontend Dev, Team Lead...)"
+                className="w-full text-[11px] text-slate-800 bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none"
+              />
+              <input
+                type="text"
+                value={project.startDate}
+                onChange={(e) => updateProject(index, "startDate", e.target.value)}
+                placeholder="Bắt đầu (MM/YYYY)"
+                className="w-full text-[11px] text-slate-800 bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none"
+              />
+              <input
+                type="text"
+                value={project.endDate}
+                onChange={(e) => updateProject(index, "endDate", e.target.value)}
+                placeholder="Kết thúc (MM/YYYY hoặc Hiện tại)"
+                className="w-full text-[11px] text-slate-800 bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none"
+              />
+            </div>
+
+            <textarea
+              value={project.description}
+              onChange={(e) => updateProject(index, "description", e.target.value)}
+              placeholder="Mô tả ngắn: bạn làm gì, bài toán gì, kết quả gì"
+              rows={3}
+              className="mt-2 w-full text-[11px] text-slate-800 bg-white border border-slate-200 rounded p-2 resize-y focus:border-blue-400 focus:outline-none"
+            />
+            <div className="mt-2">
+              <TagInput
+                label="Công nghệ sử dụng"
+                tags={project.technologies}
+                onChange={(tags) => updateProject(index, "technologies", tags)}
+                placeholder="Ví dụ: React, Node.js, PostgreSQL"
+                colorClass="bg-indigo-50 text-indigo-700 border-indigo-200"
+              />
+            </div>
+            <input
+              type="url"
+              value={project.link}
+              onChange={(e) => updateProject(index, "link", e.target.value)}
+              placeholder="Link demo hoặc GitHub"
+              className="mt-2 w-full text-[11px] text-slate-800 bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none"
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 
   // Load existing CV when editing — populate form để hiện thông tin đã lưu
   useEffect(() => {
@@ -176,7 +433,7 @@ export const CvFormPage = () => {
     cvApi
       .getById(numId)
       .then((raw) => {
-        const cv = normalizeCvFromApi(raw as Record<string, unknown>);
+        const cv = normalizeCvFromApi(raw as unknown as Record<string, unknown>);
         setInitial(cv);
         setFullName(cv.fullName ?? "");
         setJobPosition(cv.jobPosition ?? "");
@@ -187,7 +444,7 @@ export const CvFormPage = () => {
         setTitle(cv.title ?? "");
         setSummary(cv.summary ?? "");
         setEducation(cv.education ?? "");
-        setProjectExperience(cv.projectExperience ?? "");
+        setProjects(parseProjectsFromValue(cv.projects));
         setIsDefault(cv.isDefault);
         try {
           setSkills(JSON.parse(cv.skills ?? "[]") as string[]);
@@ -241,6 +498,18 @@ export const CvFormPage = () => {
     try {
       const skillsJson = JSON.stringify(skills);
       const experienceJson = JSON.stringify(experience);
+      const normalizedProjects = projects
+        .map((project) => ({
+          name: project.name.trim(),
+          role: project.role.trim(),
+          description: project.description.trim(),
+          technologies: project.technologies.map((t) => t.trim()).filter(Boolean),
+          startDate: toMonthDisplayValue(project.startDate?.trim() || ""),
+          endDate: toMonthDisplayValue(project.endDate?.trim() || ""),
+          link: project.link?.trim() || "",
+        }))
+        .filter((project) => project.name || project.role || project.description || project.technologies.length > 0 || project.startDate || project.endDate || project.link);
+      const projectsJson = JSON.stringify(normalizedProjects);
 
       if (isEdit && initial) {
         const dto: UpdateCvDto = {
@@ -255,7 +524,7 @@ export const CvFormPage = () => {
           skills: skillsJson,
           education,
           experience: experienceJson,
-          projectExperience,
+          projects: projectsJson,
           isDefault,
         };
         await cvApi.update(initial.id, dto);
@@ -284,7 +553,7 @@ export const CvFormPage = () => {
           skills: skillsJson,
           education,
           experience: experienceJson,
-          projectExperience,
+          projects: projectsJson,
           isDefault,
         };
         await cvApi.create(dto);
@@ -369,6 +638,7 @@ export const CvFormPage = () => {
           )}
           <div className="flex-1 overflow-auto py-8 px-4 flex justify-center">
             <div className="bg-white shadow-lg rounded-lg border border-slate-200 p-8 max-w-[480px] w-full space-y-6">
+              {renderAnalysisPanel()}
               <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
                 <AlertCircle size={20} className="flex-shrink-0" />
                 <span>CV này được tải từ file (PDF/DOC). Bạn chỉ có thể đổi tiêu đề, đặt mặc định hoặc thay file mới; không thể chỉnh sửa nội dung bên trong file.</span>
@@ -446,7 +716,6 @@ export const CvFormPage = () => {
             >
               <style>{VIEW_CV_STYLE}</style>
 
-              {/* ═══ HEADER CV (căn giữa, giống bản in) ═══ */}
               <header className="text-center mb-6 pb-2">
                 <input
                   type="text"
@@ -470,17 +739,15 @@ export const CvFormPage = () => {
                   <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Địa chỉ" className="w-28 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
                 </div>
                 <input
-                  type="url"
+                  type="month"
                   value={linkedIn}
                   onChange={(e) => setLinkedIn(e.target.value)}
-                  placeholder="LinkedIn: linkedin.com/in/..."
                   className="w-full max-w-md mx-auto mt-1 text-[11px] text-slate-600 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400"
                 />
               </header>
-
+                  Mô tả
               {/* OBJECTIVE */}
               <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">OBJECTIVE</h2>
                 <textarea
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
@@ -564,17 +831,7 @@ export const CvFormPage = () => {
                 </div>
               </section>
 
-              {/* PROJECTS */}
-              <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">PROJECTS</h2>
-                <textarea
-                  value={projectExperience}
-                  onChange={(e) => setProjectExperience(e.target.value)}
-                  placeholder="Tên dự án, vai trò, mô tả, công nghệ..."
-                  rows={6}
-                  className="w-full text-[11px] text-slate-800 leading-relaxed bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:outline-none rounded p-1 resize-y font-mono placeholder:text-slate-400 whitespace-pre-wrap"
-                />
-              </section>
+              {renderProjectsSection()}
 
               <label className="flex items-center gap-2 mt-4 text-[11px] text-slate-600 cursor-pointer">
                 <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="w-3.5 h-3.5 accent-blue-500 rounded" />
@@ -667,10 +924,7 @@ export const CvFormPage = () => {
                     onBlur={(ev) => { const v = ev.target.value.trim(); if (v && !experience.includes(v)) setExperience([...experience, v]); ev.target.value = ""; }} />
                 </div>
               </section>
-              <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">PROJECTS</h2>
-                <textarea value={projectExperience} onChange={(e) => setProjectExperience(e.target.value)} placeholder="Tên dự án, vai trò, mô tả, công nghệ..." rows={6} className="w-full text-[11px] text-slate-800 leading-relaxed bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:outline-none rounded p-1 resize-y font-mono placeholder:text-slate-400 whitespace-pre-wrap" />
-              </section>
+              {renderProjectsSection()}
               <label className="flex items-center gap-2 mt-4 text-[11px] text-slate-600 cursor-pointer">
                 <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="w-3.5 h-3.5 accent-blue-500 rounded" />
                 Đặt làm CV mặc định khi ứng tuyển
@@ -714,6 +968,7 @@ export const CvFormPage = () => {
           <div className="bg-white shadow-lg rounded-lg border border-slate-200 p-8 max-w-[480px] w-full space-y-6">
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide">Tải CV từ file</h3>
+              {renderAnalysisPanel()}
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}

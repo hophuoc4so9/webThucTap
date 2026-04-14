@@ -1,4 +1,5 @@
-import { User, Menu, LogOut } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Menu, LogOut, ChevronDown, ShieldCheck, LayoutDashboard, UserCircle2 } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { studentMenuItems } from "@/config/menu/studentMenuConfig";
@@ -13,6 +14,18 @@ export const StudentHeader = ({
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -71,16 +84,71 @@ export const StudentHeader = ({
         ))}
       </nav>
 
-      {/* User + logout */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 rounded-lg border border-blue-100 bg-white px-3 py-1.5 shadow-sm">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-sky-400 text-white flex-shrink-0">
-            <User size={14} />
+      {/* User + dropdown */}
+      <div className="relative flex items-center gap-2" ref={menuRef}>
+        <button
+          type="button"
+          onClick={() => setMenuOpen((v) => !v)}
+          className="flex items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 py-1.5 shadow-sm hover:bg-blue-50 transition-colors"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-sky-400 text-white flex-shrink-0 text-xs font-bold uppercase">
+            {(user?.name || user?.email || "S").slice(0, 1)}
           </div>
-          <span className="hidden xl:block text-sm font-semibold text-blue-900 max-w-[130px] truncate">
-            {user?.email ?? "Sinh viên"}
-          </span>
-        </div>
+          <div className="hidden xl:block text-left max-w-[150px]">
+            <p className="text-sm font-semibold text-blue-900 truncate">
+              {user?.name || user?.email || "Sinh viên"}
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">{user?.recruiterStatus === "approved" || user?.role === "COMPANY" ? "Nhà tuyển dụng" : "Sinh viên"}</p>
+          </div>
+          <ChevronDown size={14} className="text-blue-700" />
+        </button>
+
+        {menuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-sky-50">
+              <p className="text-sm font-semibold text-gray-800 truncate">{user?.name || "Sinh viên"}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            </div>
+            <div className="p-2 space-y-1">
+              <button
+                type="button"
+                onClick={() => { setMenuOpen(false); navigate("/student/profile"); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-left"
+              >
+                <UserCircle2 size={16} className="text-blue-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Hồ sơ của tôi</p>
+                  <p className="text-xs text-gray-500">Cập nhật thông tin cá nhân</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMenuOpen(false); navigate("/student/recruiter"); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-left"
+              >
+                <ShieldCheck size={16} className="text-green-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Bạn là nhà tuyển dụng?</p>
+                  <p className="text-xs text-gray-500">Đăng ký và xác minh tài khoản</p>
+                </div>
+              </button>
+              {user?.recruiterStatus === "approved" || user?.role === "COMPANY" ? (
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); navigate("/company/dashboard"); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-left"
+                >
+                  <LayoutDashboard size={16} className="text-purple-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Trang nhà tuyển dụng</p>
+                    <p className="text-xs text-gray-500">Đi tới dashboard công ty</p>
+                  </div>
+                </button>
+              ) : null}
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleLogout}
           title="Đăng xuất"

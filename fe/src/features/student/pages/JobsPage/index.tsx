@@ -3,8 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import {
   Search,
   MapPin,
-  ChevronLeft,
-  ChevronRight,
   SlidersHorizontal,
 } from "lucide-react";
 import { jobService } from "./services/jobService";
@@ -13,6 +11,7 @@ import { FilterTag } from "./components/FilterTag";
 import { FilterSidebar, LOCATIONS } from "./components/FilterSidebar";
 import { JobCard } from "./components/JobCard";
 import donviData from "@/data/donviTDMU.json";
+import { AppPagination } from "@/components/common/AppPagination";
 
 
 interface NganhHoc {
@@ -76,13 +75,15 @@ export const JobsPage = () => {
   const [page, setPage] = useState(() =>
     Math.max(1, parseInt(searchParams.get("page") ?? "1", 10)),
   );
+  const [limit, setLimit] = useState(() =>
+    Math.max(1, parseInt(searchParams.get("limit") ?? "12", 10)),
+  );
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const limit = 12;
   const totalPages = Math.ceil(total / limit);
 
  
@@ -93,9 +94,10 @@ export const JobsPage = () => {
       if (loc) p.location = loc;
       if (inds.length) p.type = inds.join(",");
       if (pg > 1) p.page = String(pg);
+      if (limit !== 12) p.limit = String(limit);
       setSearchParams(p, { replace: true });
     },
-    [setSearchParams],
+    [setSearchParams, limit],
   );
 
   const fetchJobs = useCallback(async (q: JobQuery) => {
@@ -120,7 +122,7 @@ export const JobsPage = () => {
       limit,
     });
     syncURL(keyword, location, industries, page);
-  }, [page]);
+  }, [page, limit]);
 
   const handleSearch = () => {
     setPage(1);
@@ -132,6 +134,11 @@ export const JobsPage = () => {
       limit,
     });
     syncURL(keyword, location, industries, 1);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setLimit(value);
+    setPage(1);
   };
 
   const toggleIndustry = (val: string) => {
@@ -288,6 +295,7 @@ export const JobsPage = () => {
               </button>
             </div>
           )}
+
         </div>
       </div>
 
@@ -371,41 +379,16 @@ export const JobsPage = () => {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 rounded-xl border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const start = Math.max(1, Math.min(page - 2, totalPages - 4));
-                const pg = start + i;
-                return (
-                  <button
-                    key={pg}
-                    onClick={() => setPage(pg)}
-                    className={`w-9 h-9 rounded-xl text-sm font-medium border transition-colors ${
-                      pg === page
-                        ? "bg-blue-500 text-white border-blue-500 shadow-sm"
-                        : "border-gray-300 text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    {pg}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="p-2 rounded-xl border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          )}
+          <AppPagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={handlePageSizeChange}
+            pageSizeOptions={[12, 24, 48]}
+            activeLinkClassName="!bg-blue-500 !text-white !border-blue-500"
+          />
         </div>
       </div>
     </div>
