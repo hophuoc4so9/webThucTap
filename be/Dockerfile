@@ -1,8 +1,9 @@
 # Build stage
-FROM node:20-alpine AS build
+FROM node:20-bullseye-slim  AS build
 
 # Install build dependencies for native modules (bcrypt)
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -10,8 +11,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies
-RUN npm install
-
+RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
@@ -19,10 +19,11 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:20-bullseye-slim  AS production
 
 # Install build dependencies for native modules (bcrypt)
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

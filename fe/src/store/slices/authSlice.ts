@@ -9,6 +9,9 @@ export interface User {
   recruiterStatus?: "none" | "pending" | "approved" | "rejected";
   companyName?: string | null;
   companyWebsite?: string | null;
+  companyId?: number | null;
+  position?: string | null;
+  location?: string | null;
 }
 
 interface AuthState {

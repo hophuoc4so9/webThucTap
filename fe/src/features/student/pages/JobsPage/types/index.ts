@@ -26,6 +26,14 @@ export interface Job {
   provinceIds?: string;
   vacancies?: number;
   jobType?: string;
+  companyId?: number | null;
+  viewsCount?: number;
+  applyCount?: number;
+  popularityScore?: number;
+  indexedAt?: string | null;
+  similarityScore?: number;
+  combinedScore?: number;
+  reason?: string;
   companyRef?: Company;
 }
 
@@ -45,4 +53,46 @@ export interface JobQuery {
   salaryMax?: number;
   page?: number;
   limit?: number;
+}
+
+export type JobSortBy =
+  | "ai_relevance"
+  | "score_desc"
+  | "salary_desc"
+  | "salary_asc"
+  | "popular"
+  | "latest_indexed";
+
+export interface AdvancedJobQuery {
+  query: string;
+  location?: string;
+  industry?: string;
+  src?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  page?: number;
+  limit?: number;
+  weights?: {
+    contentSim?: number;
+    popularity?: number;
+    companyBoost?: number;
+  };
+}
+
+export interface JobRecommendQuery {
+  userId?: number;
+  cvId?: number;
+  topK?: number;
+  weights?: {
+    contentSim?: number;
+    collaborative?: number;
+    popularity?: number;
+    companyBoost?: number;
+  };
+}
+
+export interface JobRecommendationResponse {
+  data: Job[];
+  executionTimeMs?: number;
+  explanation?: string;
 }

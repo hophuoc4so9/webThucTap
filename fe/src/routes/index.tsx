@@ -6,6 +6,8 @@ import { AdminLayout } from "../layouts/AdminLayout";
 // Auth Pages
 import LoginPage from "@/features/auth/pages/LoginPage/index";
 import RegisterPage from "@/features/auth/pages/RegisterPage/index";
+import StudentRegisterPage from "@/features/auth/pages/RegisterPage/StudentRegisterPage";
+import RecruiterRegisterPage from "@/features/auth/pages/RegisterPage/RecruiterRegisterPage";
 
 // Student Pages
 import { StudentHomePage } from "@/features/student/pages/HomePage/index";
@@ -31,6 +33,7 @@ import { CompanySettingsPage } from "@/features/company/pages/SettingsPage/index
 import { CompanyProjectsPage } from "@/features/company/pages/ProjectsPage/index";
 import { ProjectFormPage } from "@/features/company/pages/ProjectsPage/ProjectFormPage";
 import { ProjectApplicantsPage } from "@/features/company/pages/ProjectsPage/ProjectApplicantsPage";
+import { CompanyOnboardingPage } from "@/features/company/pages/OnboardingPage/index";
 
 // Admin Pages
 import { AdminDashboard } from "@/features/admin/pages/Dashboard/index";
@@ -53,6 +56,14 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
+  },
+  {
+    path: "/register/student",
+    element: <StudentRegisterPage />,
+  },
+  {
+    path: "/register/recruiter",
+    element: <RecruiterRegisterPage />,
   },
  
 
@@ -112,6 +123,14 @@ export const router = createBrowserRouter([
       },
       { path: "settings", element: <CompanySettingsPage /> },
     ],
+  },
+  {
+    path: "/company/onboarding",
+    element: (
+      <ProtectedRoute allowedRoles={["COMPANY"]} requireCompanyId={false}>
+        <CompanyOnboardingPage />
+      </ProtectedRoute>
+    ),
   },
 
   // Admin Routes

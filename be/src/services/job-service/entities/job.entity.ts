@@ -84,6 +84,35 @@ export class Job {
   @Column({ name: "salary_min", type: "bigint", nullable: true })
   salaryMin: string;
 
+  @Column({ name: "company_id", type: "int", nullable: true })
+  companyId: number | null;
+
+  // Embedding & Metrics for Recommendations & Advanced Search
+  @Column("vector", {
+    name: "embedding",
+    length: 384,
+    nullable: true,
+    comment: "Semantic embedding using pgvector (384 dimensions)",
+  })
+  embedding: number[] | null;
+
+  @Column({ name: "views_count", type: "int", default: 0 })
+  viewsCount: number;
+
+  @Column({ name: "apply_count", type: "int", default: 0 })
+  applyCount: number;
+
+  @Column({ name: "popularity_score", type: "float", default: 0 })
+  popularityScore: number;
+
+  @Column({
+    name: "indexed_at",
+    type: "timestamp",
+    nullable: true,
+    comment: "Timestamp when job was last indexed for embedding",
+  })
+  indexedAt: Date | null;
+
   @ManyToOne(() => Company, (company) => company.jobs, {
     nullable: true,
     onDelete: "SET NULL",

@@ -63,4 +63,21 @@ export class CreateCompanyDto {
   @IsOptional()
   @IsString()
   aboutImages?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  companyEmail?: string;
+
+  @IsOptional()
+  @IsInt()
+  ownerId?: number;
+
+  /** URL file giấy phép kinh doanh (upload trước, lưu URL) */
+  @IsOptional()
+  @IsString()
+  businessLicense?: string;
 }

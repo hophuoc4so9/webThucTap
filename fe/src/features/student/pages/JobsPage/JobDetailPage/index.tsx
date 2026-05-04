@@ -9,6 +9,7 @@ import {
   DollarSign,
   Users,
   Briefcase,
+  Sparkles,
 } from "lucide-react";
 import { jobService } from "../services/jobService";
 import { companyService } from "@/features/company/services/companyService";
@@ -25,6 +26,7 @@ import { SectionCard, BulletList } from "./components/JobSections";
 import { CompanyCard, CompanyFallback } from "./components/CompanyCard";
 import { QuickApplyCard } from "./components/QuickApplyCard";
 import { ApplyModal } from "./components/ApplyModal";
+import { JobCard } from "../components/JobCard";
 
 function safeParse<T>(json: string | undefined | null, fallback: T): T {
   try {
@@ -57,6 +59,10 @@ export const JobDetailPage = () => {
   const [fitAnalyzing, setFitAnalyzing] = useState(false);
   const [fitError, setFitError] = useState("");
 
+  /* Related jobs state */
+  const [relatedJobs, setRelatedJobs] = useState<Job[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+
   /* Fetch job + company */
   useEffect(() => {
     if (!id) return;
@@ -83,8 +89,7 @@ export const JobDetailPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [id]); 
-
+  }, [id]);
 
   useEffect(() => {
     if (!id || !isStudent || !userId) return;
@@ -103,6 +108,28 @@ export const JobDetailPage = () => {
       cancelled = true;
     };
   }, [id, userId]); // eslint-disable-line
+
+  /* Fetch related jobs via recommendation API */
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setRelatedLoading(true);
+    setRelatedJobs([]);
+    jobService
+      .getRecommendations(Number(id), { topK: 6 })
+      .then((res) => {
+        if (!cancelled) setRelatedJobs(res.data.slice(0, 6));
+      })
+      .catch(() => {
+        if (!cancelled) setRelatedJobs([]);
+      })
+      .finally(() => {
+        if (!cancelled) setRelatedLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   useEffect(() => {
     if (!applyOpen || !job?.id || !userId || selectedCvId === "") {
@@ -163,7 +190,6 @@ export const JobDetailPage = () => {
     }
   };
 
-  
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8">
@@ -176,7 +202,6 @@ export const JobDetailPage = () => {
     );
   }
 
- 
   if (!job) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-16 text-center text-gray-500">
@@ -218,7 +243,7 @@ export const JobDetailPage = () => {
         </Link>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          
+
           <div className="flex-1 min-w-0 space-y-5">
             <JobHeader
               job={job}
@@ -295,6 +320,40 @@ export const JobDetailPage = () => {
                 )}
               </SectionCard>
             )}
+
+            {/* ── Công việc liên quan (AI Recommendation) ── */}
+            {(relatedLoading || relatedJobs.length > 0) && (
+              <div className="pt-1">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50">
+                    <Sparkles size={14} className="text-blue-500" />
+                  </div>
+                  <h2 className="text-base font-semibold text-gray-800">
+                    Công việc liên quan
+                  </h2>
+                  <span className="text-xs text-gray-400">
+                    — gợi ý bởi AI Model
+                  </span>
+                </div>
+
+                {relatedLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-36 animate-pulse rounded-2xl border border-gray-200 bg-white"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {relatedJobs.map((relJob) => (
+                      <JobCard key={relJob.id} job={relJob} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <aside className="lg:w-72 flex-shrink-0 space-y-5">
@@ -334,7 +393,6 @@ export const JobDetailPage = () => {
         />
       )}
 
-      
       {applySuccess && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-sm">
           <CheckCircle2 size={15} /> Ứng tuyển thành công!

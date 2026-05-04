@@ -21,4 +21,14 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  /** Vị trí công tác (cho nhà tuyển dụng) */
+  @IsOptional()
+  @IsString()
+  position?: string;
+
+  /** Địa điểm làm việc (cho nhà tuyển dụng) */
+  @IsOptional()
+  @IsString()
+  location?: string;
 }

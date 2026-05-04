@@ -43,6 +43,15 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
           queueOptions: { durable: false },
         },
       },
+      {
+        name: "AI_SEARCH_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: ["amqp://rabbitmq:5672"],
+          queue: "ai_search_queue",
+          queueOptions: { durable: false },
+        },
+      },
     ]),
   ],
   controllers: [

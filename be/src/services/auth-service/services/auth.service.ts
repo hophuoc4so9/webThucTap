@@ -38,11 +38,15 @@ export class AuthService {
     const user = this.userRepo.create({
       email: dto.email,
       password: hashed,
+      name: dto.name?.trim() || null,
       role,
+      position: dto.position?.trim() || null,
+      location: dto.location?.trim() || null,
     });
     await this.userRepo.save(user);
     return { message: "Đăng ký thành công!" };
   }
+
 
   async login(dto: LoginDto) {
     const user = await this.userRepo.findOne({ where: { email: dto.email } });
@@ -151,7 +155,7 @@ export class AuthService {
         message: "Không tìm thấy người dùng",
       });
 
-    if (dto.name !== undefined) user.name = dto.name?.trim() || null;
+    if (dto.name !== undefined) user.name = dto.name?.trim() || " ";
     await this.userRepo.save(user);
 
     return {
@@ -296,15 +300,15 @@ export class AuthService {
     }
 
     let user = await this.userRepo.findOne({ where: { email: payload.email } });
-    if (!user) {
-      user = this.userRepo.create({
-        email: payload.email,
-        name: payload.name ?? null,
-        googleId: payload.sub ?? null,
-        role: UserRole.STUDENT,
-      });
-      await this.userRepo.save(user);
-    } else if (!user.googleId && payload.sub) {
+    if (!user) { user = this.userRepo.create({
+ email: payload.email,
+  name: payload.name || "", // Fix: Dùng chuỗi rỗng thay vì null
+ googleId: payload.sub || "", // Fix: Dùng chuỗi rỗng thay vì null
+ password: "", // Thêm password rỗng để tránh lỗi database strict (nếu cột password bắt buộc)
+role: UserRole.STUDENT,
+});
+ await this.userRepo.save(user);
+ } else if (!user.googleId && payload.sub) {
       user.googleId = payload.sub;
       if (!user.name && payload.name) user.name = payload.name;
       await this.userRepo.save(user);

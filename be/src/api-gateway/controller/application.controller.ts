@@ -30,7 +30,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_create", dto),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -47,7 +47,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_find_all", query),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -61,7 +61,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_find_one", { id }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -79,7 +79,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_update_status", { id, dto }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -93,7 +93,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_remove", { id }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -114,7 +114,7 @@ export class ApplicationGatewayController {
           userId: body?.userId,
         }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -134,7 +134,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_check_applied", { userId, jobId }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -154,7 +154,7 @@ export class ApplicationGatewayController {
           userId: body?.userId,
         }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);

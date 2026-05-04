@@ -22,6 +22,7 @@ export class SeedJobItemDto {
   provinceIds?: string;
   salaryMax?: string;
   salaryMin?: string;
+  companyId?: number;
 }
 
 export class SeedJobsDto {

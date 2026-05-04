@@ -1,6 +1,13 @@
 import axiosClient from "@/api/api/clients/axiosClient";
 import type { ApplicationFitResponse } from "@/features/student/types";
-import type { JobListResponse, JobQuery, Job } from "../types";
+import type {
+  JobListResponse,
+  JobQuery,
+  Job,
+  AdvancedJobQuery,
+  JobRecommendationResponse,
+  JobRecommendQuery,
+} from "../types";
 
 export const jobService = {
   getJobs: async (query: JobQuery = {}): Promise<JobListResponse> => {
@@ -19,6 +26,40 @@ export const jobService = {
       `jobs?${params.toString()}`,
     );
     return res.data;
+  },
+
+  searchAdvanced: async (query: AdvancedJobQuery): Promise<JobListResponse> => {
+    const res = await axiosClient.post<JobListResponse>("jobs/search-advanced", query);
+    return res.data;
+  },
+
+  getRecommendations: async (
+    currentJobId: number,
+    payload: JobRecommendQuery,
+  ): Promise<JobRecommendationResponse> => {
+    const res = await axiosClient.post<JobRecommendationResponse>(
+      `jobs/${currentJobId}/recommend`,
+      payload,
+    );
+    return res.data;
+  },
+
+  // Thêm hàm lấy gợi ý cá nhân hoá dựa trên User ID
+  getPersonalizedRecommendations: async (
+    payload: { userId: number; topK?: number }
+  ): Promise<JobRecommendationResponse> => {
+    const res = await axiosClient.post<JobRecommendationResponse>(
+      `jobs/recommendations/personalized`,
+      payload
+    );
+    return res.data;
+  },
+
+  // Thêm hàm gửi tracking tương tác (View, Click, Apply...) về backend
+  trackInteraction: async (
+    payload: { userId: number; jobId: number; type: 'VIEW' | 'CLICK' | 'APPLY' | 'SAVE' }
+  ): Promise<void> => {
+    await axiosClient.post(`jobs/interactions`, payload);
   },
 
   getJobById: async (id: string | number): Promise<Job> => {

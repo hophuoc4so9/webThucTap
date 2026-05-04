@@ -52,6 +52,24 @@ export function JobCard({ job }: { job: Job }) {
         )}
       </div>
 
+      {(job.combinedScore != null || job.similarityScore != null || job.reason) && (
+        <div className="mb-3 rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2">
+          <div className="flex items-center gap-2 text-[11px] text-blue-700">
+            {job.combinedScore != null && (
+              <span className="rounded-full bg-blue-500 px-2 py-0.5 font-semibold text-white">
+                AI {job.combinedScore.toFixed(3)}
+              </span>
+            )}
+            {job.similarityScore != null && (
+              <span className="font-medium">
+                Similarity {job.similarityScore.toFixed(3)}
+              </span>
+            )}
+          </div>
+          {job.reason && <p className="mt-1 text-[11px] text-blue-800">{job.reason}</p>}
+        </div>
+      )}
+
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1 pt-2 border-t border-gray-100">
           {tags.slice(0, 3).map((t, i) => (

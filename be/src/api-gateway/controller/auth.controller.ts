@@ -37,7 +37,7 @@ export class AuthController {
       return await firstValueFrom(
         this.authServiceClient.send("auth_login", dto),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -51,7 +51,7 @@ export class AuthController {
         this.authServiceClient.send("auth_register", dto),
       );
       return { success: true, ...result };
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -64,7 +64,7 @@ export class AuthController {
       return await firstValueFrom(
         this.authServiceClient.send("auth_google_login", { token: body.token }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
