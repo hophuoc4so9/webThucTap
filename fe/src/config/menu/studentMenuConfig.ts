@@ -5,6 +5,7 @@ import {
   Building2,
   BookOpen,
   FolderOpen,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,11 @@ export const studentMenuItems: MenuItem[] = [
     icon: BookOpen,
     label: "Đã ứng tuyển",
     path: "/student/applications",
+  },
+  {
+    icon: TrendingUp,
+    label: "Xu hướng thị trường",
+    path: "/student/market-trends",
   },
  
 ];

@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   Briefcase,
+  TrendingUp,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -9,6 +10,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/admin/dashboard" },
   { icon: Users, label: "Quản lý sinh viên", path: "/admin/students" },
   { icon: Briefcase, label: "Quản lý tin tuyển dụng", path: "/admin/jobs" },
+  { icon: TrendingUp, label: "Xu hướng thị trường", path: "/admin/market-trends" },
   // { icon: FileText, label: 'Quản lý thực tập', path: '/admin/internships' },
   // { icon: BarChart3, label: 'Báo cáo & Thống kê', path: '/admin/reports' },
   // { icon: Bell, label: 'Thông báo', path: '/admin/notifications' },

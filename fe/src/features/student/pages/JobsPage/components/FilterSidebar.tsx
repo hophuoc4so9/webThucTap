@@ -13,19 +13,33 @@ interface FilterSidebarProps {
   fieldGroups: NhomNganh[];
   industries: string[];
   location: string;
+  source: string;
+  salaryMin?: number;
+  salaryMax?: number;
   onToggleIndustry: (val: string) => void;
   onClearIndustries: () => void;
   onSetLocation: (loc: string) => void;
+  onSetSource: (src: string) => void;
+  onSetSalaryMin: (value?: number) => void;
+  onSetSalaryMax: (value?: number) => void;
 }
 
 export function FilterSidebar({
   fieldGroups,
   industries,
   location,
+  source,
+  salaryMin,
+  salaryMax,
   onToggleIndustry,
   onClearIndustries,
   onSetLocation,
+  onSetSource,
+  onSetSalaryMin,
+  onSetSalaryMax,
 }: FilterSidebarProps) {
+  const SOURCE_OPTIONS = ["", "manual", "linkedin", "topcv", "itviec", "careerbuilder"];
+
   return (
     <aside className="w-60 flex-shrink-0 space-y-4 self-start sticky top-20">
       {/* Lĩnh vực — multi-select checkboxes */}
@@ -80,6 +94,52 @@ export function FilterSidebar({
               {l || "Tất cả"}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+        <p className="text-sm font-semibold text-gray-700 mb-3">Nguồn tin</p>
+        <select
+          value={source}
+          onChange={(e) => onSetSource(e.target.value)}
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="">Tất cả nguồn</option>
+          {SOURCE_OPTIONS.filter(Boolean).map((src) => (
+            <option key={src} value={src}>
+              {src}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+        <p className="text-sm font-semibold text-gray-700 mb-3">Mức lương (VND)</p>
+        <div className="space-y-2">
+          <input
+            type="number"
+            min={0}
+            value={salaryMin ?? ""}
+            onChange={(e) =>
+              onSetSalaryMin(
+                e.target.value.trim() === "" ? undefined : Number(e.target.value),
+              )
+            }
+            placeholder="Lương tối thiểu"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            type="number"
+            min={0}
+            value={salaryMax ?? ""}
+            onChange={(e) =>
+              onSetSalaryMax(
+                e.target.value.trim() === "" ? undefined : Number(e.target.value),
+              )
+            }
+            placeholder="Lương tối đa"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
         </div>
       </div>
     </aside>

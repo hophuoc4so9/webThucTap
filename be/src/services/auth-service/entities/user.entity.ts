@@ -54,4 +54,12 @@ export class User {
     default: UserRole.STUDENT,
   })
   role: UserRole;
+
+  /** Vị trí công tác (nhà tuyển dụng) */
+  @Column({ nullable: true })
+  position: string | null;
+
+  /** Địa điểm làm việc (nhà tuyển dụng) */
+  @Column({ nullable: true })
+  location: string | null;
 }

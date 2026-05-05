@@ -7,10 +7,14 @@ import {
   CvImprovementItem,
   CvSuggestionResponse,
 } from "../dto/ai-analysis.dto";
+import type { ParsedResumeData } from "../dto/parse-resume.dto";
 
 @Injectable()
 export class GemmaService {
   private readonly logger = new Logger(GemmaService.name);
+  private readonly fastApiUrl = process.env.FASTAPI_LLM_URL?.trim();
+  private readonly fastApiKey = process.env.FASTAPI_LLM_API_KEY?.trim();
+  private readonly fastApiTimeoutMs = this.parseTimeoutMs(process.env.FASTAPI_LLM_TIMEOUT_MS);
   private readonly apiUrl = process.env.GEMMA_API_URL?.trim();
   private readonly apiKey = process.env.GEMMA_API_KEY?.trim();
   private readonly modelId = process.env.GEMMA_MODEL_ID?.trim() || "gemma-4-31b-it";
@@ -21,7 +25,19 @@ export class GemmaService {
     | "high"
     | "low";
 
-  async suggestCvImprovements(cv: Cv): Promise<CvSuggestionResponse> {
+  async suggestCvImprovements(
+    cv: Cv,
+    context?: { userId?: number; role?: string },
+  ): Promise<CvSuggestionResponse> {
+    if (this.fastApiUrl) {
+      const result = await this.callFastApiJson("/v1/cv/suggest", {
+        cv: this.buildCvPayload(cv),
+        userId: context?.userId,
+        role: context?.role,
+      });
+      return this.normalizeCvSuggestion(result);
+    }
+
     const systemPrompt =
       "You are a strict CV reviewer. Return ONLY one valid JSON object that matches the schema. No markdown, no extra text.";
     const userPrompt = JSON.stringify(
@@ -58,7 +74,21 @@ export class GemmaService {
     return this.normalizeCvSuggestion(aiResult);
   }
 
-  async analyzeCvJobFit(cv: Cv, job: Record<string, unknown>): Promise<ApplicationFitResponse> {
+  async analyzeCvJobFit(
+    cv: Cv,
+    job: Record<string, unknown>,
+    context?: { userId?: number; role?: string },
+  ): Promise<ApplicationFitResponse> {
+    if (this.fastApiUrl) {
+      const result = await this.callFastApiJson("/v1/applications/fit", {
+        cv: this.buildCvPayload(cv),
+        job,
+        userId: context?.userId,
+        role: context?.role,
+      });
+      return this.normalizeFitResponse(result);
+    }
+
     const systemPrompt =
       "You are a recruitment AI. Compare CV and job, then return ONLY one valid JSON object matching the schema.";
     const userPrompt = JSON.stringify(
@@ -83,6 +113,84 @@ export class GemmaService {
 
     const aiResult = await this.callGemmaJson(systemPrompt, userPrompt);
     return this.normalizeFitResponse(aiResult);
+  }
+
+  async enqueueCvImprovements(
+    cv: Cv,
+    context?: { userId?: number; role?: string },
+  ): Promise<Record<string, unknown>> {
+    if (!this.fastApiUrl) {
+      this.raiseGemmaError(503, "FastAPI LLM service is not configured.");
+    }
+
+    return this.callFastApiJson("/v1/cv/suggest/async", {
+      cv: this.buildCvPayload(cv),
+      userId: context?.userId,
+      role: context?.role,
+    });
+  }
+
+  async enqueueCvJobFit(
+    cv: Cv,
+    job: Record<string, unknown>,
+    context?: { userId?: number; role?: string },
+  ): Promise<Record<string, unknown>> {
+    if (!this.fastApiUrl) {
+      this.raiseGemmaError(503, "FastAPI LLM service is not configured.");
+    }
+
+    return this.callFastApiJson("/v1/applications/fit/async", {
+      cv: this.buildCvPayload(cv),
+      job,
+      userId: context?.userId,
+      role: context?.role,
+    });
+  }
+
+  async getTaskStatus(taskId: string): Promise<Record<string, unknown>> {
+    if (!this.fastApiUrl) {
+      this.raiseGemmaError(503, "FastAPI LLM service is not configured.");
+    }
+
+    return this.callFastApiJson(`/v1/tasks/${encodeURIComponent(taskId)}`, null, "GET");
+  }
+
+  async parseResumeText(
+    resumeText: string,
+    context?: { userId?: number; cvId?: number },
+  ): Promise<ParsedResumeData> {
+    const systemPrompt =
+      "You are a resume parsing engine. Return ONLY one valid JSON object that matches the schema. No markdown, no extra text.";
+    const userPrompt = JSON.stringify(
+      {
+        task: "resume_parse",
+        locale: "vi-VN",
+        rules: [
+          "Extract data from the resume text only.",
+          "Return empty strings or empty arrays when data is missing.",
+          "Keep original language and casing when possible.",
+        ],
+        outputSchema: {
+          fullName: "string",
+          email: "string",
+          phone: "string",
+          address: "string",
+          skills: ["string"],
+          experience: ["string"],
+          education: ["string"],
+          certifications: ["string"],
+          languages: ["string"],
+          socialLinks: ["string"],
+        },
+        resumeText,
+        context,
+      },
+      null,
+      2,
+    );
+
+    const aiResult = await this.callGemmaJson(systemPrompt, userPrompt);
+    return this.normalizeResumeParse(aiResult);
   }
 
   private buildCvPayload(cv: Cv): Record<string, unknown> {
@@ -219,6 +327,46 @@ export class GemmaService {
       if (error instanceof RpcException) throw error;
       this.logger.warn(`Gemma API unavailable: ${error instanceof Error ? error.message : "unknown error"}`);
       this.raiseGemmaError(503, "Gemma API is unavailable.");
+    }
+  }
+
+  private async callFastApiJson(
+    path: string,
+    payload: Record<string, unknown> | null,
+    method: "POST" | "GET" = "POST",
+  ): Promise<Record<string, unknown>> {
+    if (!this.fastApiUrl) {
+      this.raiseGemmaError(503, "FastAPI LLM service is not configured.");
+    }
+
+    const endpoint = `${this.fastApiUrl.replace(/\/$/, "")}${path}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.fastApiTimeoutMs);
+
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(this.fastApiKey ? { "X-API-Key": this.fastApiKey } : {}),
+        },
+        body: method === "POST" ? JSON.stringify(payload ?? {}) : undefined,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        this.logger.warn(`FastAPI LLM error ${response.status}: ${body.slice(0, 400)}`);
+        this.raiseGemmaError(response.status >= 500 ? 502 : response.status, `FastAPI LLM returned HTTP ${response.status}.`);
+      }
+
+      return (await response.json()) as Record<string, unknown>;
+    } catch (error) {
+      if (error instanceof RpcException) throw error;
+      this.logger.warn(`FastAPI LLM unavailable: ${error instanceof Error ? error.message : "unknown error"}`);
+      this.raiseGemmaError(503, "FastAPI LLM service is unavailable.");
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
@@ -567,6 +715,21 @@ export class GemmaService {
       | "low";
     return { section, issue, suggestion, priority };
   }
+
+  private normalizeResumeParse(data: Record<string, unknown>): ParsedResumeData {
+    return {
+      fullName: this.stringOr(data.fullName, ""),
+      email: this.stringOr(data.email, ""),
+      phone: this.stringOr(data.phone, ""),
+      address: this.stringOr(data.address, ""),
+      skills: this.stringArrayOr(data.skills, []),
+      experience: this.stringArrayOr(data.experience, []),
+      education: this.stringArrayOr(data.education, []),
+      certifications: this.stringArrayOr(data.certifications, []),
+      languages: this.stringArrayOr(data.languages, []),
+      socialLinks: this.stringArrayOr(data.socialLinks, []),
+    };
+  }
   private stringOr(value: unknown, fallback: string): string {
     return typeof value === "string" && value.trim() ? value : fallback;
   }
@@ -596,5 +759,11 @@ export class GemmaService {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return 512;
     return Math.max(128, Math.min(2048, Math.round(parsed)));
+  }
+
+  private parseTimeoutMs(value: string | undefined): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return 120000;
+    return Math.max(1000, Math.min(300000, Math.round(parsed)));
   }
 }

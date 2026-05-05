@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store";
 import { setCredentials } from "@/store/slices/authSlice";
 import { userApi } from "@/api/api/services/user.api";
+import { StudentMarketTrendPage } from "../MarketTrend/index";
 
 export const StudentProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -116,6 +117,11 @@ export const StudentProfilePage = () => {
             </button>
           </form>
         )}
+      </div>
+
+      {/* Market Trend Section embedded in Profile */}
+      <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <StudentMarketTrendPage />
       </div>
     </div>
   );

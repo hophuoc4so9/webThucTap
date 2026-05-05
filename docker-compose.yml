@@ -11,6 +11,8 @@ services:
         condition: service_started
       cv-service:
         condition: service_started
+      ai-search-service:
+        condition: service_started
       redis:
         condition: service_started
       rabbitmq:
@@ -51,6 +53,30 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    networks: [be]
+
+  ai-search-service:
+    build:
+      context: ./be/src/services/ai-search-service
+      dockerfile: Dockerfile
+    expose: ["8005"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/ai-search-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation --max-old-space-size=2048"
+      DB_HOST: postgres-job
+      DB_PORT: 5432
+      DB_DATABASE: jobdb
+      EMBEDDING_PROVIDER: local
+    depends_on:
+      postgres-job:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    # Cache embedding model to avoid re-downloading
+    volumes:
+      - huggingface-model-cache:/root/.cache/huggingface
     networks: [be]
 
   redis:
@@ -94,7 +120,7 @@ services:
       start_period: 10s
 
   postgres-job:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -158,3 +184,4 @@ volumes:
   pgdata-job:
   pgdata-cv:
   uploads:
+  huggingface-model-cache:

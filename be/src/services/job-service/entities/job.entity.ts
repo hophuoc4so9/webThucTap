@@ -2,12 +2,18 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm";
 import { Company } from "./company.entity";
 
 @Entity("jobs")
+@Index(["postedAt"])
+@Index(["createdAt"])
+@Index(["postedAt", "createdAt"])
 export class Job {
   @PrimaryGeneratedColumn("increment")
   id: number;
@@ -26,6 +32,12 @@ export class Job {
 
   @Column({ type: "text", nullable: true })
   deadline: string;
+
+  @Column({ name: "posted_at", type: "timestamp", nullable: true })
+  postedAt: Date | null;
+
+  @Column({ name: "deadline_at", type: "timestamp", nullable: true })
+  deadlineAt: Date | null;
 
   @Column({ type: "text", nullable: true })
   degree: string;
@@ -83,6 +95,50 @@ export class Job {
 
   @Column({ name: "salary_min", type: "bigint", nullable: true })
   salaryMin: string;
+
+  @Column({ name: "company_id", type: "int", nullable: true })
+  companyId: number | null;
+
+  @CreateDateColumn({ name: "created_at" })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: "updated_at" })
+  updatedAt: Date;
+
+  // Embedding & Metrics for Recommendations & Advanced Search
+  @Column("vector", {
+    name: "embedding",
+    length: 384,
+    nullable: true,
+    comment: "Semantic embedding using pgvector (384 dimensions)",
+  })
+  embedding: number[] | null;
+
+  @Column({ name: "views_count", type: "int", default: 0 })
+  viewsCount: number;
+
+  @Column({ name: "apply_count", type: "int", default: 0 })
+  applyCount: number;
+
+  @Column({ name: "popularity_score", type: "float", default: 0 })
+  popularityScore: number;
+
+  @Column({
+    name: "indexed_at",
+    type: "timestamp",
+    nullable: true,
+    comment: "Timestamp when job was last indexed for embedding",
+  })
+  indexedAt: Date | null;
+
+  @Column("text", { name: "nhom", array: true, nullable: true })
+  nhom: string[] | null;
+
+  @Column("text", { name: "nganh_hoc", array: true, nullable: true })
+  nganhHoc: string[] | null;
+
+  @Column({ name: "start_date", type: "timestamp", nullable: true })
+  startDate: Date | null;
 
   @ManyToOne(() => Company, (company) => company.jobs, {
     nullable: true,

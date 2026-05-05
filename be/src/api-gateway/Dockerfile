@@ -1,7 +1,8 @@
-FROM node:20-alpine
+FROM node:20-bullseye-slim 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
+
 COPY src/api-gateway ./src/api-gateway
 WORKDIR /app/src/api-gateway
 RUN npm run build

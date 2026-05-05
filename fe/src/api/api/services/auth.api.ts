@@ -28,3 +28,14 @@ export const registerApi = async (data: {
 export const googleLoginApi = async (token: string) => {
   return axiosClient.post("/auth/google", { token });
 };
+
+export const registerRecruiterApi = async (data: {
+  email: string;
+  password: string;
+  name?: string;
+  role: string;
+  position?: string;
+  location?: string;
+}) => {
+  return axiosClient.post("/auth/register", data);
+};

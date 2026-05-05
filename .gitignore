@@ -35,3 +35,13 @@ build/
 *.njsproj
 *.sln
 *.sw?
+
+
+*.md
+
+
+!/readme.md
+
+.models/
+*.onnx
+!/*.md

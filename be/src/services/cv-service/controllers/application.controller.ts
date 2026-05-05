@@ -64,6 +64,11 @@ export class ApplicationController {
     return this.appService.analyzeFitForApplication(payload.id, payload.userId);
   }
 
+  @MessagePattern("application_analyze_fit_async")
+  analyzeFitAsync(@Payload() payload: { id: number; userId?: number }) {
+    return this.appService.analyzeFitForApplicationAsync(payload.id, payload.userId);
+  }
+
   @MessagePattern("application_analyze_job_cv_fit")
   analyzeJobCvFit(
     @Payload() payload: { jobId: number; cvId: number; userId?: number },

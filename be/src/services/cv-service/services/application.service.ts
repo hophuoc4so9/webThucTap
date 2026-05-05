@@ -10,6 +10,7 @@ import { CreateApplicationDto } from "../dto/create-application.dto";
 import { UpdateApplicationStatusDto } from "../dto/update-application-status.dto";
 import { QueryApplicationDto } from "../dto/query-application.dto";
 import { GemmaService } from "./gemma.service";
+import { ResumeParseService } from "./resume-parse.service";
 
 @Injectable()
 export class ApplicationService {
@@ -20,6 +21,7 @@ export class ApplicationService {
     private readonly cvRepo: Repository<Cv>,
     @Inject("JOB_SERVICE") private readonly jobClient: ClientProxy,
     private readonly gemmaService: GemmaService,
+    private readonly resumeParseService: ResumeParseService,
   ) {}
 
   async create(dto: CreateApplicationDto): Promise<Application> {
@@ -166,16 +168,66 @@ export class ApplicationService {
       });
     }
 
+    app.cv = await this.resumeParseService.ensureCvParsed(app.cv, userId);
+
     const job = await firstValueFrom(
       this.jobClient.send("job_find_one", { id: app.jobId }),
     );
 
-    const analysis = await this.gemmaService.analyzeCvJobFit(app.cv, job as Record<string, unknown>);
+    const analysis = await this.gemmaService.analyzeCvJobFit(
+      app.cv,
+      job as Record<string, unknown>,
+      { userId },
+    );
     return {
       applicationId: app.id,
       jobId: app.jobId,
       cvId: app.cvId,
       ...analysis,
+    };
+  }
+
+  async analyzeFitForApplicationAsync(applicationId: number, userId?: number) {
+    const app = await this.appRepo.findOne({
+      where: { id: applicationId },
+      relations: ["cv"],
+    });
+    if (!app) {
+      throw new RpcException({
+        statusCode: 404,
+        message: `Đơn ứng tuyển #${applicationId} không tồn tại`,
+      });
+    }
+    if (userId && app.userId !== userId) {
+      throw new RpcException({
+        statusCode: 403,
+        message: "Bạn không có quyền phân tích đơn ứng tuyển này",
+      });
+    }
+    if (!app.cv) {
+      throw new RpcException({
+        statusCode: 400,
+        message: "Đơn ứng tuyển này chưa gắn CV dạng form để phân tích",
+      });
+    }
+
+    app.cv = await this.resumeParseService.ensureCvParsed(app.cv, userId);
+
+    const job = await firstValueFrom(
+      this.jobClient.send("job_find_one", { id: app.jobId }),
+    );
+
+    const task = await this.gemmaService.enqueueCvJobFit(
+      app.cv,
+      job as Record<string, unknown>,
+      { userId },
+    );
+
+    return {
+      applicationId: app.id,
+      jobId: app.jobId,
+      cvId: app.cvId,
+      ...task,
     };
   }
 
@@ -205,17 +257,20 @@ export class ApplicationService {
       });
     }
 
+    const parsedCv = await this.resumeParseService.ensureCvParsed(cv, userId);
+
     const job = await firstValueFrom(
       this.jobClient.send("job_find_one", { id: jobId }),
     );
 
     const analysis = await this.gemmaService.analyzeCvJobFit(
-      cv,
+      parsedCv,
       job as Record<string, unknown>,
+      { userId },
     );
     return {
       jobId,
-      cvId: cv.id,
+      cvId: parsedCv.id,
       ...analysis,
     };
   }

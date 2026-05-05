@@ -61,4 +61,12 @@ export class JobController {
   seed(@Payload() dto: SeedJobsDto) {
     return this.jobService.seedBatch(dto.jobs);
   }
+  @MessagePattern("job_clear_all")
+  clearAll() {
+    return this.jobService.clearAllData();
+  }
+  @MessagePattern("job_sync_embeddings")
+  syncEmbeddings() {
+    return this.jobService.syncUnindexedJobs();
+  }
 }

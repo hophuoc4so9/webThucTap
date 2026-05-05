@@ -9,6 +9,7 @@ import { ApplicationController } from "../controllers/application.controller";
 import { CvService } from "../services/cv.service";
 import { ApplicationService } from "../services/application.service";
 import { GemmaService } from "../services/gemma.service";
+import { ResumeParseService } from "../services/resume-parse.service";
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { GemmaService } from "../services/gemma.service";
     ]),
   ],
   controllers: [CvController, ApplicationController],
-  providers: [CvService, ApplicationService, GemmaService],
+  providers: [CvService, ApplicationService, GemmaService, ResumeParseService],
 })
 export class CvModule {}

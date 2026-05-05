@@ -63,7 +63,7 @@ export class CvGatewayController {
   async create(@Body() dto: any) {
     try {
       return await firstValueFrom(this.cvClient.send("cv_create", dto));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -95,7 +95,7 @@ export class CvGatewayController {
         source: "file",
       };
       return await firstValueFrom(this.cvClient.send("cv_create", dto));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -123,7 +123,7 @@ export class CvGatewayController {
       return await firstValueFrom(
         this.cvClient.send("cv_update_file", payload),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -145,7 +145,7 @@ export class CvGatewayController {
           limit: +limit,
         }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -157,7 +157,7 @@ export class CvGatewayController {
   async findOne(@Param("id", ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(this.cvClient.send("cv_find_one", { id }));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -171,7 +171,7 @@ export class CvGatewayController {
       return await firstValueFrom(
         this.cvClient.send("cv_suggest_draft_improvements", body),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -187,7 +187,7 @@ export class CvGatewayController {
     try {
       const updated = await firstValueFrom(this.cvClient.send("cv_update", { id, dto }));
       return updated;
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -199,7 +199,7 @@ export class CvGatewayController {
   async remove(@Param("id", ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(this.cvClient.send("cv_remove", { id }));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -219,7 +219,47 @@ export class CvGatewayController {
           userId: body?.userId,
         }),
       );
-    } catch (err) {
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /cvs/:id/suggestions-async */
+  @Post(":id/suggestions-async")
+  async suggestImprovementsAsync(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_suggest_improvements_async", {
+          id,
+          userId: body?.userId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /cvs/:id/parse */
+  @Post(":id/parse")
+  async parseResume(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_parse_resume", {
+          id,
+          userId: body?.userId,
+        }),
+      );
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);

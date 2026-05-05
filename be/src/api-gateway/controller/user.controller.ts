@@ -37,7 +37,7 @@ export class UserController {
           email,
         }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -49,7 +49,7 @@ export class UserController {
   async stats() {
     try {
       return await firstValueFrom(this.authClient.send("user_stats", {}));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -61,7 +61,7 @@ export class UserController {
   async getById(@Param("id", ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(this.authClient.send("user_get_by_id", { id }));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -78,7 +78,7 @@ export class UserController {
       return await firstValueFrom(
         this.authClient.send("user_update_profile", { id, dto: body }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -95,7 +95,7 @@ export class UserController {
       return await firstValueFrom(
         this.authClient.send("user_request_recruiter", { id, dto: body }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -109,7 +109,7 @@ export class UserController {
       return await firstValueFrom(
         this.authClient.send("user_approve_recruiter", { id }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -126,7 +126,7 @@ export class UserController {
       return await firstValueFrom(
         this.authClient.send("user_reject_recruiter", { id, reason: body.reason }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -143,7 +143,7 @@ export class UserController {
       return await firstValueFrom(
         this.authClient.send("user_update_role", { id, role: body.role }),
       );
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -155,7 +155,7 @@ export class UserController {
   async remove(@Param("id", ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(this.authClient.send("user_delete", { id }));
-    } catch (err) {
+    } catch (err : any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);

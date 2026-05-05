@@ -1,28 +1,41 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
     "target": "ES2021",
+
+    "declaration": true,
+    "declarationMap": false,
+    "removeComments": true,
     "sourceMap": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "baseUrl": "./",
-    "ignoreDeprecations": "5.0",
-    "incremental": true,
+    "incremental": false,
+    "noEmit": false,
+
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+
+    "allowSyntheticDefaultImports": true,
+
     "skipLibCheck": true,
+
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+
+    "moduleResolution": "node",
+   
+
     "paths": {
-      "@common/*": ["src/common/*"],
-      "@config/*": ["src/config/*"],
-      "@shared/*": ["src/shared/*"]
+      "@common/*": ["./src/common/*"],
+      "@config/*": ["./src/config/*"],
+      "@shared/*": ["./src/shared/*"]
     }
+  },
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "ts-node": {
+    "transpileOnly": true
   }
 }

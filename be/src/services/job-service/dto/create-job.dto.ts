@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from "class-validator";
+import { Type } from "class-transformer";
 
 export class CreateJobDto {
   /** ID gốc từ crawl (bigint → string để tránh mất precision) */
@@ -21,6 +22,14 @@ export class CreateJobDto {
   @IsOptional()
   @IsString()
   deadline?: string;
+
+  @IsOptional()
+  @IsString()
+  postedAt?: string;
+
+  @IsOptional()
+  @IsString()
+  deadlineAt?: string;
 
   @IsOptional()
   @IsString()
@@ -98,4 +107,10 @@ export class CreateJobDto {
   @IsOptional()
   @IsString()
   salaryMin?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  companyId?: number;
 }

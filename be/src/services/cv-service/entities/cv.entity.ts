@@ -65,6 +65,30 @@ export class Cv {
   @Column({ type: "text", nullable: true })
   projects: string;
 
+  /** Chứng chỉ (JSON string) */
+  @Column({ type: "text", nullable: true })
+  certifications: string;
+
+  /** Ngoại ngữ (JSON string) */
+  @Column({ type: "text", nullable: true })
+  languages: string;
+
+  /** Ngành học do sinh viên chọn */
+  @Column({ type: "text", nullable: true })
+  major: string;
+
+  /** Nhóm ngành (vd: KINH TẾ) */
+  @Column({ name: "major_group", type: "text", nullable: true })
+  majorGroup: string;
+
+  /** Mã ngành (id_news) từ danh mục trường */
+  @Column({ name: "major_code", type: "text", nullable: true })
+  majorCode: string;
+
+  /** Liên kết mạng xã hội (JSON string) */
+  @Column({ type: "text", nullable: true })
+  socialLinks: string;
+
   /** Đường dẫn file CV tải lên (nếu có) */
   @Column({ nullable: true })
   filePath: string;
