@@ -35,3 +35,9 @@ build/
 *.njsproj
 *.sln
 *.sw?
+
+
+*.md
+
+
+!/readme.md
