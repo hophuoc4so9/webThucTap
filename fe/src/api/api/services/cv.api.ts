@@ -5,6 +5,7 @@ import type {
   UpdateCvDto,
   CvListResponse,
   CvSuggestionResponse,
+  CvParseResponse,
 } from "@/features/student/types";
 
 export const cvApi = {
@@ -110,6 +111,11 @@ export const cvApi = {
       "cvs/preview-suggestions",
       payload,
     );
+    return res.data;
+  },
+
+  parseResume: async (id: number, userId?: number): Promise<CvParseResponse> => {
+    const res = await axiosClient.post<CvParseResponse>(`cvs/${id}/parse`, { userId });
     return res.data;
   },
 };

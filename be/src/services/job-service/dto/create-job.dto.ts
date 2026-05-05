@@ -25,6 +25,14 @@ export class CreateJobDto {
 
   @IsOptional()
   @IsString()
+  postedAt?: string;
+
+  @IsOptional()
+  @IsString()
+  deadlineAt?: string;
+
+  @IsOptional()
+  @IsString()
   degree?: string;
 
   @IsOptional()

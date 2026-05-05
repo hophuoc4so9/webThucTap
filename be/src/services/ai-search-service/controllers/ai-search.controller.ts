@@ -276,4 +276,23 @@ export class AiSearchController {
       return { success: false, error: error.message };
     }
   }
+
+  /**
+   * RMQ pattern: ai_search_personalized_recommendations
+   * Get personalized recommendations for a user based on interaction history
+   */
+  @MessagePattern("ai_search_personalized_recommendations")
+  async handlePersonalizedRecommendations(
+    @Payload() data: { userId: number; topK?: number },
+  ) {
+    try {
+      const query = {
+        userId: data.userId,
+        topK: data.topK || 6,
+      };
+      return await this.recommendationService.recommendForUser(query);
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
 }

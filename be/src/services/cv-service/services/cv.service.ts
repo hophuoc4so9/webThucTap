@@ -7,6 +7,8 @@ import { Cv } from "../entities/cv.entity";
 import { CreateCvDto } from "../dto/create-cv.dto";
 import { UpdateCvDto } from "../dto/update-cv.dto";
 import { GemmaService } from "./gemma.service";
+import { ResumeParseService } from "./resume-parse.service";
+import type { CvParseResponse } from "../dto/parse-resume.dto";
 
 /** Trả về CV dạng plain object với đủ tất cả trường (kể cả null) để FE luôn nhận đủ khi GET/PUT */
 function toCvResponse(cv: Cv): Record<string, unknown> {
@@ -25,6 +27,12 @@ function toCvResponse(cv: Cv): Record<string, unknown> {
     education: cv.education ?? null,
     experience: cv.experience ?? null,
     projects: cv.projects ?? null,
+    certifications: cv.certifications ?? null,
+    languages: cv.languages ?? null,
+    major: cv.major ?? null,
+    majorGroup: cv.majorGroup ?? null,
+    majorCode: cv.majorCode ?? null,
+    socialLinks: cv.socialLinks ?? null,
     filePath: cv.filePath ?? null,
     fileOriginalName: cv.fileOriginalName ?? null,
     fileMimeType: cv.fileMimeType ?? null,
@@ -49,6 +57,12 @@ function toDraftCv(payload: {
   education?: string;
   experience?: string;
   projects?: string;
+  certifications?: string;
+  languages?: string;
+  major?: string;
+  majorGroup?: string;
+  majorCode?: string;
+  socialLinks?: string;
   source?: "form" | "file";
 }): Cv {
   return {
@@ -66,6 +80,12 @@ function toDraftCv(payload: {
     education: payload.education ?? null,
     experience: payload.experience ?? null,
     projects: payload.projects ?? null,
+    certifications: payload.certifications ?? null,
+    languages: payload.languages ?? null,
+    major: payload.major ?? null,
+    majorGroup: payload.majorGroup ?? null,
+    majorCode: payload.majorCode ?? null,
+    socialLinks: payload.socialLinks ?? null,
     filePath: null,
     fileOriginalName: null,
     fileMimeType: null,
@@ -83,6 +103,7 @@ export class CvService {
     @InjectRepository(Cv)
     private readonly cvRepo: Repository<Cv>,
     private readonly gemmaService: GemmaService,
+    private readonly resumeParseService: ResumeParseService,
   ) {}
 
   async create(dto: CreateCvDto): Promise<Record<string, unknown>> {
@@ -185,12 +206,32 @@ export class CvService {
       });
     }
 
-    const suggestions = await this.gemmaService.suggestCvImprovements(cv);
+    const parsedCv = await this.resumeParseService.ensureCvParsed(cv, userId);
+    const suggestions = await this.gemmaService.suggestCvImprovements(parsedCv, { userId });
     return {
-      cvId: cv.id,
-      userId: cv.userId,
+      cvId: parsedCv.id,
+      userId: parsedCv.userId,
       ...suggestions,
     };
+  }
+
+  async suggestImprovementsAsync(cvId: number, userId?: number) {
+    const cv = await this.cvRepo.findOne({ where: { id: cvId } });
+    if (!cv) {
+      throw new RpcException({
+        statusCode: 404,
+        message: `CV #${cvId} không tồn tại`,
+      });
+    }
+    if (userId && cv.userId !== userId) {
+      throw new RpcException({
+        statusCode: 403,
+        message: "Bạn không có quyền phân tích CV này",
+      });
+    }
+
+    const parsedCv = await this.resumeParseService.ensureCvParsed(cv, userId);
+    return this.gemmaService.enqueueCvImprovements(parsedCv, { userId });
   }
 
   async suggestDraftImprovements(payload: {
@@ -210,11 +251,26 @@ export class CvService {
     source?: "form" | "file";
   }) {
     const draftCv = toDraftCv(payload);
-    const suggestions = await this.gemmaService.suggestCvImprovements(draftCv);
+    const suggestions = await this.gemmaService.suggestCvImprovements(draftCv, { userId: payload.userId });
     return {
       cvId: draftCv.id,
       userId: draftCv.userId,
       ...suggestions,
+    };
+  }
+
+  async getTaskStatus(taskId: string) {
+    return this.gemmaService.getTaskStatus(taskId);
+  }
+
+  async parseResumeFromFile(cvId: number, userId?: number): Promise<CvParseResponse & { cv: Record<string, unknown> }> {
+    const { cv, parsed } = await this.resumeParseService.parseCvById(cvId, userId);
+
+    return {
+      cvId: cv.id,
+      userId: cv.userId,
+      parsed,
+      cv: toCvResponse(cv),
     };
   }
 }

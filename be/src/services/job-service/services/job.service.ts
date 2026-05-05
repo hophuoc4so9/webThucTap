@@ -4,6 +4,7 @@ import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Like, FindOptionsWhere } from "typeorm";
 import { Job } from "../entities/job.entity";
+import { Company, CompanyStatus } from "../entities/company.entity";
 import { CreateJobDto } from "../dto/create-job.dto";
 import { UpdateJobDto } from "../dto/update-job.dto";
 import { QueryJobDto } from "../dto/query-job.dto";
@@ -18,13 +19,20 @@ export class JobService {
   constructor(
     @InjectRepository(Job)
     private readonly jobRepo: Repository<Job>,
+    @InjectRepository(Company)
+    private readonly companyRepo: Repository<Company>,
     @Optional()
     @Inject("AI_SEARCH_SERVICE")
     private readonly aiSearchClient?: ClientProxy,
   ) { }
 
   async create(dto: CreateJobDto): Promise<JobResponseDto> {
-    const job = this.jobRepo.create({ src: "manual", ...dto } as Partial<Job>);
+    const job = this.jobRepo.create({
+      src: "manual",
+      ...dto,
+      postedAt: this.parseDate(dto.postedAt),
+      deadlineAt: this.parseDate(dto.deadlineAt),
+    } as Partial<Job>);
     const saved = await this.jobRepo.save(job);
 
     // Async: Enqueue for embedding (non-blocking)
@@ -115,7 +123,11 @@ export class JobService {
         message: `Không tìm thấy job #${id}`,
       });
 
-    Object.assign(job, dto);
+    Object.assign(job, {
+      ...dto,
+      postedAt: dto.postedAt !== undefined ? this.parseDate(dto.postedAt) : job.postedAt,
+      deadlineAt: dto.deadlineAt !== undefined ? this.parseDate(dto.deadlineAt) : job.deadlineAt,
+    });
     const updated = await this.jobRepo.save(job);
 
     // Async: Reindex on update
@@ -136,6 +148,15 @@ export class JobService {
     return { message: `Đã xoá job #${id}` };
   }
 
+  /** Xoá toàn bộ dữ liệu Job và Company */
+  async clearAllData(): Promise<{ message: string }> {
+    this.logger.log("Clearing all job and company data...");
+    // Phải xoá jobs trước vì có khóa ngoại tới companies
+    await this.jobRepo.query("TRUNCATE TABLE jobs RESTART IDENTITY CASCADE");
+    await this.companyRepo.query("TRUNCATE TABLE companies RESTART IDENTITY CASCADE");
+    return { message: "Đã xoá toàn bộ dữ liệu job và company thành công." };
+  }
+
   /** Seed hàng loạt từ dữ liệu crawl, bỏ qua bản ghi đã tồn tại (upsert theo crawlId) */
   async seedBatch(
     items: SeedJobItemDto[],
@@ -143,6 +164,7 @@ export class JobService {
     let inserted = 0;
     let skipped = 0;
     const jobsToIndex: Job[] = [];
+    const companyNames = new Set<string>();
 
     for (const item of items) {
       try {
@@ -155,12 +177,39 @@ export class JobService {
             continue;
           }
         }
-        const job = this.jobRepo.create(item as Partial<Job>);
+        if (item.company) {
+          companyNames.add(item.company);
+        }
+        const job = this.jobRepo.create({
+          ...item,
+          nhom: item.nhom || [],
+          nganhHoc: item.nganh_hoc || [],
+          postedAt: this.parseDate(item.postedAt),
+          deadlineAt: this.parseDate(item.deadlineAt),
+          startDate: this.parseDate(item.startDate),
+        } as Partial<Job>);
         const saved = await this.jobRepo.save(job);
         jobsToIndex.push(saved);
         inserted++;
       } catch {
         skipped++;
+      }
+    }
+
+    for (const companyName of companyNames) {
+      try {
+        const existing = await this.companyRepo.findOne({
+          where: { name: companyName },
+        });
+        if (!existing) {
+          const company = this.companyRepo.create({
+            name: companyName,
+            status: CompanyStatus.APPROVED,
+          });
+          await this.companyRepo.save(company);
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to create company: ${companyName}`);
       }
     }
 
@@ -283,6 +332,8 @@ export class JobService {
       benefit: job.benefit ?? null,
       company: job.company ?? null,
       deadline: job.deadline ?? null,
+      postedAt: job.postedAt ?? null,
+      deadlineAt: job.deadlineAt ?? null,
       degree: job.degree ?? null,
       description: job.description ?? null,
       experience: job.experience ?? null,
@@ -307,7 +358,19 @@ export class JobService {
       applyCount: job.applyCount ?? 0,
       popularityScore: job.popularityScore ?? 0,
       indexedAt: job.indexedAt ?? null,
+      createdAt: job.createdAt ?? null,
+      updatedAt: job.updatedAt ?? null,
     };
+  }
+
+  private parseDate(value?: string | Date | null): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const trimmed = String(value).trim();
+    if (!trimmed) return null;
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed;
   }
 
   /**

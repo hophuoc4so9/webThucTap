@@ -71,6 +71,16 @@ export class CvController {
     return this.cvService.suggestImprovements(payload.id, payload.userId);
   }
 
+  @MessagePattern("cv_suggest_improvements_async")
+  suggestImprovementsAsync(@Payload() payload: { id: number; userId?: number }) {
+    return this.cvService.suggestImprovementsAsync(payload.id, payload.userId);
+  }
+
+  @MessagePattern("ai_task_status")
+  getTaskStatus(@Payload() payload: { taskId: string }) {
+    return this.cvService.getTaskStatus(payload.taskId);
+  }
+
   @MessagePattern("cv_suggest_draft_improvements")
   suggestDraftImprovements(
     @Payload()
@@ -92,5 +102,12 @@ export class CvController {
     },
   ) {
     return this.cvService.suggestDraftImprovements(payload);
+  }
+
+  @MessagePattern("cv_parse_resume")
+  parseResume(
+    @Payload() payload: { id: number; userId?: number },
+  ) {
+    return this.cvService.parseResumeFromFile(payload.id, payload.userId);
   }
 }

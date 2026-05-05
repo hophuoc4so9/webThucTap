@@ -1,0 +1,1273 @@
+[
+  {
+    "id": 1,
+    "nhom": "SƯ PHẠM",
+    "nganh_hoc": [
+      {
+        "ten": "SƯ PHẠM NGỮ VĂN",
+        "id_news": "  2800",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Giáo dục/Đào tạo",
+            "vi_tri": [
+              "Giáo viên tiểu học",
+              "Giáo viên bộ môn khác",
+              "Giáo viên chủ nhiệm",
+              "Giảng viên thỉnh giảng"
+            ]
+          },
+          {
+            "danh_muc": "Biên tập/Xuất bản",
+            "vi_tri": [
+              "Biên tập viên",
+              "Phóng viên/Biên tập viên tin tức",
+              "Copywriter",
+              "Content Creator"
+            ]
+          },
+          {
+            "danh_muc": "Marketing/PR",
+            "vi_tri": [
+              "Content Marketing",
+              "Social Content",
+              "PR Specialist",
+              "Corporate Communication"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "GIÁO DỤC TIỂU HỌC",
+        "id_news": "1404",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Giáo dục/Đào tạo",
+            "vi_tri": [
+              "Giáo viên tiểu học",
+              "Giáo viên chủ nhiệm",
+              "Trợ giảng bộ môn khác",
+              "Giáo viên giáo dục sớm"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý giáo dục",
+            "vi_tri": [
+              "Quản lý học vụ",
+              "Quản lý giảng dạy",
+              "Chuyên viên điều phối giáo viên"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "GIÁO DỤC MẦM NON",
+        "id_news": "1403",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Giáo dục/Đào tạo",
+            "vi_tri": [
+              "Giáo viên mầm non",
+              "Giáo viên giáo dục sớm",
+              "Bảo mẫu/Người trông trẻ"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý giáo dục",
+            "vi_tri": [
+              "Quản lý học vụ",
+              "Hiệu trưởng/Phó hiệu trưởng"
+            ]
+          },
+          {
+            "danh_muc": "Dịch vụ đời sống",
+            "vi_tri": [
+              "Chăm sóc mẹ và bé"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "nhom": "KINH TẾ",
+    "nganh_hoc": [
+      {
+        "ten": "THƯƠNG MẠI ĐIỆN TỬ",
+        "id_news": "3087",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Kinh doanh/Bán hàng",
+            "vi_tri": [
+              "Kinh doanh sàn thương mại điện tử",
+              "Account Manager",
+              "Sales Representative"
+            ]
+          },
+          {
+            "danh_muc": "Marketing",
+            "vi_tri": [
+              "Digital Marketing",
+              "Affiliate Marketing",
+              "Growth Hacker",
+              "Chạy Ads",
+              "SEO"
+            ]
+          },
+          {
+            "danh_muc": "Vận hành TMĐT",
+            "vi_tri": [
+              "Vận hành sàn thương mại điện tử",
+              "Vận hành Livestream"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KIỂM TOÁN",
+        "id_news": "3086",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Kế toán/Kiểm toán",
+            "vi_tri": [
+              "Kiểm toán viên",
+              "Kiểm toán nội bộ",
+              "Kiểm toán độc lập",
+              "Trưởng nhóm kiểm toán"
+            ]
+          },
+          {
+            "danh_muc": "Tài chính",
+            "vi_tri": [
+              "Kiểm soát và báo cáo tài chính",
+              "Hoạch định tài chính",
+              "Chuyên viên thuế"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn",
+            "vi_tri": [
+              "Tư vấn tài chính",
+              "Tư vấn quản lý doanh nghiệp"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "MARKETING",
+        "id_news": "3085",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Marketing",
+            "vi_tri": [
+              "Marketing Manager",
+              "Brand Marketing",
+              "Digital Marketing",
+              "Trade Marketing",
+              "Content Marketing",
+              "SEO",
+              "Social Media",
+              "Event Marketing"
+            ]
+          },
+          {
+            "danh_muc": "PR/Quảng cáo",
+            "vi_tri": [
+              "PR Specialist",
+              "Campaign Manager",
+              "Media Planner/Buyer Executive",
+              "Creative Planner"
+            ]
+          },
+          {
+            "danh_muc": "Nghiên cứu thị trường",
+            "vi_tri": [
+              "Nghiên cứu thị trường",
+              "Business Intelligence",
+              "Data Analyst"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "LOGISTICS VÀ QUẢN LÝ CHUỖI CUNG ỨNG",
+        "id_news": "2753",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Logistics/Chuỗi cung ứng",
+            "vi_tri": [
+              "Giám đốc Logistics",
+              "Quản lý chuỗi cung ứng",
+              "Freight Forwarder",
+              "Chứng từ xuất nhập khẩu"
+            ]
+          },
+          {
+            "danh_muc": "Kho vận",
+            "vi_tri": [
+              "Nhân viên kho",
+              "Trưởng kho/Giám sát kho",
+              "Điều phối giao hàng"
+            ]
+          },
+          {
+            "danh_muc": "Sales Logistics",
+            "vi_tri": [
+              "Sales Logistics",
+              "Sales Xuất nhập khẩu/Logistics khác"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "QUẢN LÝ CÔNG NGHIỆP",
+        "id_news": "1394",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Vận hành sản xuất",
+            "vi_tri": [
+              "Giám đốc sản xuất",
+              "Trưởng phòng sản xuất",
+              "Kế hoạch sản xuất",
+              "Giám sát sản xuất"
+            ]
+          },
+          {
+            "danh_muc": "Kỹ thuật công nghiệp",
+            "vi_tri": [
+              "Kỹ sư công nghiệp (IE)",
+              "Kỹ sư quy trình",
+              "Quản lý chất lượng (QA)"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý dự án",
+            "vi_tri": [
+              "Quản lý dự án kỹ thuật",
+              "Chuyên viên đấu thầu"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "QUẢN TRỊ KINH DOANH",
+        "id_news": "1382",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Quản lý kinh doanh",
+            "vi_tri": [
+              "Sales Manager/Trưởng phòng kinh doanh",
+              "Sales Director/Giám đốc kinh doanh",
+              "ASM/Quản lý khu vực"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn",
+            "vi_tri": [
+              "Tư vấn chiến lược",
+              "Tư vấn quản lý doanh nghiệp",
+              "Business Analyst"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh",
+            "vi_tri": [
+              "Account Executive",
+              "Account Manager",
+              "Sales Representative/Phát triển kinh doanh"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "TÀI CHÍNH - NGÂN HÀNG",
+        "id_news": "1381",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Ngân hàng",
+            "vi_tri": [
+              "Giao dịch viên",
+              "Quan hệ khách hàng cá nhân/doanh nghiệp",
+              "Thẩm định tín dụng",
+              "Giám đốc ngân hàng"
+            ]
+          },
+          {
+            "danh_muc": "Tài chính/Đầu tư",
+            "vi_tri": [
+              "Phân tích đầu tư",
+              "Tư vấn tài chính",
+              "Quản lý danh mục đầu tư",
+              "Mua bán và sáp nhập (M&A)"
+            ]
+          },
+          {
+            "danh_muc": "Bảo hiểm",
+            "vi_tri": [
+              "Tư vấn bảo hiểm",
+              "Bancassurance",
+              "Định phí bảo hiểm"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KẾ TOÁN",
+        "id_news": "1380",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Kế toán",
+            "vi_tri": [
+              "Kế toán tổng hợp",
+              "Kế toán trưởng",
+              "Kế toán thuế",
+              "Kế toán tài chính",
+              "Kế toán nội bộ"
+            ]
+          },
+          {
+            "danh_muc": "Kiểm toán/Thuế",
+            "vi_tri": [
+              "Kiểm toán viên",
+              "Chuyên viên thuế",
+              "Kiểm toán nội bộ"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn",
+            "vi_tri": [
+              "Sales Dịch vụ kế toán",
+              "Tư vấn tài chính"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "nhom": "NGOẠI NGỮ",
+    "nganh_hoc": [
+      {
+        "ten": "NGÔN NGỮ HÀN QUỐC",
+        "id_news": "2956",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Biên phiên dịch",
+            "vi_tri": [
+              "Biên phiên dịch tiếng Hàn",
+              "Tư vấn dịch thuật",
+              "Biên phiên dịch đa ngôn ngữ"
+            ]
+          },
+          {
+            "danh_muc": "Giáo dục",
+            "vi_tri": [
+              "Giáo viên tiếng Hàn",
+              "Trợ giảng tiếng Hàn"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh quốc tế",
+            "vi_tri": [
+              "Sales Xuất nhập khẩu/Logistics",
+              "Kỹ sư cầu nối BrSE",
+              "Hợp tác quốc tế"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "NGÔN NGỮ TRUNG QUỐC",
+        "id_news": "1401",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Biên phiên dịch",
+            "vi_tri": [
+              "Biên phiên dịch tiếng Trung",
+              "Tư vấn dịch thuật"
+            ]
+          },
+          {
+            "danh_muc": "Giáo dục",
+            "vi_tri": [
+              "Giáo viên tiếng Trung",
+              "Trợ giảng tiếng Trung"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh quốc tế",
+            "vi_tri": [
+              "Kỹ sư cầu nối BrSE",
+              "IT Comtor",
+              "Hợp tác quốc tế"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "NGÔN NGỮ ANH",
+        "id_news": "1399",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Biên phiên dịch",
+            "vi_tri": [
+              "Biên phiên dịch tiếng Anh",
+              "Tư vấn dịch thuật",
+              "Biên phiên dịch đa ngôn ngữ"
+            ]
+          },
+          {
+            "danh_muc": "Giáo dục",
+            "vi_tri": [
+              "Giáo viên tiếng Anh",
+              "Trợ giảng tiếng Anh"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh/Truyền thông",
+            "vi_tri": [
+              "Hợp tác quốc tế",
+              "Global Marketing",
+              "Corporate Communication",
+              "Quan hệ đối ngoại"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "nhom": "ÂM NHẠC - MỸ THUẬT",
+    "nganh_hoc": [
+      {
+        "ten": "TRUYỀN THÔNG ĐA PHƯƠNG TIỆN",
+        "id_news": "2957",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Sáng tạo nội dung",
+            "vi_tri": [
+              "Content Creator",
+              "TikTok Content",
+              "Host Livestream/Streamer",
+              "Photographer/Video Editor"
+            ]
+          },
+          {
+            "danh_muc": "Thiết kế/Truyền thông",
+            "vi_tri": [
+              "Thiết kế đồ họa (Graphic Design)",
+              "Animation Design",
+              "Motion Graphic",
+              "UI/UX Design"
+            ]
+          },
+          {
+            "danh_muc": "PR/Quảng cáo",
+            "vi_tri": [
+              "Creative Director",
+              "Art Director",
+              "Campaign Manager",
+              "Media Planner/Buyer Executive"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "ÂM NHẠC",
+        "id_news": "2821",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Giáo dục âm nhạc",
+            "vi_tri": [
+              "Giáo viên âm nhạc",
+              "Giáo viên Văn hóa/Nghệ thuật/Khoa học khác"
+            ]
+          },
+          {
+            "danh_muc": "Phim/Truyền hình",
+            "vi_tri": [
+              "Kỹ thuật viên âm thanh",
+              "Producer (Sản xuất phim)",
+              "Diễn viên lồng tiếng"
+            ]
+          },
+          {
+            "danh_muc": "Biểu diễn",
+            "vi_tri": [
+              "Dẫn chương trình (MC)",
+              "Diễn viên",
+              "Biên đạo"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "DU LỊCH",
+        "id_news": "2795",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Dịch vụ du lịch",
+            "vi_tri": [
+              "Hướng dẫn viên du lịch",
+              "Điều hành tour",
+              "Sales Tour/Kinh doanh du lịch",
+              "Bán vé máy bay (Ticketing/Booker)"
+            ]
+          },
+          {
+            "danh_muc": "Khách sạn/Nhà hàng",
+            "vi_tri": [
+              "Lễ tân/Đón tiếp",
+              "Quản lý khách sạn",
+              "Kinh doanh HORECA",
+              "Kinh doanh khách đoàn (MICE)"
+            ]
+          },
+          {
+            "danh_muc": "Marketing du lịch",
+            "vi_tri": [
+              "Kinh doanh OTA",
+              "Event Marketing",
+              "Sales Nhà hàng/Khách sạn/Du lịch khác"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "THIẾT KẾ ĐỒ HỌA",
+        "id_news": "2695",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Thiết kế",
+            "vi_tri": [
+              "Thiết kế đồ họa (Graphic Design)",
+              "Illustration",
+              "UI/UX Design",
+              "3D Modeler",
+              "Motion Graphic"
+            ]
+          },
+          {
+            "danh_muc": "Quảng cáo/Sáng tạo",
+            "vi_tri": [
+              "Art Director",
+              "Creative Director",
+              "Creative Planner",
+              "Animation Design"
+            ]
+          },
+          {
+            "danh_muc": "Phim/Game",
+            "vi_tri": [
+              "Concept Artist",
+              "Game Design",
+              "Photographer/Video Editor",
+              "Chỉnh sửa ảnh (Retouch)"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "nhom": "TỰ NHIÊN - THỰC PHẨM",
+    "nganh_hoc": [
+      {
+        "ten": "TOÁN HỌC",
+        "id_news": "2960",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Phân tích dữ liệu",
+            "vi_tri": [
+              "Data Analyst",
+              "Data Scientist",
+              "Quantitative Analyst",
+              "Business Intelligence"
+            ]
+          },
+          {
+            "danh_muc": "Tài chính/Bảo hiểm",
+            "vi_tri": [
+              "Định phí bảo hiểm",
+              "Phân tích đầu tư chứng khoán",
+              "Quản trị rủi ro"
+            ]
+          },
+          {
+            "danh_muc": "Giáo dục",
+            "vi_tri": [
+              "Giáo viên Toán",
+              "Giảng viên thỉnh giảng"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "CÔNG NGHỆ SINH HỌC",
+        "id_news": "2959",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Dược/Y tế",
+            "vi_tri": [
+              "Nghiên cứu sinh học",
+              "R&D y dược",
+              "Kỹ sư Bioinformatics",
+              "Sản xuất dược phẩm"
+            ]
+          },
+          {
+            "danh_muc": "Thực phẩm/Hoá mỹ phẩm",
+            "vi_tri": [
+              "Nghiên cứu và phát triển (R&D) thực phẩm",
+              "Nghiên cứu và phát triển (R&D) mỹ phẩm",
+              "Kỹ thuật viên phòng thí nghiệm"
+            ]
+          },
+          {
+            "danh_muc": "Môi trường/Nông nghiệp",
+            "vi_tri": [
+              "Kỹ thuật viên nông nghiệp/trồng trọt",
+              "Vận hành hệ thống xử lý nước thải"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "CÔNG NGHỆ THỰC PHẨM",
+        "id_news": "2796",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Sản xuất/R&D",
+            "vi_tri": [
+              "Nghiên cứu và phát triển (R&D) thực phẩm",
+              "Kỹ thuật viên phòng thí nghiệm",
+              "Kinh doanh thực phẩm"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý chất lượng",
+            "vi_tri": [
+              "Quản lý chất lượng (QA)",
+              "Kiểm soát chất lượng (QC)",
+              "Kỹ sư phân tích lỗi (PE)"
+            ]
+          },
+          {
+            "danh_muc": "Dịch vụ ăn uống",
+            "vi_tri": [
+              "Bếp trưởng",
+              "Quản lý nhà hàng",
+              "Chuyên gia thẩm rượu"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "HÓA HỌC",
+        "id_news": "1387",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Hoá chất/Hoá mỹ phẩm",
+            "vi_tri": [
+              "Kỹ sư hóa học",
+              "Kỹ thuật viên phòng thí nghiệm",
+              "Nghiên cứu và phát triển (R&D) mỹ phẩm"
+            ]
+          },
+          {
+            "danh_muc": "Sản xuất/Môi trường",
+            "vi_tri": [
+              "Kỹ sư môi trường",
+              "Vận hành hệ thống xử lý nước thải",
+              "Kinh doanh hoá chất"
+            ]
+          },
+          {
+            "danh_muc": "Dược phẩm",
+            "vi_tri": [
+              "Dược sĩ/Bán thuốc",
+              "Đăng ký dược phẩm",
+              "Trình dược viên"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "nhom": "KHOA HỌC QUẢN LÝ",
+    "nganh_hoc": [
+      {
+        "ten": "TÂM LÝ HỌC",
+        "id_news": "2703",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Tư vấn/Hỗ trợ",
+            "vi_tri": [
+              "Tư vấn tâm lý",
+              "Tư vấn tâm lý học đường",
+              "Tư vấn hướng nghiệp",
+              "Tư vấn hôn nhân"
+            ]
+          },
+          {
+            "danh_muc": "Nhân sự",
+            "vi_tri": [
+              "Đào tạo",
+              "Phát triển tổ chức",
+              "Chuyên viên phát triển văn hóa doanh nghiệp"
+            ]
+          },
+          {
+            "danh_muc": "Nghiên cứu",
+            "vi_tri": [
+              "Nghiên cứu thị trường",
+              "Data Labeling (Gán nhãn dữ liệu)"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "QUẢN LÝ ĐẤT ĐAI",
+        "id_news": "1441",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Bất động sản",
+            "vi_tri": [
+              "Thẩm định giá bất động sản",
+              "Quy hoạch bất động sản",
+              "Phát triển mặt bằng",
+              "Giải phóng mặt bằng"
+            ]
+          },
+          {
+            "danh_muc": "Nhà nước/Pháp lý",
+            "vi_tri": [
+              "Chuyên viên pháp lý",
+              "Pháp chế",
+              "Nghiên cứu chính sách"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn",
+            "vi_tri": [
+              "Tư vấn quản lý doanh nghiệp",
+              "Quản lý dự án bất động sản"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "LUẬT",
+        "id_news": "1398",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Dịch vụ pháp lý",
+            "vi_tri": [
+              "Luật sư",
+              "Chuyên viên pháp lý",
+              "Thư ký văn phòng luật sư/Thư ký pháp lý"
+            ]
+          },
+          {
+            "danh_muc": "Pháp chế doanh nghiệp",
+            "vi_tri": [
+              "Pháp chế",
+              "Giám đốc pháp chế",
+              "Kiểm soát tuân thủ"
+            ]
+          },
+          {
+            "danh_muc": "Nhà nước",
+            "vi_tri": [
+              "Goverment Affairs Manager",
+              "Vận động hành lang",
+              "Phòng chống rửa tiền"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "GIÁO DỤC HỌC",
+        "id_news": "1397",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Quản lý giáo dục",
+            "vi_tri": [
+              "Quản lý học vụ",
+              "Hiệu trưởng/Phó hiệu trưởng",
+              "Quản lý chất lượng giáo dục"
+            ]
+          },
+          {
+            "danh_muc": "Phát triển học liệu",
+            "vi_tri": [
+              "Phát triển học liệu/Thiết kế khóa học",
+              "Cố vấn học tập"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn giáo dục",
+            "vi_tri": [
+              "Tư vấn tuyển sinh/khoá học",
+              "Tư vấn du học/định cư"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "QUẢN LÝ NHÀ NƯỚC",
+        "id_news": "1393",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Hành chính/Nhà nước",
+            "vi_tri": [
+              "Giám đốc điều hành",
+              "Trưởng phòng hành chính",
+              "Giám đốc hành chính"
+            ]
+          },
+          {
+            "danh_muc": "Quan hệ Chính phủ",
+            "vi_tri": [
+              "Quan hệ đối ngoại",
+              "Hợp tác quốc tế",
+              "Public Affairs Manager",
+              "Nghiên cứu chính sách"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn",
+            "vi_tri": [
+              "Tư vấn quản lý doanh nghiệp",
+              "Tư vấn chiến lược"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "QUẢN LÝ TÀI NGUYÊN VÀ MÔI TRƯỜNG",
+        "id_news": "1392",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Môi trường",
+            "vi_tri": [
+              "Kỹ sư môi trường",
+              "Kỹ sư an toàn lao động (HSE)",
+              "Vận hành hệ thống xử lý nước thải",
+              "Công nhân môi trường"
+            ]
+          },
+          {
+            "danh_muc": "Năng lượng",
+            "vi_tri": [
+              "Kỹ sư năng lượng",
+              "Kỹ sư điện mặt trời",
+              "Kỹ sư thủy lợi"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý",
+            "vi_tri": [
+              "Quản lý dự án kỹ thuật",
+              "Nghiên cứu chính sách"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KỸ THUẬT MÔI TRƯỜNG",
+        "id_news": "1379",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Kỹ thuật môi trường",
+            "vi_tri": [
+              "Kỹ sư môi trường",
+              "Vận hành hệ thống xử lý nước thải",
+              "Kỹ sư an toàn lao động (HSE)"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn/Quản lý",
+            "vi_tri": [
+              "Quản lý dự án kỹ thuật",
+              "Tư vấn triển khai",
+              "Kỹ sư địa chất"
+            ]
+          },
+          {
+            "danh_muc": "Năng lượng",
+            "vi_tri": [
+              "Kỹ sư năng lượng",
+              "Kinh doanh điện mặt trời"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "nhom": "KỸ THUẬT - CÔNG NGHỆ",
+    "nganh_hoc": [
+      {
+        "ten": "CÔNG NGHỆ THÔNG TIN",
+        "id_news": "2819",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Lập trình",
+            "vi_tri": [
+              "Software Engineer",
+              "Backend Developer",
+              "Frontend Developer",
+              "Fullstack Developer",
+              "Mobile Developer"
+            ]
+          },
+          {
+            "danh_muc": "AI/Data",
+            "vi_tri": [
+              "AI Engineer",
+              "Data Engineer",
+              "Data Scientist",
+              "Data Analyst"
+            ]
+          },
+          {
+            "danh_muc": "Hạ tầng/Bảo mật",
+            "vi_tri": [
+              "DevOps Engineer",
+              "Cloud Engineer",
+              "Network Engineer",
+              "Chuyên viên Cyber Security"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "CÔNG NGHỆ KỸ THUẬT Ô TÔ",
+        "id_news": "2748",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "R&D/Sản xuất ô tô",
+            "vi_tri": [
+              "Kỹ sư thiết kế ô tô",
+              "Kỹ sư khung gầm",
+              "Kỹ sư lắp ráp ô tô"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh/Dịch vụ",
+            "vi_tri": [
+              "Kinh doanh ô tô/xe máy/xe điện",
+              "Kinh doanh phụ tùng ô tô",
+              "Thợ sửa xe"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý",
+            "vi_tri": [
+              "Quản lý cửa hàng sửa chữa ô tô",
+              "Kiểm định ô tô",
+              "Giám định bồi thường ô tô"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KỸ THUẬT ĐIỀU KHIỂN VÀ TỰ ĐỘNG HÓA",
+        "id_news": "2705",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Tự động hóa",
+            "vi_tri": [
+              "Kỹ sư tự động hóa",
+              "Kỹ sư lập trình PLC/SCADA",
+              "Kỹ sư robot",
+              "Kỹ sư IoT (IoT Engineer)"
+            ]
+          },
+          {
+            "danh_muc": "Sản xuất",
+            "vi_tri": [
+              "Giám sát sản xuất",
+              "Vận hành thiết bị nặng/phụ trợ",
+              "Sửa chữa/Bảo trì máy công nghiệp"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý dự án",
+            "vi_tri": [
+              "Quản lý dự án hệ thống tự động hóa",
+              "Kỹ sư triển khai"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KỸ THUẬT CƠ ĐIỆN TỬ",
+        "id_news": "2693",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Kỹ thuật",
+            "vi_tri": [
+              "Kỹ sư cơ khí",
+              "Kỹ sư điện tử",
+              "Kỹ sư thiết kế cơ khí",
+              "Embedded Engineer/Lập trình nhúng"
+            ]
+          },
+          {
+            "danh_muc": "Sản xuất",
+            "vi_tri": [
+              "Kỹ sư khuôn mẫu",
+              "Kiểm soát chất lượng (QC)",
+              "Vận hành thiết bị nặng/phụ trợ"
+            ]
+          },
+          {
+            "danh_muc": "Bán hàng kỹ thuật",
+            "vi_tri": [
+              "Bán hàng kỹ thuật cơ khí",
+              "Sales Kỹ thuật khác",
+              "Tư vấn triển khai"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KỸ THUẬT ĐIỆN",
+        "id_news": "1383",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Điện/Tự động hóa",
+            "vi_tri": [
+              "Kỹ sư điện",
+              "Kỹ sư thiết kế điện",
+              "Thợ điện",
+              "Kỹ sư cơ điện"
+            ]
+          },
+          {
+            "danh_muc": "Viễn thông/Điện tử",
+            "vi_tri": [
+              "Kỹ sư điện tử viễn thông",
+              "Kinh doanh thiết bị/linh kiện điện",
+              "Kinh doanh HVAC"
+            ]
+          },
+          {
+            "danh_muc": "Vận hành/Bảo trì",
+            "vi_tri": [
+              "Vận hành điện",
+              "Sửa chữa/Bảo trì máy công nghiệp",
+              "Kỹ sư hệ thống"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KỸ THUẬT PHẦN MỀM",
+        "id_news": "1377",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Phát triển phần mềm",
+            "vi_tri": [
+              "Software Engineer",
+              "Backend Developer",
+              "Frontend Developer",
+              "Mobile Developer",
+              "Fullstack Developer"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý/Kiến trúc",
+            "vi_tri": [
+              "Software Architect",
+              "Technical Leader",
+              "IT Project Manager",
+              "Scrum Master"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh IT",
+            "vi_tri": [
+              "Kinh doanh phần mềm",
+              "IT Consultant",
+              "Business Analyst (Phân tích nghiệp vụ)"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "nhom": "KIẾN TRÚC - XÂY DỰNG",
+    "nganh_hoc": [
+      {
+        "ten": "CÔNG NGHỆ CHẾ BIẾN LÂM SẢN",
+        "id_news": "2698",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Sản xuất/Kỹ thuật",
+            "vi_tri": [
+              "Công nhân xưởng gỗ",
+              "Thợ mộc",
+              "Kỹ sư vật liệu"
+            ]
+          },
+          {
+            "danh_muc": "Thiết kế",
+            "vi_tri": [
+              "Thiết kế sản phẩm nội thất",
+              "Thiết kế nội thất",
+              "Kinh doanh nội thất"
+            ]
+          },
+          {
+            "danh_muc": "Kinh doanh",
+            "vi_tri": [
+              "Kinh doanh thiết bị/vật liệu xây dựng",
+              "Sales Xây dựng khác"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KIẾN TRÚC",
+        "id_news": "1385",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Thiết kế/Kiến trúc",
+            "vi_tri": [
+              "Kiến trúc sư",
+              "Thiết kế nội thất",
+              "Thiết kế cảnh quan",
+              "BIM Engineer"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý dự án",
+            "vi_tri": [
+              "Quản lý dự án xây dựng",
+              "Giám sát dự án/công trình/thi công",
+              "Đấu thầu xây dựng"
+            ]
+          },
+          {
+            "danh_muc": "Tư vấn",
+            "vi_tri": [
+              "Tư vấn thiết kế xây dựng",
+              "Quy hoạch và thiết kế đô thị"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "KỸ THUẬT XÂY DỰNG",
+        "id_news": "1384",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Kỹ sư xây dựng",
+            "vi_tri": [
+              "Kỹ sư kết cấu công trình",
+              "Kỹ sư xây dựng",
+              "Kỹ sư cầu đường",
+              "Kỹ sư hạ tầng đô thị"
+            ]
+          },
+          {
+            "danh_muc": "Quản lý dự án",
+            "vi_tri": [
+              "Quản lý dự án thi công xây dựng",
+              "Dự toán công trình",
+              "Kỹ sư an toàn lao động (HSE)",
+              "Đấu thầu xây dựng"
+            ]
+          },
+          {
+            "danh_muc": "Bất động sản",
+            "vi_tri": [
+              "Quản lý dự án bất động sản",
+              "Thẩm định giá bất động sản",
+              "Quy hoạch bất động sản"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "nhom": "XÃ HỘI VÀ NHÂN VĂN",
+    "nganh_hoc": [
+      {
+        "ten": "QUAN HỆ QUỐC TẾ",
+        "id_news": "2701",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Quan hệ Chính phủ/Đối ngoại",
+            "vi_tri": [
+              "Quan hệ đối ngoại",
+              "Hợp tác quốc tế",
+              "Public Affairs Manager",
+              "Goverment Affairs Manager"
+            ]
+          },
+          {
+            "danh_muc": "PR/Truyền thông",
+            "vi_tri": [
+              "PR Specialist",
+              "Corporate Communication",
+              "Xử lý khủng hoảng truyền thông"
+            ]
+          },
+          {
+            "danh_muc": "NGO/Tư vấn",
+            "vi_tri": [
+              "Chuyên môn NGO/Phi chính phủ/Phi lợi nhuận",
+              "Tư vấn chiến lược",
+              "Nghiên cứu chính sách"
+            ]
+          }
+        ]
+      },
+      {
+        "ten": "CÔNG TÁC XÃ HỘI",
+        "id_news": "1402",
+        "nghe_nghiep": [
+          {
+            "danh_muc": "Hỗ trợ cộng đồng",
+            "vi_tri": [
+              "Phát triển cộng đồng",
+              "Tư vấn tâm lý",
+              "Tư vấn hôn nhân",
+              "Cố vấn học tập"
+            ]
+          },
+          {
+            "danh_muc": "NGO/Nhà nước",
+            "vi_tri": [
+              "Chuyên môn NGO/Phi chính phủ/Phi lợi nhuận",
+              "Quan hệ đối ngoại",
+              "Nghiên cứu chính sách"
+            ]
+          },
+          {
+            "danh_muc": "Nhân sự/Đào tạo",
+            "vi_tri": [
+              "Đào tạo",
+              "Phát triển tổ chức",
+              "Tư vấn nhân sự"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

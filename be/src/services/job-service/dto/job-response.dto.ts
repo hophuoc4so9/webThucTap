@@ -5,6 +5,8 @@ export class JobResponseDto {
   benefit: string | null;
   company: string | null;
   deadline: string | null;
+  postedAt: Date | null;
+  deadlineAt: Date | null;
   degree: string | null;
   description: string | null;
   experience: string | null;
@@ -29,4 +31,6 @@ export class JobResponseDto {
   applyCount: number;
   popularityScore: number;
   indexedAt: Date | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }

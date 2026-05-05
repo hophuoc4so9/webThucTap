@@ -2,12 +2,18 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm";
 import { Company } from "./company.entity";
 
 @Entity("jobs")
+@Index(["postedAt"])
+@Index(["createdAt"])
+@Index(["postedAt", "createdAt"])
 export class Job {
   @PrimaryGeneratedColumn("increment")
   id: number;
@@ -26,6 +32,12 @@ export class Job {
 
   @Column({ type: "text", nullable: true })
   deadline: string;
+
+  @Column({ name: "posted_at", type: "timestamp", nullable: true })
+  postedAt: Date | null;
+
+  @Column({ name: "deadline_at", type: "timestamp", nullable: true })
+  deadlineAt: Date | null;
 
   @Column({ type: "text", nullable: true })
   degree: string;
@@ -87,6 +99,12 @@ export class Job {
   @Column({ name: "company_id", type: "int", nullable: true })
   companyId: number | null;
 
+  @CreateDateColumn({ name: "created_at" })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: "updated_at" })
+  updatedAt: Date;
+
   // Embedding & Metrics for Recommendations & Advanced Search
   @Column("vector", {
     name: "embedding",
@@ -112,6 +130,15 @@ export class Job {
     comment: "Timestamp when job was last indexed for embedding",
   })
   indexedAt: Date | null;
+
+  @Column("text", { name: "nhom", array: true, nullable: true })
+  nhom: string[] | null;
+
+  @Column("text", { name: "nganh_hoc", array: true, nullable: true })
+  nganhHoc: string[] | null;
+
+  @Column({ name: "start_date", type: "timestamp", nullable: true })
+  startDate: Date | null;
 
   @ManyToOne(() => Company, (company) => company.jobs, {
     nullable: true,

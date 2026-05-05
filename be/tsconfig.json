@@ -4,11 +4,13 @@
     "target": "ES2021",
 
     "declaration": true,
+    "declarationMap": false,
     "removeComments": true,
     "sourceMap": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "incremental": true,
+    "incremental": false,
+    "noEmit": false,
 
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -31,5 +33,9 @@
       "@config/*": ["./src/config/*"],
       "@shared/*": ["./src/shared/*"]
     }
+  },
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "ts-node": {
+    "transpileOnly": true
   }
 }

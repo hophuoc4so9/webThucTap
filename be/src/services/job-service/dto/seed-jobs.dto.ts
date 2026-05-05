@@ -5,6 +5,8 @@ export class SeedJobItemDto {
   benefit?: string;
   company?: string;
   deadline?: string;
+  postedAt?: string;
+  deadlineAt?: string;
   degree?: string;
   description?: string;
   experience?: string;
@@ -23,6 +25,9 @@ export class SeedJobItemDto {
   salaryMax?: string;
   salaryMin?: string;
   companyId?: number;
+  nhom?: string[];
+  nganh_hoc?: string[];
+  startDate?: string;
 }
 
 export class SeedJobsDto {

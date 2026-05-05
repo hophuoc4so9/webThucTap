@@ -28,6 +28,12 @@ export interface Cv {
   experience?: string;
   /** JSON string — array of project objects */
   projects?: string;
+  /** JSON string — array of certification strings */
+  certifications?: string;
+  /** JSON string — array of language strings */
+  languages?: string;
+  /** JSON string — array of social link strings */
+  socialLinks?: string;
   filePath?: string;
   fileOriginalName?: string;
   fileMimeType?: string;
@@ -59,6 +65,9 @@ export interface CreateCvDto {
   education?: string;
   experience?: string;
   projects?: string;
+  certifications?: string;
+  languages?: string;
+  socialLinks?: string;
   isDefault?: boolean;
 }
 
@@ -75,7 +84,30 @@ export interface UpdateCvDto {
   education?: string;
   experience?: string;
   projects?: string;
+  certifications?: string;
+  languages?: string;
+  socialLinks?: string;
   isDefault?: boolean;
+}
+
+export interface CvParsedData {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  skills: string[];
+  experience: string[];
+  education: string[];
+  certifications: string[];
+  languages: string[];
+  socialLinks: string[];
+}
+
+export interface CvParseResponse {
+  cvId: number;
+  userId: number;
+  parsed: CvParsedData;
+  cv: Cv;
 }
 
 export type AiRecommendation =

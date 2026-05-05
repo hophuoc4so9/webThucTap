@@ -20,6 +20,7 @@ import { CvFormPage } from "@/features/student/pages/CVPage/CvFormPage";
 import { ApplicationsPage } from "@/features/student/pages/ApplicationsPage/index";
 import { StudentProfilePage } from "@/features/student/pages/ProfilePage/index";
 import { StudentRecruiterPage } from "@/features/student/pages/RecruiterPage/index";
+import { StudentMarketTrendPage } from "@/features/student/pages/MarketTrend/index";
 
 // Student Project Pages
 import { StudentProjectsPage } from "@/features/student/pages/ProjectsPage/index";
@@ -40,6 +41,7 @@ import { AdminDashboard } from "@/features/admin/pages/Dashboard/index";
 import { StudentsManagement } from "@/features/admin/pages/StudentsManagement/index";
 import { CompaniesManagement } from "@/features/admin/pages/CompaniesManagement/index";
 import { JobsManagement } from "@/features/admin/pages/JobsManagement/index";
+import { AdminMarketTrendPage } from "@/features/admin/pages/MarketTrend/index";
 
 // Protected Route Component
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -91,6 +93,7 @@ export const router = createBrowserRouter([
       { path: "recruiter", element: <StudentRecruiterPage /> },
       { path: "projects", element: <StudentProjectsPage /> },
       { path: "projects/:id", element: <ProjectDetailPage /> },
+      { path: "market-trends", element: <StudentMarketTrendPage /> },
       { path: "messages", element: <div>Messages</div> },
       { path: "settings", element: <div>Settings</div> },
     ],
@@ -147,6 +150,7 @@ export const router = createBrowserRouter([
       { path: "students", element: <StudentsManagement /> },
       { path: "companies", element: <CompaniesManagement /> },
       { path: "jobs", element: <JobsManagement /> },
+      { path: "market-trends", element: <AdminMarketTrendPage /> },
       { path: "internships", element: <div>Internships Management</div> },
       { path: "reports", element: <div>Reports</div> },
       { path: "notifications", element: <div>Notifications</div> },

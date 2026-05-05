@@ -74,6 +74,32 @@ export const getCvProjects = (cv: Cv): CvProjectItem[] => {
   }
 };
 
+const parseJsonStringArray = (value?: string | null): string[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item).trim()).filter(Boolean);
+    }
+  } catch {
+    return value.split(/[,;\n]/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+};
+
+export const getCvCertifications = (cv: Cv): string[] => parseJsonStringArray(cv.certifications);
+
+export const getCvLanguages = (cv: Cv): string[] => parseJsonStringArray(cv.languages);
+
+export const getCvSocialLinks = (cv: Cv): string[] => {
+  const links = parseJsonStringArray(cv.socialLinks);
+  const linkedIn = cv.linkedIn?.trim();
+  if (linkedIn && !links.some((item) => item.includes(linkedIn))) {
+    return [linkedIn, ...links];
+  }
+  return links;
+};
+
 const escapeHtml = (s: string): string =>
   s
     .replace(/&/g, "&amp;")
@@ -86,6 +112,9 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
   const skills = getCvSkills(cv);
   const experiences = getCvExperiences(cv);
   const projects = getCvProjects(cv);
+  const certifications = getCvCertifications(cv);
+  const languages = getCvLanguages(cv);
+  const socialLinks = getCvSocialLinks(cv);
   const rawName = cv.fullName || cv.title || "Hồ sơ xin việc";
   const name = escapeHtml(rawName).toUpperCase();
   const rawPosition = cv.jobPosition || "";
@@ -111,6 +140,15 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
   const educationBody = cv.education ? `<p class="pdf-p">${escapeHtml(cv.education).replace(/\n/g, "<br>")}</p>` : "";
   const expBody = experiences.length
     ? `<ul class="pdf-bullet-list">${experiences.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul>`
+    : "";
+  const certBody = certifications.length
+    ? `<ul class="pdf-bullet-list">${certifications.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`
+    : "";
+  const langBody = languages.length
+    ? `<ul class="pdf-bullet-list">${languages.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
+    : "";
+  const socialBody = socialLinks.length
+    ? `<ul class="pdf-bullet-list">${socialLinks.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>`
     : "";
   const projectBody = projects.length
     ? `<div>${projects
@@ -144,7 +182,10 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
     ${section("OBJECTIVE", summaryBody)}
     ${section("EDUCATION", educationBody)}
     ${section("SKILLS", skillsBody)}
+    ${section("CERTIFICATIONS", certBody)}
     ${section("EXPERIENCE", expBody)}
+    ${section("LANGUAGES", langBody)}
+    ${section("SOCIAL LINKS", socialBody)}
     ${section("PROJECTS", projectBody)}
   </div>
   `;

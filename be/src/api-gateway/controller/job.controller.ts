@@ -111,6 +111,18 @@ export class JobController {
     }
   }
 
+  /** DELETE /jobs/clear-all */
+  @Delete("clear-all")
+  async clearAll() {
+    try {
+      return await firstValueFrom(this.jobClient.send("job_clear_all", {}));
+    } catch (err: any){
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
   /**
    * POST /jobs/seed
    */
@@ -332,6 +344,24 @@ export class JobController {
     try {
       return await firstValueFrom(
         this.aiSearchClient.send("ai_search_recommend_by_quiz_score", data),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /**
+   * POST /jobs/recommendations/personalized
+   * Get personalized job recommendations for a user based on interaction history
+   * Request: { userId: number, topK?: number }
+   */
+  @Post("recommendations/personalized")
+  async getPersonalizedRecommendations(@Body() data: any) {
+    try {
+      return await firstValueFrom(
+        this.aiSearchClient.send("ai_search_personalized_recommendations", data),
       );
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =

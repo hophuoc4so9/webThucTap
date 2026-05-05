@@ -52,6 +52,30 @@ export class CreateCvDto {
   @IsString()
   projects?: string;
 
+  @IsOptional()
+  @IsString()
+  certifications?: string;
+
+  @IsOptional()
+  @IsString()
+  languages?: string;
+
+  @IsOptional()
+  @IsString()
+  major?: string;
+
+  @IsOptional()
+  @IsString()
+  majorGroup?: string;
+
+  @IsOptional()
+  @IsString()
+  majorCode?: string;
+
+  @IsOptional()
+  @IsString()
+  socialLinks?: string;
+
   /** Đường dẫn file (điền bởi API Gateway sau khi upload) */
   @IsOptional()
   @IsString()

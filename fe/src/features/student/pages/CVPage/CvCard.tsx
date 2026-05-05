@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Pencil, Star, StarOff, Trash2, Paperclip, Download, FileDown, Loader2, Sparkles } from "lucide-react";
+import { FileText, Pencil, Star, StarOff, Trash2, Paperclip, Download, FileDown, Loader2, Sparkles, Eye } from "lucide-react";
 import type { Cv } from "@/features/student/types";
 import { getCvFileUrl } from "@/api/api/clients/apiConfig";
 import { fmtDate, FILE_COLOR, fileExt, getCvExperiences, getCvProjects, getCvSkills } from "./helpers";
@@ -13,6 +13,7 @@ export const CvCard = ({
   onSetDefault,
   onEdit,
   onAnalyze,
+  onView,
   analyzing,
 }: {
   cv: Cv;
@@ -20,6 +21,7 @@ export const CvCard = ({
   onSetDefault: (id: number) => void;
   onEdit: (cv: Cv) => void;
   onAnalyze: (id: number) => void;
+  onView: (cv: Cv) => void;
   analyzing?: boolean;
 }) => {
   const skills = getCvSkills(cv);
@@ -174,6 +176,12 @@ export const CvCard = ({
       </div>
 
       <div className="border-t border-gray-100 px-5 py-3 flex items-center gap-2">
+        <button
+          onClick={() => onView(cv)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <Eye size={13} /> Xem
+        </button>
         <button
           onClick={() => onEdit(cv)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

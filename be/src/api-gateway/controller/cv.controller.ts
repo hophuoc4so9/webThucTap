@@ -225,4 +225,44 @@ export class CvGatewayController {
       throw new HttpException({ success: false, message }, statusCode);
     }
   }
+
+  /** POST /cvs/:id/suggestions-async */
+  @Post(":id/suggestions-async")
+  async suggestImprovementsAsync(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_suggest_improvements_async", {
+          id,
+          userId: body?.userId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /cvs/:id/parse */
+  @Post(":id/parse")
+  async parseResume(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_parse_resume", {
+          id,
+          userId: body?.userId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
 }

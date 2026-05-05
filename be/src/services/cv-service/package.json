@@ -20,7 +20,9 @@
     "amqplib": "^0.10.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "mammoth": "^1.8.0",
     "pg": "^8.13.0",
+    "pdf-parse": "^1.1.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.0.0",
     "typeorm": "^0.3.17"

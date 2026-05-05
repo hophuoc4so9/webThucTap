@@ -160,4 +160,24 @@ export class ApplicationGatewayController {
       throw new HttpException({ success: false, message }, statusCode);
     }
   }
+
+  /** POST /applications/:id/fit-check-async */
+  @Post(":id/fit-check-async")
+  async fitCheckAsync(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { userId?: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("application_analyze_fit_async", {
+          id,
+          userId: body?.userId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
 }
