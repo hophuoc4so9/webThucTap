@@ -41,3 +41,7 @@ build/
 
 
 !/readme.md
+
+.models/
+*.onnx
+!/*.md
