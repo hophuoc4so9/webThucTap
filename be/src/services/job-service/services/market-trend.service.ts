@@ -18,6 +18,7 @@ const DEFAULT_LIMIT_CLUSTERS = 8;
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const CLUSTER_SIM_THRESHOLD = 0.25;
 const EMBEDDING_SIM_THRESHOLD = 0.35;
+const MARKET_TREND_CACHE_VERSION = 2;
 
 type MajorItem = {
   name: string;
@@ -34,6 +35,8 @@ type JobTrendItem = {
   description?: string | null;
   industry?: string | null;
   field?: string | null;
+  extractedSkills?: string[] | null;
+  skillsExtractedAt?: Date | null;
   postedAt?: Date | null;
   deadlineAt?: Date | null;
   createdAt?: Date | null;
@@ -88,6 +91,7 @@ export class MarketTrendService {
     const includeForecast = query.includeForecast !== false;
 
     const cacheKey = JSON.stringify({
+      version: MARKET_TREND_CACHE_VERSION,
       major: query.major ?? "",
       majorGroup: query.majorGroup ?? "",
       days,
@@ -106,7 +110,7 @@ export class MarketTrendService {
 
     const filteredJobs = this.filterJobsByMajor(jobs, catalog, query.major, query.majorGroup);
 
-    const clusters = this.clusterJobs(filteredJobs, limitClusters);
+    const clusters = await this.clusterJobs(filteredJobs, limitClusters);
 
     // Build all time series first (fast, can be done in parallel)
     const clusterSeriesData = clusters.map((cluster, index) => ({
@@ -223,6 +227,8 @@ export class MarketTrendService {
       "job.description",
       "job.industry",
       "job.field",
+      "job.extractedSkills",
+      "job.skillsExtractedAt",
       "job.postedAt",
       "job.deadlineAt",
       "job.createdAt",
@@ -334,11 +340,12 @@ export class MarketTrendService {
     return best;
   }
 
-  private clusterJobs(jobs: JobTrendItem[], limitClusters: number): SkillCluster[] {
+  private async clusterJobs(jobs: JobTrendItem[], limitClusters: number): Promise<SkillCluster[]> {
     const clusters: SkillCluster[] = [];
 
     for (const job of jobs) {
-      const skills = this.extractSkills(job);
+      const skills = await this.extractSkills(job);
+      if (!skills.length) continue;
       const skillSet = new Set(skills);
       const best = this.pickCluster(clusters, skillSet);
 
@@ -530,14 +537,33 @@ export class MarketTrendService {
       .slice(0, 10);
   }
 
-  private extractSkills(job: JobTrendItem): string[] {
-    // Use data-driven approach: extract from database fields directly
-    return this.skillExtraction.extractSkillsFromJob({
+  private async extractSkills(job: JobTrendItem): Promise<string[]> {
+    if (Array.isArray(job.extractedSkills) && job.extractedSkills.length > 0) {
+      return job.extractedSkills;
+    }
+
+    const skills = this.skillExtraction.extractSkillsFromJob({
+      title: job.title,
+      description: job.description,
       field: job.field,
       tagsRequirement: job.tagsRequirement,
       industry: job.industry,
       requirement: job.requirement,
     });
+
+    if (skills.length > 0) {
+      this.jobRepo
+        .update(job.id, {
+          extractedSkills: skills,
+          skillsExtractedAt: new Date(),
+        } as Partial<Job>)
+        .catch((error: any) => {
+          this.logger.warn(`Failed to persist extracted skills for job #${job.id}: ${error?.message ?? error}`);
+        });
+      job.extractedSkills = skills;
+    }
+
+    return skills;
   }
 
   private buildSkillSet(counts: Map<string, number>, limit: number): Set<string> {

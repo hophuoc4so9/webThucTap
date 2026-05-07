@@ -88,6 +88,12 @@ export class Job {
   @Column({ name: "tags_requirement", type: "text", nullable: true })
   tagsRequirement: string;
 
+  @Column("text", { name: "extracted_skills", array: true, nullable: true })
+  extractedSkills: string[] | null;
+
+  @Column({ name: "skills_extracted_at", type: "timestamp", nullable: true })
+  skillsExtractedAt: Date | null;
+
   @Column({ name: "province_ids", type: "text", nullable: true })
   provinceIds: string;
 

@@ -11,6 +11,7 @@ import { QueryJobDto } from "../dto/query-job.dto";
 import { SeedJobItemDto } from "../dto/seed-jobs.dto";
 import { JobResponseDto } from "../dto/job-response.dto";
 import { lastValueFrom } from "rxjs";
+import { SkillExtractionService } from "./skill-extraction.service";
 
 @Injectable()
 export class JobService {
@@ -24,6 +25,7 @@ export class JobService {
     @Optional()
     @Inject("AI_SEARCH_SERVICE")
     private readonly aiSearchClient?: ClientProxy,
+    private readonly skillExtraction?: SkillExtractionService,
   ) { }
 
   async create(dto: CreateJobDto): Promise<JobResponseDto> {
@@ -33,6 +35,7 @@ export class JobService {
       postedAt: this.parseDate(dto.postedAt),
       deadlineAt: this.parseDate(dto.deadlineAt),
     } as Partial<Job>);
+    this.applyExtractedSkills(job);
     const saved = await this.jobRepo.save(job);
 
     // Async: Enqueue for embedding (non-blocking)
@@ -186,6 +189,7 @@ export class JobService {
       postedAt: dto.postedAt !== undefined ? this.parseDate(dto.postedAt) : job.postedAt,
       deadlineAt: dto.deadlineAt !== undefined ? this.parseDate(dto.deadlineAt) : job.deadlineAt,
     });
+    this.applyExtractedSkills(job);
     const updated = await this.jobRepo.save(job);
 
     // Async: Reindex on update
@@ -267,6 +271,7 @@ export class JobService {
           deadlineAt: this.parseDate(item.deadlineAt),
           startDate: this.parseDate(item.startDate),
         } as Partial<Job>);
+        this.applyExtractedSkills(job);
         const saved = await this.jobRepo.save(job);
         jobsToIndex.push(saved);
         inserted++;
@@ -318,6 +323,20 @@ export class JobService {
   }
 
   // ─── Private Helpers ───────────────────────────────
+
+  private applyExtractedSkills(job: Partial<Job>): void {
+    if (!this.skillExtraction) return;
+
+    job.extractedSkills = this.skillExtraction.extractSkillsFromJob({
+      title: job.title,
+      description: job.description,
+      field: job.field,
+      tagsRequirement: job.tagsRequirement,
+      industry: job.industry,
+      requirement: job.requirement,
+    });
+    job.skillsExtractedAt = new Date();
+  }
 
   private enqueueForIndexing(job: Job): void {
     if (!this.aiSearchClient) {
@@ -445,6 +464,8 @@ export class JobService {
       vacancies: job.vacancies ?? null,
       tagsBenefit: job.tagsBenefit ?? null,
       tagsRequirement: job.tagsRequirement ?? null,
+      extractedSkills: job.extractedSkills ?? null,
+      skillsExtractedAt: job.skillsExtractedAt ?? null,
       provinceIds: job.provinceIds ?? null,
       salaryMax: this.toStringBigInt(job.salaryMax),
       salaryMin: this.toStringBigInt(job.salaryMin),

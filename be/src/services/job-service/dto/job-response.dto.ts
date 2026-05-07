@@ -23,6 +23,8 @@ export class JobResponseDto {
   vacancies: number | null;
   tagsBenefit: string | null;
   tagsRequirement: string | null;
+  extractedSkills: string[] | null;
+  skillsExtractedAt: Date | null;
   provinceIds: string | null;
   salaryMax: string | null;
   salaryMin: string | null;
