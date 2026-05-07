@@ -15,8 +15,6 @@ from .models import (
     ApplicationFitRequest,
     CvSuggestionRequest,
     ErrorResponse,
-    ForecastRequest,
-    ForecastResponse,
     TaskCreateResponse,
     TaskStatusResponse,
     TaskType,
@@ -220,36 +218,6 @@ async def get_task_status(
         error=record.error,
         type=record.task_type,
     )
-
-
-@app.post("/v1/market/forecast", response_model=ForecastResponse)
-async def market_forecast(
-    payload: ForecastRequest,
-    x_api_key: str | None = Header(default=None),
-) -> ForecastResponse:
-    _enforce_auth(x_api_key)
-
-    if len(payload.series) < 2:
-        return ForecastResponse(forecast=[])
-
-    try:
-        import pandas as pd
-        from prophet import Prophet
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Prophet not available: {exc}")
-
-    df = pd.DataFrame([{"ds": item.date, "y": item.value} for item in payload.series])
-    df["ds"] = pd.to_datetime(df["ds"])
-
-    model = Prophet(daily_seasonality=True, weekly_seasonality=True)
-    model.fit(df)
-    future = model.make_future_dataframe(periods=payload.periods, freq=payload.freq)
-    forecast = model.predict(future)
-
-    tail = forecast.tail(payload.periods)[["ds", "yhat", "yhat_lower", "yhat_upper"]].copy()
-    tail["ds"] = tail["ds"].dt.strftime("%Y-%m-%d")
-    records = tail.to_dict(orient="records")
-    return ForecastResponse(forecast=records)
 
 
 @app.exception_handler(Exception)

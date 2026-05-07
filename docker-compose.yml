@@ -64,6 +64,7 @@ services:
       NODE_OPTIONS: "--no-deprecation"
       REDIS_URL: redis://redis:6379
       CACHE_PREFIX: webthuctap
+      FORECAST_SERVICE_URL: http://forecast-service:8099
     depends_on:
       postgres-job:
         condition: service_healthy
@@ -71,6 +72,16 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+      forecast-service:
+        condition: service_started
+    networks: [be]
+
+  forecast-service:
+    build:
+      context: ./fastapi-forecast-service
+      dockerfile: Dockerfile
+    expose: ["8099"]
+    restart: unless-stopped
     networks: [be]
 
   ai-search-service:

@@ -69,18 +69,3 @@ class TaskStatusResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     message: str = Field(default="Unexpected error")
-
-
-class ForecastPoint(BaseModel):
-    date: str
-    value: float
-
-
-class ForecastRequest(BaseModel):
-    series: list[ForecastPoint]
-    periods: int = 14
-    freq: str = "D"
-
-
-class ForecastResponse(BaseModel):
-    forecast: list[dict]
