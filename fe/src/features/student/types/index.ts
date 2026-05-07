@@ -42,6 +42,10 @@ export interface Cv {
   source?: "form" | "file";
   createdAt: string;
   updatedAt: string;
+  // Temporary aliases for PDF export
+  email?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
 }
 
 export interface CvListResponse {

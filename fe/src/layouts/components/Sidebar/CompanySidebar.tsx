@@ -1,4 +1,4 @@
-import { LayoutDashboard, Briefcase, FileText, Settings, FolderOpen } from "lucide-react";
+import { LayoutDashboard, Briefcase, FileText, Settings, FolderOpen, Building2 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const menuItems = [
@@ -11,6 +11,7 @@ const menuItems = [
   { icon: FolderOpen, label: "Đặt hàng dự án", path: "/company/projects" },
   { icon: FileText, label: "Ứng viên & Hồ sơ", path: "/company/applications" },
   { icon: Settings, label: "Cài đặt công ty", path: "/company/settings" },
+
 ];
 
 export const CompanySidebar = () => {
@@ -22,10 +23,9 @@ export const CompanySidebar = () => {
             <NavLink
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive
-                    ? "bg-green-50 text-green-600 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
+                `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                  ? "bg-green-50 text-green-600 font-medium"
+                  : "text-gray-700 hover:bg-gray-100"
                 }`
               }
             >
@@ -36,7 +36,7 @@ export const CompanySidebar = () => {
         ))}
       </ul>
 
-     
+
     </nav>
   );
 };

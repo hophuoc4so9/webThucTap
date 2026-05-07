@@ -70,4 +70,20 @@ export class AuthController {
       throw new HttpException({ success: false, message }, statusCode);
     }
   }
+
+  @Post("test-email")
+  async testEmail(@Body() body: { email: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_send_company_approved_email", { 
+          userId: 499, // User hophuoc987654321@gmail.com
+          companyName: "TDMU Jobs Test" 
+        }),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
 }

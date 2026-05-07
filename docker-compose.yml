@@ -21,6 +21,20 @@ services:
       - uploads:/uploads
     networks: [be]
 
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
+        - VITE_GOOGLE_CLIENT_ID=911905736347-gkm7hqptftcjo82ln6j31eh5qnf52q7o.apps.googleusercontent.com
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - api-gateway
+    networks: [be]
+
   auth-service:
     build:
       context: ./be/src/services/auth-service
@@ -48,9 +62,13 @@ services:
       - ./be/src/services/job-service/.env
     environment:
       NODE_OPTIONS: "--no-deprecation"
+      REDIS_URL: redis://redis:6379
+      CACHE_PREFIX: webthuctap
     depends_on:
       postgres-job:
         condition: service_healthy
+      redis:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     networks: [be]
@@ -69,9 +87,14 @@ services:
       DB_PORT: 5432
       DB_DATABASE: jobdb
       EMBEDDING_PROVIDER: local
+      REDIS_URL: redis://redis:6379
+      CACHE_PREFIX: webthuctap
+      RECOMMENDATION_CACHE_TTL_SECONDS: 600
     depends_on:
       postgres-job:
         condition: service_healthy
+      redis:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     # Cache embedding model to avoid re-downloading
@@ -148,9 +171,14 @@ services:
       - ./be/src/services/cv-service/.env
     environment:
       NODE_OPTIONS: "--no-deprecation"
+      REDIS_URL: redis://redis:6379
+      CACHE_PREFIX: webthuctap
+      CV_AI_CACHE_TTL_SECONDS: 86400
     depends_on:
       postgres-cv:
         condition: service_healthy
+      redis:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     volumes:

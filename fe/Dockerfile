@@ -1,6 +1,12 @@
 # Build stage
 FROM node:20-bullseye-slim  AS build
 
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
+
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
 WORKDIR /app
 
 # Copy package files

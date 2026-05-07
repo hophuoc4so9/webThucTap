@@ -6,6 +6,7 @@ import { EmbeddingService } from "../services/embedding.service";
 import { SearchService } from "../services/search.service";
 import { RecommendationService } from "../services/recommendation.service";
 import { QuestionnaireModule } from "./questionnaire/questionnaire.module";
+import { CacheService } from "../services/cache.service";
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { QuestionnaireModule } from "./questionnaire/questionnaire.module";
     QuestionnaireModule,
   ],
   controllers: [AiSearchController],
-  providers: [EmbeddingService, SearchService, RecommendationService],
+  providers: [EmbeddingService, SearchService, RecommendationService, CacheService],
   exports: [EmbeddingService, SearchService, RecommendationService],
 })
 export class AiSearchModule {}

@@ -7,6 +7,7 @@ const importData = async () => {
   try {
     console.log('🚀 Bắt đầu quá trình import dữ liệu sạch...');
 
+    /*
     // 1. Xoá dữ liệu cũ
     console.log('🗑️  Đang xoá dữ liệu cũ (jobs & companies)...');
     const clearRes = await fetch(`${API_BASE}/jobs/clear-all`, {
@@ -19,9 +20,11 @@ const importData = async () => {
       console.error('   ✗ Thất bại khi xoá dữ liệu:', clearResult);
       return;
     }
+    */
+    console.log('🗑️  Bỏ qua bước xoá dữ liệu tự động (đã thực hiện thủ công)...');
 
     // 2. Đọc file JSON mới
-    const filePath = path.join(__dirname, '../data-crawl/data_jobs_final_clean.json');
+    const filePath = path.join(__dirname, '../data-crawl/data_jobs_with_deadline_extended.json');
     console.log(`📖 Đang đọc file: ${filePath}`);
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     console.log(`   ✓ Đã đọc ${data.length} bản ghi.`);
@@ -39,15 +42,15 @@ const importData = async () => {
       tagsRequirement: Array.isArray(item.tags_requirement) ? item.tags_requirement.join(', ') : '',
       nhom: item.nhom || [],
       nganh_hoc: item.nganh_hoc || [],
-      postedAt: '2026-07-05',
-      deadlineAt: '2026-08-31',
-      startDate: '2026-07-05',
+      postedAt: item.postedAt || '2026-05-05',
+      deadlineAt: item.deadline_date || null,
+      startDate: item.startDate || '2026-05-05',
       src: 'clean-dataset',
-      crawlId: `clean-${index}-${Date.now()}`, // Tạo ID duy nhất cho dataset mới
+      crawlId: String(1000000000 + index), // Use numeric-only string for BIGINT column
     }));
 
     // 4. Seed theo batch
-    const batchSize = 50;
+    const batchSize = 10;
     let totalInserted = 0, totalSkipped = 0, totalIndexed = 0;
 
     console.log(`\n📤 Bắt đầu seed ${jobs.length} jobs (batch size: ${batchSize})...`);

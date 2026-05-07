@@ -40,6 +40,34 @@ export class JobController {
     }
   }
 
+  /** GET /jobs/featured?limit= */
+  @Get("featured")
+  async findFeatured(@Query("limit") limit = 6) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("job_find_featured", { limit: +limit }),
+      );
+    } catch (err: any){
+      const { statusCode = 500, message = "Lá»—i mÃ¡y chá»§" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /jobs/top-majors?limit= */
+  @Get("top-majors")
+  async getTopMajors(@Query("limit") limit = 8) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("job_top_majors", { limit: +limit }),
+      );
+    } catch (err: any){
+      const { statusCode = 500, message = "Lá»—i mÃ¡y chá»§" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
   /** GET /jobs/:id */
   @Get(":id")
   async findOne(@Param("id", ParseIntPipe) id: number) {
@@ -99,11 +127,11 @@ export class JobController {
     }
   }
 
-  /** DELETE /jobs/:id */
-  @Delete(":id")
-  async remove(@Param("id", ParseIntPipe) id: number) {
+  /** DELETE /jobs/clear-all */
+  @Delete("clear-all")
+  async clearAll() {
     try {
-      return await firstValueFrom(this.jobClient.send("job_remove", { id }));
+      return await firstValueFrom(this.jobClient.send("job_clear_all", {}));
     } catch (err: any){
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
@@ -111,11 +139,11 @@ export class JobController {
     }
   }
 
-  /** DELETE /jobs/clear-all */
-  @Delete("clear-all")
-  async clearAll() {
+  /** DELETE /jobs/:id */
+  @Delete(":id")
+  async remove(@Param("id", ParseIntPipe) id: number) {
     try {
-      return await firstValueFrom(this.jobClient.send("job_clear_all", {}));
+      return await firstValueFrom(this.jobClient.send("job_remove", { id }));
     } catch (err: any){
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
@@ -362,6 +390,19 @@ export class JobController {
     try {
       return await firstValueFrom(
         this.aiSearchClient.send("ai_search_personalized_recommendations", data),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("sync-unlinked-jobs")
+  async syncUnlinkedJobs() {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("job_sync_unlinked_jobs", {})
       );
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =

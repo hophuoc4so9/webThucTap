@@ -72,7 +72,6 @@ export function StudentMarketTrendPage() {
               if (group) setSelectedMajor(null);
             }}
             selectedGroup={selectedGroup}
-            days={days}
           />
         </div>
 

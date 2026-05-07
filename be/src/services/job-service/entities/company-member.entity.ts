@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Company } from "./company.entity";
 
 export enum MemberRole {
   OWNER = "owner",
@@ -23,6 +24,10 @@ export class CompanyMember {
 
   @Column({ name: "company_id", type: "int" })
   companyId: number;
+
+  @ManyToOne(() => Company, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "company_id" })
+  company: Company;
 
   @Column({ type: "enum", enum: MemberRole, default: MemberRole.MEMBER })
   role: MemberRole;

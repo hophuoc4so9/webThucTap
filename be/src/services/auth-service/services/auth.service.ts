@@ -275,6 +275,14 @@ export class AuthService {
     };
   }
 
+  async sendCompanyApprovedEmail(email: string, name: string | null, companyName: string) {
+    return this.mailService.sendRecruiterApproved({ to: email, name, companyName });
+  }
+
+  async sendCompanyRejectedEmail(email: string, name: string | null, companyName: string, reason?: string) {
+    return this.mailService.sendRecruiterRejected({ to: email, name, companyName, reason });
+  }
+
   generateToken(user: User) {
     return jwt.sign(
       { sub: user.id, email: user.email, role: user.role },

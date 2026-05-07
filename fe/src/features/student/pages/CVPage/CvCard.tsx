@@ -175,68 +175,85 @@ export const CvCard = ({
         )}
       </div>
 
-      <div className="border-t border-gray-100 px-5 py-3 flex items-center gap-2">
-        <button
-          onClick={() => onView(cv)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-        >
-          <Eye size={13} /> Xem
-        </button>
-        <button
-          onClick={() => onEdit(cv)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <Pencil size={13} /> Sửa
-        </button>
-        <button
-          onClick={() => onAnalyze(cv.id)}
-          disabled={analyzing}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-violet-700 hover:bg-violet-50 rounded-lg transition-colors disabled:opacity-60"
-        >
-          {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-          {analyzing ? "Đang phân tích..." : "AI góp ý"}
-        </button>
-        {!cv.isDefault && (
+      <div className="border-t border-gray-100 px-4 py-2.5">
+        {/* Row 1: primary actions */}
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => onSetDefault(cv.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+            onClick={() => onView(cv)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            <StarOff size={13} /> Đặt mặc định
+            <Eye size={13} /> Xem
           </button>
-        )}
-        <div className="flex-1" />
-        {cv.filePath ? (
           <button
-            type="button"
-            onClick={handleDownloadFile}
-            disabled={fileDownloading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-60"
+            onClick={() => onEdit(cv)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            {fileDownloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-            {fileDownloading ? "Đang tải..." : "Tải file"}
+            <Pencil size={13} /> Sửa
           </button>
-        ) : (
-          <>
-            {downloadSuccess && (
-              <span className="text-xs text-green-600 font-medium">Đã tải CV</span>
-            )}
+          <button
+            onClick={() => onAnalyze(cv.id)}
+            disabled={analyzing}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-50 rounded-lg transition-colors disabled:opacity-60"
+          >
+            {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+            {analyzing ? "Đang phân tích..." : "AI góp ý"}
+          </button>
+          {!cv.isDefault && (
+            <button
+              onClick={() => onSetDefault(cv.id)}
+              title="Đặt làm CV mặc định"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+            >
+              <StarOff size={13} />
+              <span className="hidden sm:inline">Đặt mặc định</span>
+            </button>
+          )}
+
+          <div className="flex-1" />
+
+          {/* Download */}
+          {cv.filePath ? (
+            <button
+              type="button"
+              onClick={handleDownloadFile}
+              disabled={fileDownloading}
+              title="Tải file CV"
+              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-60"
+            >
+              {fileDownloading
+                ? <Loader2 size={14} className="animate-spin" />
+                : <Download size={14} />}
+            </button>
+          ) : (
             <button
               onClick={handleExportPdf}
               disabled={pdfLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-60"
+              title="Xuất PDF"
+              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-60"
             >
-              {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />}
-              {pdfLoading ? "Đang tạo..." : "Tải PDF"}
+              {pdfLoading
+                ? <Loader2 size={14} className="animate-spin" />
+                : <FileDown size={14} />}
             </button>
-            
-          </>
+          )}
+
+          {/* Divider */}
+          <div className="w-px h-4 bg-gray-200 mx-0.5" />
+
+          {/* Delete */}
+          <button
+            onClick={() => onDelete(cv.id)}
+            title="Xoá CV"
+            className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+
+        {/* Download success hint */}
+        {downloadSuccess && (
+          <p className="text-[11px] text-green-600 font-medium mt-1 pl-1">✓ Đã tải CV</p>
         )}
-        <button
-          onClick={() => onDelete(cv.id)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          <Trash2 size={13} /> Xoá
-        </button>
       </div>
     </div>
   );

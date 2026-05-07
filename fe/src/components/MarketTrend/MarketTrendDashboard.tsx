@@ -85,7 +85,7 @@ export function MarketTrendDashboard({ data, isLoading, title = "Phân Tích Xu 
         </div>
       </div>
 
-      {/* Top Majors Section - Optimized Display */}
+      {/* Top Majors Section */}
       {data.topMajors && data.topMajors.length > 0 && (
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
           <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
@@ -131,12 +131,12 @@ export function MarketTrendDashboard({ data, isLoading, title = "Phân Tích Xu 
           <h3 className="font-semibold text-gray-700 flex items-center gap-2">
             <Lightbulb size={18} className="text-yellow-500" /> Phân nhóm Kỹ năng ({data.clusters.length})
           </h3>
-          <div className="flex flex-col gap-2.5 max-h-96 overflow-y-auto">
+          <div className="flex flex-col gap-2.5 max-h-[520px] overflow-y-auto pr-1">
             {data.clusters.map((cluster, idx) => (
               <button
                 key={cluster.id}
                 onClick={() => setActiveClusterIndex(idx)}
-                className={`text-left p-3.5 rounded-lg border-2 transition-all duration-150 ${
+                className={`text-left p-3.5 rounded-xl border-2 transition-all duration-150 ${
                   activeClusterIndex === idx
                     ? 'border-blue-500 bg-blue-50 shadow-md'
                     : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-gray-50'
@@ -154,28 +154,23 @@ export function MarketTrendDashboard({ data, isLoading, title = "Phân Tích Xu 
                     {cluster.jobCount}
                   </span>
                 </div>
+
+                {/* ✅ Hiển thị toàn bộ kỹ năng, không giới hạn */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {cluster.topSkills.length > 0 ? (
-                    <>
-                      {cluster.topSkills.slice(0, 4).map(skill => (
-                        <span
-                          key={skill}
-                          className={`text-xs px-2 py-1 rounded-md font-medium truncate max-w-full ${
-                            activeClusterIndex === idx
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}
-                          title={skill}
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {cluster.topSkills.length > 4 && (
-                        <span className="text-xs px-2 py-1 text-gray-500 font-medium">
-                          +{cluster.topSkills.length - 4} kỹ năng
-                        </span>
-                      )}
-                    </>
+                    cluster.topSkills.map(skill => (
+                      <span
+                        key={skill}
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          activeClusterIndex === idx
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                        title={skill}
+                      >
+                        {skill}
+                      </span>
+                    ))
                   ) : (
                     <span className="text-xs px-2 py-1 text-gray-400 italic">
                       (chỉ có yêu cầu chung)
@@ -188,8 +183,8 @@ export function MarketTrendDashboard({ data, isLoading, title = "Phân Tích Xu 
         </div>
 
         {/* Right column: Chart & Forecast */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-lg border border-gray-100 shadow-sm">
-          <div className="mb-6">
+        <div className="lg:col-span-2 bg-white p-5 rounded-lg border border-gray-100 shadow-sm flex flex-col gap-5">
+          <div>
             <h3 className="font-semibold text-gray-800 text-base">
               Xu hướng nhóm: <span className="text-blue-600 capitalize">{activeCluster?.label}</span>
             </h3>
@@ -199,7 +194,7 @@ export function MarketTrendDashboard({ data, isLoading, title = "Phân Tích Xu 
           </div>
 
           {chartData.length > 0 ? (
-            <div className="h-80 w-full">
+            <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={chartData}
@@ -237,50 +232,35 @@ export function MarketTrendDashboard({ data, isLoading, title = "Phân Tích Xu 
                     labelFormatter={(val) => new Date(val).toLocaleDateString('vi-VN')}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-
-                  {/* Confidence Interval Area */}
-                  <Area
-                    type="monotone"
-                    dataKey="upper"
-                    stroke="none"
-                    fill="#fef3c7"
-                    name="Vùng dự báo"
-                    isAnimationActive={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="lower"
-                    stroke="none"
-                    fill="#ffffff"
-                    isAnimationActive={false}
-                    legendType="none"
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="historical"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorHistorical)"
-                    name="Thực tế"
-                    activeDot={{ r: 6 }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="forecast"
-                    stroke="#f59e0b"
-                    strokeWidth={3}
-                    strokeDasharray="5 5"
-                    fill="none"
-                    name="Dự báo"
-                  />
+                  <Area type="monotone" dataKey="upper" stroke="none" fill="#fef3c7" name="Vùng dự báo" isAnimationActive={false} />
+                  <Area type="monotone" dataKey="lower" stroke="none" fill="#ffffff" isAnimationActive={false} legendType="none" />
+                  <Area type="monotone" dataKey="historical" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorHistorical)" name="Thực tế" activeDot={{ r: 6 }} />
+                  <Area type="monotone" dataKey="forecast" stroke="#f59e0b" strokeWidth={3} strokeDasharray="5 5" fill="none" name="Dự báo" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-80 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="h-72 flex items-center justify-center bg-gray-50 rounded-lg">
               <p className="text-gray-500 text-sm">Không có dữ liệu để hiển thị</p>
+            </div>
+          )}
+
+          {/* ✅ Section toàn bộ kỹ năng trong panel phải */}
+          {activeCluster?.topSkills && activeCluster.topSkills.length > 0 && (
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Toàn bộ kỹ năng — {activeCluster.topSkills.length} kỹ năng
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {activeCluster.topSkills.map(skill => (
+                  <span
+                    key={skill}
+                    className="text-xs px-2.5 py-1 rounded-full font-medium bg-blue-50 text-blue-700 border border-blue-100"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

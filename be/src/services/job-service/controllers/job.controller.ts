@@ -35,6 +35,16 @@ export class JobController {
     return this.jobService.findAll(query);
   }
 
+  @MessagePattern("job_find_featured")
+  findFeatured(@Payload() payload: { limit?: number }) {
+    return this.jobService.findFeatured(payload?.limit);
+  }
+
+  @MessagePattern("job_top_majors")
+  getTopMajors(@Payload() payload: { limit?: number }) {
+    return this.jobService.getTopMajors(payload?.limit);
+  }
+
   /** Lấy chi tiết một công việc theo id */
   @MessagePattern("job_find_one")
   findOne(@Payload() payload: { id: number }) {
@@ -68,5 +78,9 @@ export class JobController {
   @MessagePattern("job_sync_embeddings")
   syncEmbeddings() {
     return this.jobService.syncUnindexedJobs();
+  }
+  @MessagePattern("job_sync_unlinked_jobs")
+  syncUnlinkedJobs() {
+    return this.jobService.syncUnlinkedJobs();
   }
 }

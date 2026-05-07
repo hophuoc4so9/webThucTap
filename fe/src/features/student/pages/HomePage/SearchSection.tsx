@@ -15,7 +15,7 @@ export const SearchSection = () => {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (keyword) params.set("name", keyword);
+    if (keyword) params.set("keyword", keyword);
     if (location) params.set("location", location);
     navigate(`/student/jobs?${params.toString()}`);
   };

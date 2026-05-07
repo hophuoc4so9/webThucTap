@@ -49,6 +49,7 @@ export class JobService {
       src,
       salaryMin,
       salaryMax,
+      companyId,
       page = 1,
       limit = 20,
     } = query;
@@ -76,6 +77,9 @@ export class JobService {
     if (src) {
       qb.andWhere("job.src = :src", { src });
     }
+    if (companyId !== undefined && companyId !== null) {
+      qb.andWhere("job.companyId = :companyId", { companyId: Number(companyId) });
+    }
     if (salaryMinNum !== undefined && Number.isFinite(salaryMinNum)) {
       qb.andWhere("CAST(job.salary_min AS BIGINT) >= :smin", {
         smin: salaryMinNum,
@@ -100,6 +104,60 @@ export class JobService {
       page: pageNum,
       limit: limitNum,
     };
+  }
+
+  async findFeatured(limit = 6) {
+    const limitNum = Number(limit) > 0 ? Math.min(Number(limit), 12) : 6;
+    const data = await this.jobRepo
+      .createQueryBuilder("job")
+      .leftJoinAndSelect("job.companyRef", "companyRef")
+      .orderBy("job.popularityScore", "DESC")
+      .addOrderBy("job.applyCount", "DESC")
+      .addOrderBy("job.viewsCount", "DESC")
+      .addOrderBy("job.postedAt", "DESC", "NULLS LAST")
+      .addOrderBy("job.id", "DESC")
+      .take(limitNum)
+      .getMany();
+
+    return {
+      data: data.map((job) => this.toJobResponse(job)),
+      total: data.length,
+      page: 1,
+      limit: limitNum,
+    };
+  }
+
+  async getTopMajors(limit = 8) {
+    const limitNum = Number(limit) > 0 ? Math.min(Number(limit), 16) : 8;
+
+    const majors = await this.jobRepo.query(
+      `
+        SELECT major AS name, COUNT(*)::int AS "jobCount"
+        FROM jobs job
+        CROSS JOIN LATERAL unnest(job.nganh_hoc) AS major
+        WHERE job.nganh_hoc IS NOT NULL
+          AND array_length(job.nganh_hoc, 1) > 0
+          AND NULLIF(TRIM(major), '') IS NOT NULL
+        GROUP BY major
+        ORDER BY COUNT(*) DESC, major ASC
+        LIMIT $1
+      `,
+      [limitNum],
+    );
+
+    if (majors.length > 0) return majors;
+
+    return this.jobRepo.query(
+      `
+        SELECT job.industry AS name, COUNT(*)::int AS "jobCount"
+        FROM jobs job
+        WHERE NULLIF(TRIM(job.industry), '') IS NOT NULL
+        GROUP BY job.industry
+        ORDER BY COUNT(*) DESC, job.industry ASC
+        LIMIT $1
+      `,
+      [limitNum],
+    );
   }
 
   async findOne(id: number): Promise<JobResponseDto> {
@@ -144,7 +202,7 @@ export class JobService {
         message: `Không tìm thấy job #${id}`,
       });
 
-    await this.jobRepo.remove(job);
+    await this.jobRepo.softRemove(job);
     return { message: `Đã xoá job #${id}` };
   }
 
@@ -164,8 +222,28 @@ export class JobService {
     let inserted = 0;
     let skipped = 0;
     const jobsToIndex: Job[] = [];
-    const companyNames = new Set<string>();
 
+    // 1. Thu thập danh sách công ty duy nhất trong batch
+    const companyNames = new Set<string>();
+    for (const item of items) {
+      if (item.company) companyNames.add(item.company);
+    }
+
+    // 2. Đảm bảo các công ty tồn tại và lấy ID map
+    const companyMap = new Map<string, number>();
+    for (const name of companyNames) {
+      let company = await this.companyRepo.findOne({ where: { name } });
+      if (!company) {
+        company = this.companyRepo.create({
+          name,
+          status: CompanyStatus.APPROVED,
+        });
+        company = await this.companyRepo.save(company);
+      }
+      companyMap.set(name, company.id);
+    }
+
+    // 3. Lưu jobs kèm companyId
     for (const item of items) {
       try {
         if (item.crawlId) {
@@ -177,11 +255,12 @@ export class JobService {
             continue;
           }
         }
-        if (item.company) {
-          companyNames.add(item.company);
-        }
+
+        const companyId = item.company ? companyMap.get(item.company) : null;
+
         const job = this.jobRepo.create({
           ...item,
+          companyId,
           nhom: item.nhom || [],
           nganhHoc: item.nganh_hoc || [],
           postedAt: this.parseDate(item.postedAt),
@@ -191,25 +270,8 @@ export class JobService {
         const saved = await this.jobRepo.save(job);
         jobsToIndex.push(saved);
         inserted++;
-      } catch {
-        skipped++;
-      }
-    }
-
-    for (const companyName of companyNames) {
-      try {
-        const existing = await this.companyRepo.findOne({
-          where: { name: companyName },
-        });
-        if (!existing) {
-          const company = this.companyRepo.create({
-            name: companyName,
-            status: CompanyStatus.APPROVED,
-          });
-          await this.companyRepo.save(company);
-        }
       } catch (error) {
-        this.logger.warn(`Failed to create company: ${companyName}`);
+        skipped++;
       }
     }
 
@@ -220,6 +282,39 @@ export class JobService {
     }
 
     return { inserted, skipped, indexed };
+  }
+
+  /** Đồng bộ các job cũ chưa có companyId sang công ty tương ứng theo tên */
+  async syncUnlinkedJobs() {
+    this.logger.log("Syncing unlinked jobs to companies...");
+    const jobs = await this.jobRepo.createQueryBuilder("job")
+      .select("DISTINCT job.company", "companyName")
+      .where("job.company_id IS NULL")
+      .andWhere("job.company IS NOT NULL")
+      .getRawMany();
+
+    let totalLinked = 0;
+    for (const row of jobs) {
+      const name = row.companyName;
+      let company = await this.companyRepo.findOne({ where: { name } });
+      if (!company) {
+        company = this.companyRepo.create({
+          name,
+          status: CompanyStatus.APPROVED,
+        });
+        company = await this.companyRepo.save(company);
+      }
+      
+      const res = await this.jobRepo.createQueryBuilder()
+        .update(Job)
+        .set({ companyId: company.id })
+        .where("company = :name AND company_id IS NULL", { name })
+        .execute();
+      
+      totalLinked += res.affected || 0;
+    }
+    
+    return { message: "Successfully linked jobs", totalLinked };
   }
 
   // ─── Private Helpers ───────────────────────────────

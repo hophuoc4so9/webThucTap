@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [switch]$Force,
-    [string]$GoogleClientId = "YOUR_GOOGLE_CLIENT_ID_HERE"
+    [string]$GoogleClientId = "911905736347-gkm7hqptftcjo82ln6j31eh5qnf52q7o.apps.googleusercontent.com"
 )
 
 $ErrorActionPreference = "Stop"

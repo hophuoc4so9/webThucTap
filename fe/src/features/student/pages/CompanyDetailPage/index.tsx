@@ -51,9 +51,9 @@ export const CompanyDetailPage = () => {
   }, [id]);
 
   useEffect(() => {
-    if (tab === "jobs" && !jobsLoaded && company?.name) {
+    if (tab === "jobs" && !jobsLoaded && company?.id) {
       jobService
-        .getJobs({ keyword: company.name, page: 1, limit: 20 })
+        .getJobs({ companyId: company.id, page: 1, limit: 20 })
         .then((res) => setJobs(res.data))
         .catch(console.error)
         .finally(() => setJobsLoaded(true));

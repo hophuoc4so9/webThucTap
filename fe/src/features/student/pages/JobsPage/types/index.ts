@@ -35,6 +35,7 @@ export interface Job {
   combinedScore?: number;
   reason?: string;
   companyRef?: Company;
+  postedAt?: string;
 }
 
 export interface JobListResponse {
@@ -51,6 +52,7 @@ export interface JobQuery {
   src?: string;
   salaryMin?: number;
   salaryMax?: number;
+  companyId?: number;
   page?: number;
   limit?: number;
 }
@@ -93,6 +95,9 @@ export interface JobRecommendQuery {
 
 export interface JobRecommendationResponse {
   data: Job[];
+  page?: number;
+  limit?: number;
+  total?: number;
   executionTimeMs?: number;
   explanation?: string;
 }

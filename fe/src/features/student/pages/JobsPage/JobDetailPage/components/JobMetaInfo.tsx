@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 interface MetaItem {
   icon: LucideIcon;
   label: string;
-  value: string | number | null | undefined;
+  value: React.ReactNode;
 }
 
 interface JobMetaInfoProps {

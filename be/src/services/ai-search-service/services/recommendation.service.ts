@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { createHash } from "crypto";
 import { DataSource } from "typeorm";
 import { EmbeddingService } from "./embedding.service";
 import {
@@ -6,6 +7,9 @@ import {
   RecommendationResponseDto,
   RecommendationResultDto,
 } from "../dto/recommend-query.dto";
+import { CacheService } from "./cache.service";
+
+const DEFAULT_RECOMMENDATION_CACHE_TTL_SECONDS = 60 * 10;
 
 /**
  * RecommendationService: Hybrid recommendation engine combining:
@@ -19,10 +23,15 @@ import {
 @Injectable()
 export class RecommendationService {
   private readonly logger = new Logger(RecommendationService.name);
+  private readonly cacheTtlSeconds = this.parseTtlSeconds(
+    process.env.RECOMMENDATION_CACHE_TTL_SECONDS,
+    DEFAULT_RECOMMENDATION_CACHE_TTL_SECONDS,
+  );
 
   constructor(
     private readonly dataSource: DataSource,
     private readonly embeddingService: EmbeddingService,
+    private readonly cacheService: CacheService,
   ) {}
 
   // ─── Public API ──────────────────────────────────────────────────────────────
@@ -31,6 +40,19 @@ export class RecommendationService {
     query: RecommendationQueryDto,
   ): Promise<RecommendationResponseDto> {
     const startTime = Date.now();
+    const cacheKey = this.cacheKey("user", {
+      userId: query.userId ?? "",
+      currentJobId: query.currentJobId ?? "",
+      topK: query.topK ?? 6,
+      weights: query.weights ?? {},
+    });
+    const cached = await this.cacheService.get<RecommendationResponseDto>(cacheKey);
+    if (cached) {
+      return {
+        ...cached,
+        executionTimeMs: Date.now() - startTime,
+      };
+    }
 
     try {
       const { userId, currentJobId, topK = 6 } = query;
@@ -68,11 +90,13 @@ export class RecommendationService {
       if (!anchorVector) {
         // Fallback: return trending jobs (no vector to anchor on)
         const trending = await this.getTrendingJobs(topK, userInteractedIds);
-        return {
+        const response = {
           data: trending,
           executionTimeMs: Date.now() - startTime,
           explanation: "Trending jobs (no user history available)",
         };
+        await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+        return response;
       }
 
       // Content-based: pgvector similarity — fast, uses index
@@ -96,11 +120,13 @@ export class RecommendationService {
         topK,
       );
 
-      return {
+      const response = {
         data: merged,
         executionTimeMs: Date.now() - startTime,
         explanation: this.buildExplanation(merged, !!userId, !!currentJobId),
       };
+      await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+      return response;
     } catch (error: any) {
       this.logger.error(`Recommendation failed: ${error.message}`, error.stack);
       throw error;
@@ -112,6 +138,14 @@ export class RecommendationService {
     topK: number = 10,
   ): Promise<RecommendationResponseDto> {
     const startTime = Date.now();
+    const cacheKey = this.cacheKey("quiz", { quizAnswerId, topK });
+    const cached = await this.cacheService.get<RecommendationResponseDto>(cacheKey);
+    if (cached) {
+      return {
+        ...cached,
+        executionTimeMs: Date.now() - startTime,
+      };
+    }
 
     try {
       const [quizAnswer] = await this.dataSource.query(
@@ -170,11 +204,13 @@ export class RecommendationService {
         }))
         .slice(0, topK);
 
-      return {
+      const response = {
         data: scored,
         executionTimeMs: Date.now() - startTime,
         explanation: `${scored.length} jobs matched your quiz profile (score: ${score.toFixed(1)}/100)`,
       };
+      await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+      return response;
     } catch (error: any) {
       this.logger.error(`Quiz-based recommendation failed: ${error.message}`, error.stack);
       throw error;
@@ -458,5 +494,30 @@ export class RecommendationService {
     const basis = parts.length > 0 ? parts.join(" & ") : "hệ thống AI";
 
     return `${recs.length} công việc gợi ý ${basis} (Hybrid: nội dung + cộng tác)`;
+  }
+
+  private cacheKey(scope: string, value: unknown): string {
+    const raw = this.stableStringify(value);
+    const hash = createHash("sha256").update(raw).digest("hex");
+    return `recommend:${scope}:${hash}`;
+  }
+
+  private stableStringify(value: unknown): string {
+    if (Array.isArray(value)) {
+      return `[${value.map((item) => this.stableStringify(item)).join(",")}]`;
+    }
+    if (value && typeof value === "object") {
+      return `{${Object.keys(value as Record<string, unknown>)
+        .sort()
+        .map((key) => `${JSON.stringify(key)}:${this.stableStringify((value as Record<string, unknown>)[key])}`)
+        .join(",")}}`;
+    }
+    return JSON.stringify(value);
+  }
+
+  private parseTtlSeconds(value: string | undefined, fallback: number): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(30, Math.min(60 * 60 * 24, Math.round(parsed)));
   }
 }

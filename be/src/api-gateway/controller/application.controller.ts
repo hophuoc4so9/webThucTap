@@ -17,7 +17,7 @@ import { firstValueFrom } from "rxjs";
 
 @Controller("applications")
 export class ApplicationGatewayController {
-  constructor(@Inject("CV_SERVICE") private readonly cvClient: ClientProxy) {}
+  constructor(@Inject("CV_SERVICE") private readonly cvClient: ClientProxy) { }
 
   /**
    * POST /applications
@@ -30,7 +30,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_create", dto),
       );
-    } catch (err : any) {
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -47,7 +47,27 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_find_all", query),
       );
-    } catch (err : any) {
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /**
+   * GET /applications/check?userId=&jobId=
+   * Kiểm tra user đã ứng tuyển job chưa
+   */
+  @Get("check")
+  async checkApplied(
+    @Query("userId", ParseIntPipe) userId: number,
+    @Query("jobId", ParseIntPipe) jobId: number,
+  ) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("application_check_applied", { userId, jobId }),
+      );
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -61,7 +81,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_find_one", { id }),
       );
-    } catch (err : any) {
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -79,7 +99,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_update_status", { id, dto }),
       );
-    } catch (err : any) {
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -93,7 +113,7 @@ export class ApplicationGatewayController {
       return await firstValueFrom(
         this.cvClient.send("application_remove", { id }),
       );
-    } catch (err : any) {
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
@@ -114,32 +134,13 @@ export class ApplicationGatewayController {
           userId: body?.userId,
         }),
       );
-    } catch (err : any) {
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
     }
   }
 
-  /**
-   * GET /applications/check?userId=&jobId=
-   * Kiểm tra user đã ứng tuyển job chưa
-   */
-  @Get("check")
-  async checkApplied(
-    @Query("userId", ParseIntPipe) userId: number,
-    @Query("jobId", ParseIntPipe) jobId: number,
-  ) {
-    try {
-      return await firstValueFrom(
-        this.cvClient.send("application_check_applied", { userId, jobId }),
-      );
-    } catch (err : any) {
-      const { statusCode = 500, message = "Lỗi máy chủ" } =
-        err?.error ?? err ?? {};
-      throw new HttpException({ success: false, message }, statusCode);
-    }
-  }
 
   /** POST /applications/:id/fit-check */
   @Post(":id/fit-check")
@@ -154,7 +155,7 @@ export class ApplicationGatewayController {
           userId: body?.userId,
         }),
       );
-    } catch (err : any) {
+    } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);

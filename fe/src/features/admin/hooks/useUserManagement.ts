@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { userApi, type UserItem } from "@/api/api/services/user.api";
+import { applicationApi } from "@/api/api/services/application.api";
+import type { Application } from "@/features/student/types";
 
 const PAGE_SIZE = 20;
 
@@ -11,6 +13,9 @@ export function useUserManagement(defaultRole?: string) {
   const [email, setEmail] = useState("");
   const [emailInput, setEmailInput] = useState("");
 
+  const [allApplications, setAllApplications] = useState<Application[]>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+
   const [deleteTarget, setDeleteTarget] = useState<UserItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [roleTarget, setRoleTarget] = useState<UserItem | null>(null);
@@ -20,10 +25,10 @@ export function useUserManagement(defaultRole?: string) {
     type: "success" | "error";
   } | null>(null);
 
-  const showToast = (msg: string, type: "success" | "error" = "success") => {
+  const showToast = useCallback((msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
   const fetch = useCallback(
     async (pg: number, em: string) => {
@@ -43,12 +48,27 @@ export function useUserManagement(defaultRole?: string) {
         setLoading(false);
       }
     },
-    [defaultRole],
+    [defaultRole, showToast],
   );
+
+  const fetchApplications = useCallback(async () => {
+    setAppsLoading(true);
+    try {
+      const res = await applicationApi.getAll({ limit: 1000 });
+      setAllApplications(res.data ?? []);
+    } catch {
+      showToast("Không thể tải danh sách đơn ứng tuyển", "error");
+    } finally {
+      setAppsLoading(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
     fetch(1, "");
-  }, [defaultRole, fetch]);
+    if (defaultRole === "student") {
+      fetchApplications();
+    }
+  }, [defaultRole, fetch, fetchApplications]);
 
   const applySearch = () => {
     setEmail(emailInput);
@@ -124,6 +144,16 @@ export function useUserManagement(defaultRole?: string) {
     }
   };
 
+  const handleUpdateApplicationStatus = async (appId: number, status: string, note?: string) => {
+    try {
+      await applicationApi.updateStatus(appId, { status, note });
+      showToast("Cập nhật trạng thái đơn thành công");
+      await fetchApplications();
+    } catch {
+      showToast("Cập nhật trạng thái đơn thất bại", "error");
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return {
@@ -150,6 +180,13 @@ export function useUserManagement(defaultRole?: string) {
     toast,
     totalPages,
     PAGE_SIZE,
-    refresh: () => fetch(page, email),
+    refresh: () => {
+      fetch(page, email);
+      if (defaultRole === "student") fetchApplications();
+    },
+    allApplications,
+    appsLoading,
+    fetchApplications,
+    handleUpdateApplicationStatus,
   };
 }

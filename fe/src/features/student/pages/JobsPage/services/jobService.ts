@@ -16,6 +16,7 @@ export const jobService = {
     if (query.location) params.set("location", query.location);
     if (query.industry) params.set("industry", query.industry);
     if (query.src) params.set("src", query.src);
+    if (query.companyId) params.set("companyId", String(query.companyId));
     if (query.salaryMin != null)
       params.set("salaryMin", String(query.salaryMin));
     if (query.salaryMax != null)

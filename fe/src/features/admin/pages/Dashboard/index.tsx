@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { userApi } from "@/api/api/services/user.api";
 import { jobService } from "@/features/student/pages/JobsPage/services/jobService";
 import { applicationApi } from "@/api/api/services/application.api";
+import { companyApi } from "@/api/api/services/company.api";
 
 interface Stats {
   totalUsers: number;
@@ -18,6 +19,7 @@ interface Stats {
   companies: number;
   totalJobs: number;
   totalApplications: number;
+  pendingCompanies: number;
 }
 
 function StatCard({
@@ -65,16 +67,18 @@ export function AdminDashboard() {
     companies: -1,
     totalJobs: -1,
     totalApplications: -1,
+    pendingCompanies: -1,
   });
   const [loading, setLoading] = useState(false);
 
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const [userStats, jobsRes, appsRes] = await Promise.allSettled([
+      const [userStats, jobsRes, appsRes, companiesRes] = await Promise.allSettled([
         userApi.getStats(),
         jobService.getJobs({ page: 1, limit: 1 }),
         applicationApi.getAll({ limit: 1 }),
+        companyApi.getAllAdmin({ status: "pending", limit: 1 }),
       ]);
       setStats({
         totalUsers:
@@ -90,6 +94,10 @@ export function AdminDashboard() {
         totalApplications:
           appsRes.status === "fulfilled"
             ? ((appsRes.value as any).total ?? -1)
+            : -1,
+        pendingCompanies:
+          companiesRes.status === "fulfilled"
+            ? ((companiesRes.value as any).total ?? -1)
             : -1,
       });
     } finally {
@@ -115,7 +123,7 @@ export function AdminDashboard() {
       icon: Building2,
       bg: "bg-green-50 border-green-200",
       text: "text-green-700",
-      label: "Quản lý doanh nghiệp",
+      label: "Quản lý công ty",
       sub: `${stats.companies >= 0 ? stats.companies : "—"} tài khoản`,
     },
     {
@@ -149,6 +157,30 @@ export function AdminDashboard() {
         </button>
       </div>
 
+      {stats.pendingCompanies > 0 && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-yellow-100 rounded-lg text-yellow-700">
+              <Building2 size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-yellow-800">
+                Có {stats.pendingCompanies} công ty đang chờ duyệt
+              </p>
+              <p className="text-xs text-yellow-600">
+                Vui lòng kiểm tra và xác thực hồ sơ công ty mới.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/admin/companies")}
+            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold rounded-lg transition-colors"
+          >
+            Duyệt ngay
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
           icon={Users}
@@ -169,7 +201,7 @@ export function AdminDashboard() {
         />
         <StatCard
           icon={Building2}
-          label="Doanh nghiệp"
+          label="Công ty"
           value={stats.companies}
           color="bg-green-500"
         />

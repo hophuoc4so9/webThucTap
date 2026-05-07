@@ -32,13 +32,22 @@ export function JobDetailDrawer({ job, onClose }: JobDetailDrawerProps) {
     },
   ].filter((m) => m.value);
 
-  const formatText = (text: string) =>
-    text
+  const formatText = (text: string): string[] => {
+    if (!text) return [];
+
+    return text
+      .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean);
+  };
 
   return (
     <>

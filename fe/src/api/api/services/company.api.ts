@@ -15,6 +15,7 @@ export interface CompanyItem {
   rejectReason?: string | null;
   ownerId?: number | null;
   businessLicense?: string | null;
+  jobCount?: number;
   createdAt?: string;
 }
 
@@ -54,6 +55,7 @@ export const companyApi = {
     limit?: number;
     status?: string;
     name?: string;
+    sortByJobs?: string;
   }): Promise<CompanyListResponse> => {
     const res = await axiosClient.get<CompanyListResponse>("companies/admin", {
       params,
@@ -117,6 +119,12 @@ export const companyApi = {
     } catch {
       return null;
     }
+  },
+
+  /** Lấy trạng thái onboarding của user */
+  getOnboardingStatus: async (userId: number): Promise<any> => {
+    const res = await axiosClient.get<any>(`companies/onboarding/status/${userId}`);
+    return res.data;
   },
 
   /** Lấy join requests của công ty */

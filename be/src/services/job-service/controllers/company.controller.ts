@@ -41,6 +41,11 @@ export class CompanyController {
     );
   }
 
+  @MessagePattern("company_find_featured")
+  findFeatured(@Payload() payload: { limit?: number }) {
+    return this.companyService.findFeatured(payload?.limit);
+  }
+
   /** Admin: lấy danh sách công ty có filter theo status */
   @MessagePattern("company_find_all_admin")
   findAllAdmin(
@@ -50,6 +55,7 @@ export class CompanyController {
       limit?: number;
       status?: string;
       name?: string;
+      sortByJobs?: "ASC" | "DESC";
     },
   ) {
     return this.companyService.findAllAdmin(
@@ -57,6 +63,7 @@ export class CompanyController {
       payload?.limit,
       payload?.status,
       payload?.name,
+      payload?.sortByJobs,
     );
   }
 
@@ -121,6 +128,12 @@ export class CompanyController {
   @MessagePattern("company_get_members")
   getMembers(@Payload() payload: { companyId: number }) {
     return this.companyService.getCompanyMembers(payload.companyId);
+  }
+
+  /** Lấy trạng thái onboarding của user */
+  @MessagePattern("company_get_onboarding_status")
+  getOnboardingStatus(@Payload() payload: { userId: number }) {
+    return this.companyService.getOnboardingStatus(payload.userId);
   }
 }
 

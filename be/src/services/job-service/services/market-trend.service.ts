@@ -10,6 +10,7 @@ import { Job } from "../entities/job.entity";
 import { MarketTrendCache } from "../entities/market-trend-cache.entity";
 import { MarketTrendQueryDto } from "../dto/market-trend.dto";
 import { SkillExtractionService } from "./skill-extraction.service";
+import { CacheService } from "./cache.service";
 
 const DEFAULT_DAYS = 90;
 const DEFAULT_HORIZON = 14;
@@ -34,6 +35,7 @@ type JobTrendItem = {
   industry?: string | null;
   field?: string | null;
   postedAt?: Date | null;
+  deadlineAt?: Date | null;
   createdAt?: Date | null;
   embedding?: number[] | null;
 };
@@ -61,6 +63,7 @@ export class MarketTrendService {
     @InjectRepository(MarketTrendCache)
     private readonly cacheRepo: Repository<MarketTrendCache>,
     private readonly skillExtraction: SkillExtractionService,
+    private readonly cacheService: CacheService,
   ) {}
 
   getTrendsByMajorGroup(majorGroup: string, days: number = DEFAULT_DAYS) {
@@ -221,12 +224,13 @@ export class MarketTrendService {
       "job.industry",
       "job.field",
       "job.postedAt",
+      "job.deadlineAt",
       "job.createdAt",
       "job.embedding",
     ]);
 
     qb.where(
-      "(job.postedAt BETWEEN :start AND :end) OR (job.postedAt IS NULL AND job.createdAt BETWEEN :start AND :end)",
+      "(job.deadlineAt BETWEEN :start AND :end) OR (job.postedAt BETWEEN :start AND :end) OR (job.createdAt BETWEEN :start AND :end)",
       { start, end },
     );
 
@@ -238,6 +242,8 @@ export class MarketTrendService {
 
     const candidates = [
       process.env.MAJOR_CATALOG_PATH,
+      resolve(process.cwd(), "data-crawl", "donviTDMU_phan_cap.json"),
+      resolve(process.cwd(), "donviTDMU_phan_cap.json"),
       resolve(process.cwd(), "donviTDMU.json"),
       resolve(process.cwd(), "..", "donviTDMU.json"),
       join(__dirname, "..", "..", "..", "..", "..", "donviTDMU.json"),
@@ -249,7 +255,7 @@ export class MarketTrendService {
         const raw = await readFile(candidate, "utf-8");
         const parsed = JSON.parse(raw);
         const majors: MajorItem[] = [];
-        const groups = parsed?.du_lieu_nganh ?? [];
+        const groups = Array.isArray(parsed) ? parsed : (parsed?.du_lieu_nganh ?? []);
         for (const group of groups) {
           const groupName = String(group?.nhom ?? "").trim();
           for (const item of group?.nganh_hoc ?? []) {
@@ -446,7 +452,7 @@ export class MarketTrendService {
   private buildTimeSeries(jobs: JobTrendItem[], start: Date, end: Date) {
     const counts = new Map<string, number>();
     for (const job of jobs) {
-      const date = this.toDateKey(job.postedAt ?? job.createdAt ?? null);
+      const date = this.toDateKey(job.deadlineAt ?? job.postedAt ?? job.createdAt ?? null);
       if (!date) continue;
       counts.set(date, (counts.get(date) ?? 0) + 1);
     }
@@ -494,7 +500,7 @@ export class MarketTrendService {
       if (!byMajor[match.key]) {
         byMajor[match.key] = { item: match, counts: new Map() };
       }
-      const date = this.toDateKey(job.postedAt ?? job.createdAt ?? null);
+      const date = this.toDateKey(job.deadlineAt ?? job.postedAt ?? job.createdAt ?? null);
       if (!date) continue;
       const record = byMajor[match.key];
       record.counts.set(date, (record.counts.get(date) ?? 0) + 1);
@@ -583,8 +589,11 @@ export class MarketTrendService {
   }
 
   private buildRange(days: number): { start: Date; end: Date } {
-    const end = new Date();
-    const start = this.addDays(end, -days);
+    const now = new Date();
+    // Start from 'days' ago
+    const start = this.addDays(now, -days);
+    // End at 'days' from now to include future deadlines
+    const end = this.addDays(now, days);
     return { start, end };
   }
 
@@ -644,6 +653,15 @@ export class MarketTrendService {
       return memCached.payload;
     }
 
+    const redisCached = await this.cacheService.get<any>(`market-trends:${key}`);
+    if (redisCached) {
+      this.cache.set(key, {
+        payload: redisCached,
+        expiresAt: Date.now() + this.cacheTtlMs,
+      });
+      return redisCached;
+    }
+
     // Then check database cache
     try {
       const dbCached = await this.cacheRepo.findOne({
@@ -672,6 +690,12 @@ export class MarketTrendService {
       payload,
       expiresAt,
     });
+
+    this.cacheService
+      .set(`market-trends:${key}`, payload, Math.ceil(this.cacheTtlMs / 1000))
+      .catch((error: any) => {
+        this.logger.warn(`Redis cache set failed: ${error?.message ?? error}`);
+      });
 
     // Set database cache (async, don't wait)
     this.setCachedAsync(key, payload, expiresAt).catch((error: any) => {

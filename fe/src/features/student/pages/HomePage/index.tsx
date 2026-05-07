@@ -3,12 +3,14 @@ import { QuickLinks } from "./QuickLinks";
 import { TipsSection } from "./TipsSection";
 import { SearchSection } from "./SearchSection";
 import { RecommendedJobsSection } from "./RecommendedJobsSection";
+import { HomeHighlightsSection } from "./HomeHighlightsSection";
 
 export const StudentHomePage = () => {
   return (
     <div className="space-y-0">
       <HeroBanner />
       <SearchSection />
+      <HomeHighlightsSection />
       <div className="py-8">
         <RecommendedJobsSection />
       </div>

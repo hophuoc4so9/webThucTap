@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import donviData from "../../../donviTDMU.json";
+import donviData from "@/data/donviTDMU.json";
 
 export interface UniversityMajor {
   name: string;

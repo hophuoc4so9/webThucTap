@@ -21,6 +21,7 @@ import { CompanyService } from "../services/company.service";
 import { ProjectOrderService } from "../services/project-order.service";
 import { InteractionTrackingService } from "../services/interaction-tracking.service";
 import { SkillExtractionService } from "../services/skill-extraction.service";
+import { CacheService } from "../services/cache.service";
 
 @Module({
   imports: [
@@ -57,6 +58,15 @@ import { SkillExtractionService } from "../services/skill-extraction.service";
           queueOptions: { durable: false },
         },
       },
+      {
+        name: "AUTH_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: ["amqp://rabbitmq:5672"],
+          queue: "auth_queue",
+          queueOptions: { durable: false },
+        },
+      },
     ]),
   ],
   controllers: [JobController, MarketTrendController, CompanyController, ProjectOrderController],
@@ -67,6 +77,7 @@ import { SkillExtractionService } from "../services/skill-extraction.service";
     ProjectOrderService,
     InteractionTrackingService,
     SkillExtractionService,
+    CacheService,
   ],
   exports: [InteractionTrackingService],
 })

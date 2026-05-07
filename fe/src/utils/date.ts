@@ -112,3 +112,20 @@ export function parseDeadlineForComparison(value?: string | null): Date | null {
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed;
 }
+
+/**
+ * Calculates the number of days remaining from today to the deadline.
+ * Returns 0 if already past the deadline (end of day).
+ */
+export function getRemainingDays(value?: string | null): number | null {
+  const deadlineDate = parseDeadlineForComparison(value);
+  if (!deadlineDate) return null;
+
+  const now = new Date();
+  const diffTime = deadlineDate.getTime() - now.getTime();
+  
+  if (diffTime <= 0) return 0;
+  
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}

@@ -37,11 +37,11 @@ build/
 *.sw?
 
 
-*.md
 
 
-!/readme.md
+
+
 
 .models/
 *.onnx
-!/*.md
+.gemini

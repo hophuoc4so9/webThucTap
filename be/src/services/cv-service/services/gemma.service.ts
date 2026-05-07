@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { RpcException } from "@nestjs/microservices";
+import { createHash } from "crypto";
 import { Cv } from "../entities/cv.entity";
 import {
   ApplicationFitResponse,
@@ -8,6 +9,9 @@ import {
   CvSuggestionResponse,
 } from "../dto/ai-analysis.dto";
 import type { ParsedResumeData } from "../dto/parse-resume.dto";
+import { CacheService } from "./cache.service";
+
+const DEFAULT_CV_AI_CACHE_TTL_SECONDS = 60 * 60 * 24;
 
 @Injectable()
 export class GemmaService {
@@ -17,61 +21,66 @@ export class GemmaService {
   private readonly fastApiTimeoutMs = this.parseTimeoutMs(process.env.FASTAPI_LLM_TIMEOUT_MS);
   private readonly apiUrl = process.env.GEMMA_API_URL?.trim();
   private readonly apiKey = process.env.GEMMA_API_KEY?.trim();
-  private readonly modelId = process.env.GEMMA_MODEL_ID?.trim() || "gemma-4-31b-it";
+  private readonly modelId = process.env.GEMMA_MODEL_ID?.trim() || "gemma-4-26b-a4b-it";
   private readonly maxOutputTokens = this.parseMaxOutputTokens(process.env.GEMMA_MAX_OUTPUT_TOKENS);
-  private readonly thinkingLevel = process.env.GEMMA_THINKING_LEVEL?.trim() || "high";
-  private readonly thinkingMode = (process.env.GEMMA_THINKING_MODE?.trim().toLowerCase() || "high") as
+  private readonly thinkingLevel = process.env.GEMMA_THINKING_LEVEL?.trim() || "low";
+  private readonly thinkingMode = (process.env.GEMMA_THINKING_MODE?.trim().toLowerCase() || "off") as
     | "off"
     | "high"
     | "low";
+  private readonly cacheTtlSeconds = this.parseTtlSeconds(
+    process.env.CV_AI_CACHE_TTL_SECONDS,
+    DEFAULT_CV_AI_CACHE_TTL_SECONDS,
+  );
+
+  constructor(private readonly cacheService: CacheService) {}
 
   async suggestCvImprovements(
     cv: Cv,
     context?: { userId?: number; role?: string },
   ): Promise<CvSuggestionResponse> {
-    if (this.fastApiUrl) {
+    const cacheKey = this.cacheKey("suggest", {
+      cv: this.buildCvPayload(cv),
+      role: context?.role ?? "",
+    });
+
+    const cached = await this.cacheService.get<CvSuggestionResponse>(cacheKey);
+    if (cached) return cached;
+
+    let response: CvSuggestionResponse;
+    if (!this.apiKey && this.fastApiUrl) {
       const result = await this.callFastApiJson("/v1/cv/suggest", {
         cv: this.buildCvPayload(cv),
         userId: context?.userId,
         role: context?.role,
       });
-      return this.normalizeCvSuggestion(result);
+      response = this.normalizeCvSuggestion(result);
+      await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+      return response;
     }
 
-    const systemPrompt =
-      "You are a strict CV reviewer. Return ONLY one valid JSON object that matches the schema. No markdown, no extra text.";
+    const systemPrompt = "Strict CV reviewer. Return ONLY valid JSON. No markdown.";
     const userPrompt = JSON.stringify(
       {
         task: "cv_improvement",
         locale: "vi-VN",
-        rules: [
-          "Use only provided CV data.",
-          "Be specific and concise Vietnamese.",
-          "Include concrete strengths and actionable improvements.",
-        ],
+        rules: ["Concise Vietnamese", "Specific improvements"],
         outputSchema: {
           score: "0-100",
           summary: "string",
           strengths: ["string"],
-          improvements: [
-            {
-              section: "summary|skills|experience|projects|general",
-              issue: "string",
-              suggestion: "string",
-              priority: "high|medium|low",
-            },
-          ],
+          improvements: [{ section: "string", issue: "string", suggestion: "string", priority: "string" }],
           keywordsToAdd: ["string"],
-          recommendation: "revise-current-cv|create-new-cv",
+          recommendation: "string",
         },
         cv: this.buildCvPayload(cv),
       },
-      null,
-      2,
     );
 
     const aiResult = await this.callGemmaJson(systemPrompt, userPrompt);
-    return this.normalizeCvSuggestion(aiResult);
+    response = this.normalizeCvSuggestion(aiResult);
+    await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+    return response;
   }
 
   async analyzeCvJobFit(
@@ -79,18 +88,29 @@ export class GemmaService {
     job: Record<string, unknown>,
     context?: { userId?: number; role?: string },
   ): Promise<ApplicationFitResponse> {
-    if (this.fastApiUrl) {
+    const cacheKey = this.cacheKey("fit", {
+      cv: this.buildCvPayload(cv),
+      job,
+      role: context?.role ?? "",
+    });
+
+    const cached = await this.cacheService.get<ApplicationFitResponse>(cacheKey);
+    if (cached) return cached;
+
+    let response: ApplicationFitResponse;
+    if (!this.apiKey && this.fastApiUrl) {
       const result = await this.callFastApiJson("/v1/applications/fit", {
         cv: this.buildCvPayload(cv),
         job,
         userId: context?.userId,
         role: context?.role,
       });
-      return this.normalizeFitResponse(result);
+      response = this.normalizeFitResponse(result);
+      await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+      return response;
     }
 
-    const systemPrompt =
-      "You are a recruitment AI. Compare CV and job, then return ONLY one valid JSON object matching the schema.";
+    const systemPrompt = "Recruitment AI. Compare CV and job. Return ONLY valid JSON.";
     const userPrompt = JSON.stringify(
       {
         task: "cv_job_fit",
@@ -100,19 +120,19 @@ export class GemmaService {
           matchedSkills: ["string"],
           missingSkills: ["string"],
           missingKeywords: ["string"],
-          recommendation: "use-current-cv|revise-current-cv|create-new-cv",
+          recommendation: "string",
           explanation: "string",
           actionPlan: ["string"],
         },
         cv: this.buildCvPayload(cv),
         job,
       },
-      null,
-      2,
     );
 
     const aiResult = await this.callGemmaJson(systemPrompt, userPrompt);
-    return this.normalizeFitResponse(aiResult);
+    response = this.normalizeFitResponse(aiResult);
+    await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+    return response;
   }
 
   async enqueueCvImprovements(
@@ -159,6 +179,13 @@ export class GemmaService {
     resumeText: string,
     context?: { userId?: number; cvId?: number },
   ): Promise<ParsedResumeData> {
+    const cacheKey = this.cacheKey("parse", {
+      resumeText,
+      cvId: context?.cvId ?? "",
+    });
+    const cached = await this.cacheService.get<ParsedResumeData>(cacheKey);
+    if (cached) return cached;
+
     const systemPrompt =
       "You are a resume parsing engine. Return ONLY one valid JSON object that matches the schema. No markdown, no extra text.";
     const userPrompt = JSON.stringify(
@@ -190,7 +217,9 @@ export class GemmaService {
     );
 
     const aiResult = await this.callGemmaJson(systemPrompt, userPrompt);
-    return this.normalizeResumeParse(aiResult);
+    const response = this.normalizeResumeParse(aiResult);
+    await this.cacheService.set(cacheKey, response, this.cacheTtlSeconds);
+    return response;
   }
 
   private buildCvPayload(cv: Cv): Record<string, unknown> {
@@ -254,16 +283,16 @@ export class GemmaService {
       const requestBody = useGeminiApi
         ? this.buildGeminiPayload(systemPrompt, userPrompt, true)
         : {
-            model: this.modelId,
-            temperature: 1.0,
-            top_p: 0.95,
-            top_k: 64,
-            max_tokens: this.maxOutputTokens,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-          };
+          model: this.modelId,
+          temperature: 1.0,
+          top_p: 0.95,
+          top_k: 64,
+          max_tokens: this.maxOutputTokens,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        };
 
       let response = await fetch(endpoint, {
         method: "POST",
@@ -394,10 +423,10 @@ export class GemmaService {
       },
       ...(this.shouldEnableThinking()
         ? {
-            thinkingConfig: {
-              thinkingLevel: this.thinkingLevel,
-            },
-          }
+          thinkingConfig: {
+            thinkingLevel: this.thinkingLevel,
+          },
+        }
         : {}),
     };
   }
@@ -448,16 +477,16 @@ export class GemmaService {
           useGeminiApi
             ? this.buildGeminiPayload(repairSystemPrompt, repairUserPrompt, true)
             : {
-                model: this.modelId,
-                temperature: 0,
-                top_p: 0.9,
-                top_k: 40,
-                max_tokens: Math.min(this.maxOutputTokens, 320),
-                messages: [
-                  { role: "system", content: repairSystemPrompt },
-                  { role: "user", content: repairUserPrompt },
-                ],
-              },
+              model: this.modelId,
+              temperature: 0,
+              top_p: 0.9,
+              top_k: 40,
+              max_tokens: Math.min(this.maxOutputTokens, 320),
+              messages: [
+                { role: "system", content: repairSystemPrompt },
+                { role: "user", content: repairUserPrompt },
+              ],
+            },
         ),
       });
 
@@ -757,7 +786,7 @@ export class GemmaService {
 
   private parseMaxOutputTokens(value: string | undefined): number {
     const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 512;
+    if (!Number.isFinite(parsed)) return 300;
     return Math.max(128, Math.min(2048, Math.round(parsed)));
   }
 
@@ -765,5 +794,30 @@ export class GemmaService {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return 120000;
     return Math.max(1000, Math.min(300000, Math.round(parsed)));
+  }
+
+  private cacheKey(scope: string, value: unknown): string {
+    const raw = this.stableStringify(value);
+    const hash = createHash("sha256").update(raw).digest("hex");
+    return `cv-ai:${scope}:${hash}`;
+  }
+
+  private stableStringify(value: unknown): string {
+    if (Array.isArray(value)) {
+      return `[${value.map((item) => this.stableStringify(item)).join(",")}]`;
+    }
+    if (value && typeof value === "object") {
+      return `{${Object.keys(value as Record<string, unknown>)
+        .sort()
+        .map((key) => `${JSON.stringify(key)}:${this.stableStringify((value as Record<string, unknown>)[key])}`)
+        .join(",")}}`;
+    }
+    return JSON.stringify(value);
+  }
+
+  private parseTtlSeconds(value: string | undefined, fallback: number): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(60, Math.min(60 * 60 * 24 * 7, Math.round(parsed)));
   }
 }

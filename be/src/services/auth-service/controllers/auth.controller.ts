@@ -96,6 +96,18 @@ export class AuthController {
     return this.authService.rejectRecruiter(payload.id, payload.reason);
   }
 
+  @MessagePattern("auth_send_company_approved_email")
+  async sendCompanyApprovedEmail(@Payload() payload: { userId: number; companyName: string }) {
+    const user = await this.authService.getUserById(payload.userId);
+    return this.authService.sendCompanyApprovedEmail(user.email, user.name, payload.companyName);
+  }
+
+  @MessagePattern("auth_send_company_rejected_email")
+  async sendCompanyRejectedEmail(@Payload() payload: { userId: number; companyName: string; reason?: string }) {
+    const user = await this.authService.getUserById(payload.userId);
+    return this.authService.sendCompanyRejectedEmail(user.email, user.name, payload.companyName, payload.reason);
+  }
+
   @MessagePattern("auth_google_login")
   async googleLogin(@Payload() payload: { token: string }) {
     return this.authService.googleLogin(payload.token);

@@ -287,7 +287,7 @@ export const CvFormPage = () => {
     <div className="mb-3 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-[11px] text-violet-800 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <p className="font-semibold flex items-center gap-1.5">
-          <Sparkles size={12} /> Góp ý CV từ API
+          <Sparkles size={12} /> Góp ý CV từ AI
         </p>
         <button
           type="button"
@@ -296,7 +296,7 @@ export const CvFormPage = () => {
           className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white text-violet-700 border border-violet-200 text-[11px] font-semibold disabled:opacity-60"
         >
           {analysisLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-          {analysisLoading ? "Đang phân tích..." : "Phân tích bằng API"}
+          {analysisLoading ? "Đang phân tích..." : "Phân tích"}
         </button>
       </div>
 
@@ -328,9 +328,7 @@ export const CvFormPage = () => {
           )}
         </div>
       ) : (
-        <p className="text-[11px] text-violet-700">
-          Bấm nút bên phải để lấy góp ý từ API cho CV hiện tại thay vì nội dung gợi ý tĩnh.
-        </p>
+        <p></p>
       )}
     </div>
   );
@@ -745,7 +743,7 @@ export const CvFormPage = () => {
                   className="w-full max-w-md mx-auto mt-1 text-[11px] text-slate-600 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400"
                 />
               </header>
-                  Mô tả
+              Mô tả
               {/* OBJECTIVE */}
               <section className="mb-4">
                 <textarea
@@ -974,9 +972,8 @@ export const CvFormPage = () => {
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
                 onClick={() => fileRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                  dragging ? "border-blue-500 bg-blue-50" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50/80"
-                } ${file ? "border-green-300 bg-green-50/50" : ""}`}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${dragging ? "border-blue-500 bg-blue-50" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50/80"
+                  } ${file ? "border-green-300 bg-green-50/50" : ""}`}
               >
                 <div className={`mx-auto w-12 h-12 rounded-xl flex items-center justify-center mb-2 ${file ? "bg-green-100" : "bg-slate-100"}`}>
                   <Upload size={22} className={file ? "text-green-600" : "text-slate-500"} />

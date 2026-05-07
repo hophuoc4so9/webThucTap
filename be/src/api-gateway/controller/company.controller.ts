@@ -53,13 +53,20 @@ export class CompanyController {
     @Query("name") name?: string,
   ) {
     try {
-      return await firstValueFrom(
+      const res = await firstValueFrom(
         this.jobClient.send("company_find_all", {
           page: +page,
           limit: +limit,
           name,
         }),
       );
+      if (res && res.data) {
+        res.data = res.data.map((c: any) => ({
+          ...c,
+          logo: this.fixUploadUrl(c.logo),
+        }));
+      }
+      return res;
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
@@ -74,18 +81,47 @@ export class CompanyController {
     @Query("limit") limit = 20,
     @Query("status") status?: string,
     @Query("name") name?: string,
+    @Query("sortByJobs") sortByJobs?: string,
   ) {
     try {
-      return await firstValueFrom(
+      const res = await firstValueFrom(
         this.jobClient.send("company_find_all_admin", {
           page: +page,
           limit: +limit,
           status,
           name,
+          sortByJobs,
         }),
       );
+      // Fix URLs for business license and logo
+      if (res && res.data) {
+        res.data = res.data.map((c: any) => ({
+          ...c,
+          businessLicense: this.fixUploadUrl(c.businessLicense),
+          logo: this.fixUploadUrl(c.logo),
+        }));
+      }
+      return res;
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/featured?limit= (nhà tuyển dụng tiêu biểu) */
+  @Get("featured")
+  async findFeatured(@Query("limit") limit = 8) {
+    try {
+      const res = await firstValueFrom(
+        this.jobClient.send("company_find_featured", { limit: +limit }),
+      );
+      if (res && res.data) {
+        res.data = res.data.map((c: any) => this.mapCompany(c));
+      }
+      return res;
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lá»—i mÃ¡y chá»§" } =
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
     }
@@ -95,9 +131,10 @@ export class CompanyController {
   @Get(":id")
   async findOne(@Param("id", ParseIntPipe) id: number) {
     try {
-      return await firstValueFrom(
+      const res = await firstValueFrom(
         this.jobClient.send("company_find_one", { id }),
       );
+      return this.mapCompany(res);
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
@@ -144,12 +181,11 @@ export class CompanyController {
     @Req() req: Request,
   ) {
     try {
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
       const logoUrl = files?.logo?.[0]
-        ? `${baseUrl}/uploads/${files.logo[0].filename}`
+        ? `/api/uploads/${files.logo[0].filename}`
         : undefined;
       const licenseUrl = files?.businessLicense?.[0]
-        ? `${baseUrl}/uploads/${files.businessLicense[0].filename}`
+        ? `/api/uploads/${files.businessLicense[0].filename}`
         : undefined;
 
       const ownerId = body.ownerId ? +body.ownerId : undefined;
@@ -167,9 +203,10 @@ export class CompanyController {
         businessLicense: licenseUrl,
       };
 
-      return await firstValueFrom(
+      const res = await firstValueFrom(
         this.jobClient.send("company_create_onboarding", { ownerId, dto }),
       );
+      return this.mapCompany(res);
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
         err?.error ?? err ?? {};
@@ -274,8 +311,23 @@ export class CompanyController {
   @Get("member/:userId")
   async getMemberCompany(@Param("userId", ParseIntPipe) userId: number) {
     try {
-      return await firstValueFrom(
+      const res = await firstValueFrom(
         this.jobClient.send("company_get_member_company", { userId }),
+      );
+      return this.mapCompany(res);
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/onboarding/status/:userId */
+  @Get("onboarding/status/:userId")
+  async getOnboardingStatus(@Param("userId", ParseIntPipe) userId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_onboarding_status", { userId }),
       );
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =
@@ -316,5 +368,22 @@ export class CompanyController {
         err?.error ?? err ?? {};
       throw new HttpException({ success: false, message }, statusCode);
     }
+  }
+
+  private fixUploadUrl(url?: string | null) {
+    if (!url) return url;
+    if (url.startsWith("http://localhost/uploads")) {
+      return url.replace("http://localhost/uploads", "/api/uploads");
+    }
+    return url;
+  }
+
+  private mapCompany(c: any) {
+    if (!c) return c;
+    return {
+      ...c,
+      logo: this.fixUploadUrl(c.logo),
+      businessLicense: this.fixUploadUrl(c.businessLicense),
+    };
   }
 }

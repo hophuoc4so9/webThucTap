@@ -3,8 +3,7 @@ dist
 npm-debug.log
 .git
 .gitignore
-.env
-.env.*
+# .env and .env.* are removed from here so Vite can read them during build
 *.md
 .DS_Store
 coverage

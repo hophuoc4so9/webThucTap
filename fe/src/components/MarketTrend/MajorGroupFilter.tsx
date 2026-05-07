@@ -7,7 +7,7 @@ interface MajorGroupFilterProps {
   selectedGroup: string | null;
 }
 
-export function MajorGroupFilter({ onGroupSelect, selectedGroup, days }: MajorGroupFilterProps) {
+export function MajorGroupFilter({ onGroupSelect, selectedGroup }: MajorGroupFilterProps) {
   const majorGroups = useMajorGroups();
   const [isOpen, setIsOpen] = useState(false);
 
