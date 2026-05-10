@@ -1,11 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import { RpcException } from "@nestjs/microservices";
+import { Inject, Injectable } from "@nestjs/common";
+import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { InjectRepository } from "@nestjs/typeorm";
 import { readFile } from "fs/promises";
 import { extname, join } from "path";
 import pdfParse = require("pdf-parse");
 import mammoth from "mammoth";
 import { Repository } from "typeorm";
+import { firstValueFrom } from "rxjs";
 import { Cv } from "../entities/cv.entity";
 import { GemmaService } from "./gemma.service";
 import type { ParsedResumeData } from "../dto/parse-resume.dto";
@@ -19,6 +20,8 @@ export class ResumeParseService {
     @InjectRepository(Cv)
     private readonly cvRepo: Repository<Cv>,
     private readonly gemmaService: GemmaService,
+    @Inject("OCR_SERVICE")
+    private readonly ocrClient: ClientProxy,
   ) {}
 
   async parseCvById(
@@ -46,12 +49,16 @@ export class ResumeParseService {
     }
 
     const filePath = join(this.uploadsDir, cv.filePath);
-    const rawText = await this.extractTextFromFile(filePath, cv.fileOriginalName ?? cv.filePath);
+    const rawText = await this.extractTextFromFile(
+      filePath, 
+      cv.fileOriginalName ?? cv.filePath,
+      { cvId, filePath: cv.filePath }
+    );
     const trimmedText = this.trimResumeText(rawText);
     if (!trimmedText) {
       throw new RpcException({
         statusCode: 422,
-        message: "Không trích xuất được nội dung từ file CV",
+        message: "Không trích xuất được nội dung từ file CV. Nếu là ảnh, hãy đảm bảo ảnh rõ nét.",
       });
     }
 
@@ -77,6 +84,11 @@ export class ResumeParseService {
   private isCvContentEmpty(cv: Cv): boolean {
     return ![
       cv.fullName,
+      cv.studentId,
+      cv.class,
+      cv.academicYear,
+      cv.birthday,
+      cv.gender,
       cv.summary,
       cv.skills,
       cv.education,
@@ -100,8 +112,32 @@ export class ResumeParseService {
     return true;
   }
 
-  private async extractTextFromFile(filePath: string, nameForExt: string): Promise<string> {
+  private async extractTextFromFile(
+    filePath: string, 
+    nameForExt: string,
+    context: { cvId: number; filePath: string }
+  ): Promise<string> {
     const ext = extname(nameForExt).toLowerCase();
+    
+    // Xử lý file ảnh qua OCR
+    if ([".jpg", ".jpeg", ".png", ".webp", ".bmp"].includes(ext)) {
+      try {
+        const result = await firstValueFrom(
+          this.ocrClient.send<{ rawText: string; success: boolean }>(
+            { pattern: "cv_ocr_request" },
+            { cvId: context.cvId, filePath: context.filePath }
+          )
+        );
+        return result?.rawText ?? "";
+      } catch (err) {
+        console.error("OCR Service error:", err);
+        throw new RpcException({
+          statusCode: 503,
+          message: "Dịch vụ OCR không khả dụng hoặc gặp lỗi khi quét ảnh CV",
+        });
+      }
+    }
+
     let buffer: Buffer;
     try {
       buffer = await readFile(filePath);
@@ -124,7 +160,7 @@ export class ResumeParseService {
 
     throw new RpcException({
       statusCode: 415,
-      message: "Định dạng file chưa được hỗ trợ để trích xuất (chỉ hỗ trợ PDF/DOCX)",
+      message: `Định dạng file ${ext} chưa được hỗ trợ để trích xuất (hỗ trợ PDF/DOCX/Ảnh)`,
     });
   }
 
@@ -141,6 +177,11 @@ export class ResumeParseService {
       contactEmail: parsed.email || null,
       phone: parsed.phone || null,
       address: parsed.address || null,
+      studentId: parsed.studentId || null,
+      class: parsed.class || null,
+      academicYear: parsed.academicYear || null,
+      birthday: parsed.birthday ? new Date(parsed.birthday) : null,
+      gender: parsed.gender || null,
       skills: JSON.stringify(parsed.skills ?? []),
       experience: JSON.stringify(parsed.experience ?? []),
       education: (parsed.education ?? []).join("\n"),

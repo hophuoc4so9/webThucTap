@@ -17,12 +17,32 @@ export class Cv {
   @Column()
   userId: number;
 
+  /** Mã số sinh viên (Dành cho sinh viên TDMU) */
+  @Column({ name: "student_id", nullable: true })
+  studentId: string;
+
+  /** Lớp (Dành cho sinh viên TDMU) */
+  @Column({ nullable: true })
+  class: string;
+
+  /** Niên khóa (Dành cho sinh viên TDMU) */
+  @Column({ name: "academic_year", nullable: true })
+  academicYear: string;
+
+  /** Ngày sinh */
+  @Column({ type: "date", nullable: true })
+  birthday: Date;
+
+  /** Giới tính */
+  @Column({ nullable: true })
+  gender: string;
+
   /** Họ và tên đầy đủ */
   @Column({ nullable: true })
   fullName: string;
 
-  /** Vị trí / chức danh mong muốn */
-  @Column({ nullable: true })
+  /** Vị trí / chức danh mong muốn (Có thể là JSON string cho nhiều vị trí) */
+  @Column({ type: "text", nullable: true })
   jobPosition: string;
 
   /** Số điện thoại liên hệ */

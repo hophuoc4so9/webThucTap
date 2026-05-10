@@ -15,6 +15,11 @@ function toCvResponse(cv: Cv): Record<string, unknown> {
   return {
     id: cv.id,
     userId: cv.userId,
+    studentId: cv.studentId ?? null,
+    class: cv.class ?? null,
+    academicYear: cv.academicYear ?? null,
+    birthday: cv.birthday ?? null,
+    gender: cv.gender ?? null,
     fullName: cv.fullName ?? null,
     jobPosition: cv.jobPosition ?? null,
     phone: cv.phone ?? null,
@@ -45,6 +50,11 @@ function toCvResponse(cv: Cv): Record<string, unknown> {
 
 function toDraftCv(payload: {
   userId: number;
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
   fullName?: string;
   jobPosition?: string;
   phone?: string;
@@ -68,6 +78,11 @@ function toDraftCv(payload: {
   return {
     id: 0,
     userId: payload.userId,
+    studentId: payload.studentId ?? null,
+    class: payload.class ?? null,
+    academicYear: payload.academicYear ?? null,
+    birthday: payload.birthday ? new Date(payload.birthday) : null,
+    gender: payload.gender ?? null,
     fullName: payload.fullName ?? null,
     jobPosition: payload.jobPosition ?? null,
     phone: payload.phone ?? null,
@@ -146,6 +161,15 @@ export class CvService {
         statusCode: 404,
         message: `CV #${id} không tồn tại`,
       });
+    return toCvResponse(cv);
+  }
+
+  async findDefaultByUser(userId: number): Promise<Record<string, unknown> | null> {
+    const cv = await this.cvRepo.findOne({
+      where: { userId, isDefault: true },
+      order: { updatedAt: "DESC" },
+    });
+    if (!cv) return null;
     return toCvResponse(cv);
   }
 

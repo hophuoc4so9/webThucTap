@@ -7,6 +7,11 @@ export enum CompanyStatus {
   REJECTED = "rejected",
 }
 
+export enum VerificationMethod {
+  AUTO = "auto",
+  MANUAL = "manual",
+}
+
 @Entity("companies")
 export class Company {
   @PrimaryGeneratedColumn()
@@ -107,4 +112,41 @@ export class Company {
   /** Đường dẫn file giấy phép kinh doanh (admin xét duyệt) */
   @Column({ name: "business_license", type: "text", nullable: true })
   businessLicense: string | null;
+
+  /** Mã số thuế trích xuất từ OCR */
+  @Column({ name: "tax_code", type: "text", nullable: true })
+  taxCode: string | null;
+
+  /** Dữ liệu OCR chi tiết (JSON) */
+  @Column({ name: "ocr_data", type: "text", nullable: true })
+  ocrData: string | null;
+
+  /** Dữ liệu từ API VietQR (JSON) */
+  @Column({ name: "api_data", type: "text", nullable: true })
+  apiData: string | null;
+
+  /** Phương thức xác thực */
+  @Column({
+    name: "verification_method",
+    type: "enum",
+    enum: VerificationMethod,
+    default: VerificationMethod.MANUAL,
+  })
+  verificationMethod: VerificationMethod;
+
+  /** Đã xác thực tự động thành công chưa */
+  @Column({ name: "is_auto_verified", type: "boolean", default: false })
+  isAutoVerified: boolean;
+
+  /** Vốn điều lệ trích xuất */
+  @Column({ name: "charter_capital", type: "text", nullable: true })
+  charterCapital: string | null;
+
+  /** Người đại diện pháp luật trích xuất */
+  @Column({ name: "representative_name", type: "text", nullable: true })
+  representativeName: string | null;
+
+  /** Địa chỉ trên giấy phép trích xuất */
+  @Column({ name: "license_address", type: "text", nullable: true })
+  licenseAddress: string | null;
 }

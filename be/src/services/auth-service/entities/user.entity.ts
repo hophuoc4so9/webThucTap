@@ -48,6 +48,15 @@ export class User {
   @Column({ nullable: true, unique: true })
   googleId: string;
 
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ nullable: true })
+  otpCode: string | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  otpExpiresAt: Date | null;
+
   @Column({
     type: "enum",
     enum: UserRole,

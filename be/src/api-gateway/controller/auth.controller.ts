@@ -71,6 +71,32 @@ export class AuthController {
     }
   }
 
+  @Post("verify-otp")
+  async verifyOtp(@Body() body: { email: string; otp: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_verify_otp", body),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("resend-otp")
+  async resendOtp(@Body() body: { email: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_resend_otp", body),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
   @Post("test-email")
   async testEmail(@Body() body: { email: string }) {
     try {

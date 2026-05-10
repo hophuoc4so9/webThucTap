@@ -152,6 +152,20 @@ export class CvGatewayController {
     }
   }
 
+  /** GET /cvs/default?userId=xxx — Lấy CV mặc định */
+  @Get("default")
+  async getDefault(@Query("userId", ParseIntPipe) userId: number) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_get_default", { userId }),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
   /** GET /cvs/:id */
   @Get(":id")
   async findOne(@Param("id", ParseIntPipe) id: number) {

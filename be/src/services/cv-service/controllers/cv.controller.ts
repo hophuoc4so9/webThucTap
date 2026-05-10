@@ -39,6 +39,12 @@ export class CvController {
     return this.cvService.findOne(payload.id);
   }
 
+  /** Lấy CV mặc định của user */
+  @MessagePattern("cv_get_default")
+  getDefault(@Payload() payload: { userId: number }) {
+    return this.cvService.findDefaultByUser(payload.userId);
+  }
+
   /** Cập nhật CV */
   @MessagePattern("cv_update")
   update(@Payload() payload: { id: number; dto: UpdateCvDto }) {

@@ -117,14 +117,31 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
   const socialLinks = getCvSocialLinks(cv);
   const rawName = cv.fullName || cv.title || "Hồ sơ xin việc";
   const name = escapeHtml(rawName).toUpperCase();
-  const rawPosition = cv.jobPosition || "";
-  const position = rawPosition ? escapeHtml(rawPosition).toUpperCase() : "";
+
+  // Xử lý Job Positions (nếu là JSON mảng thì join, nếu là string thì dùng trực tiếp)
+  let positions = "";
+  try {
+    const parsed = JSON.parse(cv.jobPosition ?? "[]");
+    positions = Array.isArray(parsed) ? parsed.join(" | ") : String(cv.jobPosition ?? "");
+  } catch {
+    positions = String(cv.jobPosition ?? "");
+  }
+  const position = positions ? escapeHtml(positions).toUpperCase() : "";
+
   const contactParts: string[] = [];
   if (cv.phone) contactParts.push(`<span class="contact-item">${escapeHtml(cv.phone)}</span>`);
   if (cv.contactEmail) contactParts.push(`<span class="contact-item">${escapeHtml(cv.contactEmail)}</span>`);
   if (cv.address) contactParts.push(`<span class="contact-item">${escapeHtml(cv.address)}</span>`);
+  
+  const personalParts: string[] = [];
+  if (cv.birthday) personalParts.push(`<span>Ngày sinh: ${fmtDate(cv.birthday)}</span>`);
+  if (cv.gender) personalParts.push(`<span>Giới tính: ${escapeHtml(cv.gender)}</span>`);
+
   const contactLine = contactParts.length
     ? `<div class="contact-line">${contactParts.join('<span class="contact-sep"> ◇ </span>')}</div>`
+    : "";
+  const personalLine = personalParts.length
+    ? `<div class="contact-line" style="font-style: italic; margin-top: -2px;">${personalParts.join('<span class="contact-sep"> ◇ </span>')}</div>`
     : "";
   const linkedInLine = cv.linkedIn
     ? `<div class="linkedin-line">LinkedIn: ${escapeHtml(cv.linkedIn)}</div>`
@@ -132,6 +149,15 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
 
   const section = (title: string, body: string) =>
     body ? `<section class="pdf-section"><h2 class="pdf-section-title">${escapeHtml(title)}</h2><div class="pdf-section-body">${body}</div></section>` : "";
+
+  // TDMU Info Section
+  const tdmuInfo = [];
+  if (cv.studentId) tdmuInfo.push(`<li><strong>MSSV:</strong> ${escapeHtml(cv.studentId)}</li>`);
+  if (cv.class) tdmuInfo.push(`<li><strong>Lớp:</strong> ${escapeHtml(cv.class)}</li>`);
+  if (cv.academicYear) tdmuInfo.push(`<li><strong>Niên khóa:</strong> ${escapeHtml(cv.academicYear)}</li>`);
+  if (cv.major) tdmuInfo.push(`<li><strong>Ngành học:</strong> ${escapeHtml(cv.major)} (${escapeHtml(cv.majorGroup ?? "")})</li>`);
+  
+  const tdmuBody = tdmuInfo.length ? `<ul class="pdf-bullet-list">${tdmuInfo.join("")}</ul>` : "";
 
   const summaryBody = cv.summary ? `<p class="pdf-p">${escapeHtml(cv.summary).replace(/\n/g, "<br>")}</p>` : "";
   const skillsBody = skills.length
@@ -177,16 +203,17 @@ export const getCvPrintBodyHtml = (cv: Cv): string => {
       <h1 class="pdf-name">${name}</h1>
       ${position ? `<p class="pdf-position">${position}</p>` : ""}
       ${contactLine}
+      ${personalLine}
       ${linkedInLine}
     </header>
-    ${section("OBJECTIVE", summaryBody)}
-    ${section("EDUCATION", educationBody)}
-    ${section("SKILLS", skillsBody)}
-    ${section("CERTIFICATIONS", certBody)}
-    ${section("EXPERIENCE", expBody)}
-    ${section("LANGUAGES", langBody)}
-    ${section("SOCIAL LINKS", socialBody)}
-    ${section("PROJECTS", projectBody)}
+    ${section("THÔNG TIN SINH VIÊN", tdmuBody)}
+    ${section("MỤC TIÊU NGHỀ NGHIỆP", summaryBody)}
+    ${section("HỌC VẤN", educationBody)}
+    ${section("KỸ NĂNG", skillsBody)}
+    ${section("CHỨNG CHỈ", certBody)}
+    ${section("KINH NGHIỆM", expBody)}
+    ${section("NGOẠI NGỮ", langBody)}
+    ${section("DỰ ÁN", projectBody)}
   </div>
   `;
 };
@@ -205,7 +232,15 @@ export const formStateToCv = (state: {
   education: string;
   experience: string[];
   projects: CvProjectItem[];
-}): Pick<Cv, "fullName" | "jobPosition" | "phone" | "contactEmail" | "address" | "linkedIn" | "title" | "summary" | "skills" | "education" | "experience" | "projects"> => ({
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
+  major?: string;
+  majorGroup?: string;
+  majorCode?: string;
+}): Partial<Cv> => ({
   fullName: state.fullName,
   jobPosition: state.jobPosition,
   phone: state.phone,
@@ -218,6 +253,14 @@ export const formStateToCv = (state: {
   education: state.education,
   experience: JSON.stringify(state.experience),
   projects: JSON.stringify(state.projects),
+  studentId: state.studentId,
+  class: state.class,
+  academicYear: state.academicYear,
+  birthday: state.birthday,
+  gender: state.gender,
+  major: state.major,
+  majorGroup: state.majorGroup,
+  majorCode: state.majorCode,
 });
 
 /** Style chung cho khung xem CV (view + edit preview) — document, section gạch dưới */

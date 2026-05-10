@@ -80,4 +80,20 @@ export class CreateCompanyDto {
   @IsOptional()
   @IsString()
   businessLicense?: string;
+
+  @IsOptional()
+  @IsString()
+  taxCode?: string;
+
+  @IsOptional()
+  @IsString()
+  charterCapital?: string;
+
+  @IsOptional()
+  @IsString()
+  representativeName?: string;
+
+  @IsOptional()
+  @IsString()
+  licenseAddress?: string;
 }

@@ -14,11 +14,13 @@ import {
   ZoomIn,
   ZoomOut,
   Sparkles,
+  GraduationCap,
 } from "lucide-react";
 import { cvApi } from "@/api/api/services/cv.api";
 import type { Cv, CreateCvDto, CvProjectItem, CvSuggestionResponse, CvImprovementItem, UpdateCvDto } from "@/features/student/types";
 import { VIEW_CV_STYLE } from "./helpers";
 import { toMonthDisplayValue, toMonthInputValue } from "@/utils/date";
+import tdmuData from "@/data/donviTDMU.json";
 
 const makeEmptyProject = (): CvProjectItem => ({
   name: "",
@@ -63,6 +65,11 @@ function normalizeCvFromApi(raw: Record<string, unknown>): Cv {
   return {
     id: Number(raw.id),
     userId: Number(raw.userId),
+    studentId: (raw.studentId ?? raw.student_id) as string | undefined,
+    class: (raw.class ?? raw.class) as string | undefined,
+    academicYear: (raw.academicYear ?? raw.academic_year) as string | undefined,
+    birthday: (raw.birthday ?? raw.birthday) as string | undefined,
+    gender: (raw.gender ?? raw.gender) as string | undefined,
     fullName: (raw.fullName ?? raw.full_name) as string | undefined,
     jobPosition: (raw.jobPosition ?? raw.job_position) as string | undefined,
     phone: (raw.phone ?? raw.phone) as string | undefined,
@@ -75,6 +82,9 @@ function normalizeCvFromApi(raw: Record<string, unknown>): Cv {
     education: (raw.education ?? raw.education) as string | undefined,
     experience: (raw.experience ?? raw.experience) as string | undefined,
     projects: (raw.projects ?? raw.projects) as string | undefined,
+    major: (raw.major ?? raw.major) as string | undefined,
+    majorGroup: (raw.majorGroup ?? raw.major_group) as string | undefined,
+    majorCode: (raw.majorCode ?? raw.major_code) as string | undefined,
     filePath: (raw.filePath ?? raw.file_path) as string | undefined,
     fileOriginalName: (raw.fileOriginalName ?? raw.file_original_name) as string | undefined,
     fileMimeType: (raw.fileMimeType ?? raw.file_mime_type) as string | undefined,
@@ -185,8 +195,13 @@ export const CvFormPage = () => {
   const [loadingCv, setLoadingCv] = useState(isEdit);
 
   // Form fields
+  const [studentId, setStudentId] = useState("");
+  const [className, setClassName] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [gender, setGender] = useState("");
   const [fullName, setFullName] = useState("");
-  const [jobPosition, setJobPosition] = useState("");
+  const [jobPositions, setJobPositions] = useState<string[]>([]);
   const [phone, setPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [address, setAddress] = useState("");
@@ -197,6 +212,9 @@ export const CvFormPage = () => {
   const [education, setEducation] = useState("");
   const [experience, setExperience] = useState<string[]>([]);
   const [projects, setProjects] = useState<CvProjectItem[]>([makeEmptyProject()]);
+  const [major, setMajor] = useState("");
+  const [majorGroup, setMajorGroup] = useState("");
+  const [majorCode, setMajorCode] = useState("");
   const [isDefault, setIsDefault] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -207,6 +225,10 @@ export const CvFormPage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [zoom, setZoom] = useState(100);
   const [previewFont, setPreviewFont] = useState("Times New Roman");
+
+  const majorGroups = tdmuData.du_lieu_nganh;
+  const selectedGroupData = majorGroups.find(g => g.nhom === majorGroup);
+  const majorsInGroup = selectedGroupData ? selectedGroupData.nganh_hoc : [];
 
   const updateProject = <K extends keyof CvProjectItem>(
     index: number,
@@ -433,8 +455,18 @@ export const CvFormPage = () => {
       .then((raw) => {
         const cv = normalizeCvFromApi(raw as unknown as Record<string, unknown>);
         setInitial(cv);
+        setStudentId(cv.studentId ?? "");
+        setClassName(cv.class ?? "");
+        setAcademicYear(cv.academicYear ?? "");
+        setBirthday(cv.birthday ? cv.birthday.split("T")[0] : "");
+        setGender(cv.gender ?? "");
         setFullName(cv.fullName ?? "");
-        setJobPosition(cv.jobPosition ?? "");
+        try {
+          const pos = JSON.parse(cv.jobPosition ?? "[]");
+          setJobPositions(Array.isArray(pos) ? pos : cv.jobPosition ? [cv.jobPosition] : []);
+        } catch {
+          setJobPositions(cv.jobPosition ? [cv.jobPosition] : []);
+        }
         setPhone(cv.phone ?? "");
         setContactEmail(cv.contactEmail ?? "");
         setAddress(cv.address ?? "");
@@ -442,6 +474,9 @@ export const CvFormPage = () => {
         setTitle(cv.title ?? "");
         setSummary(cv.summary ?? "");
         setEducation(cv.education ?? "");
+        setMajor(cv.major ?? "");
+        setMajorGroup(cv.majorGroup ?? "");
+        setMajorCode(cv.majorCode ?? "");
         setProjects(parseProjectsFromValue(cv.projects));
         setIsDefault(cv.isDefault);
         try {
@@ -468,9 +503,13 @@ export const CvFormPage = () => {
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/bmp",
     ];
     if (!ok.includes(f.type)) {
-      setError("Chỉ chấp nhận PDF, DOC, DOCX");
+      setError("Chỉ chấp nhận PDF, DOC, DOCX và Hình ảnh (JPG, PNG, WEBP)");
       return;
     }
     if (f.size > 10 * 1024 * 1024) {
@@ -496,6 +535,7 @@ export const CvFormPage = () => {
     try {
       const skillsJson = JSON.stringify(skills);
       const experienceJson = JSON.stringify(experience);
+      const positionsJson = JSON.stringify(jobPositions);
       const normalizedProjects = projects
         .map((project) => ({
           name: project.name.trim(),
@@ -511,8 +551,13 @@ export const CvFormPage = () => {
 
       if (isEdit && initial) {
         const dto: UpdateCvDto = {
+          studentId,
+          class: className,
+          academicYear,
+          birthday,
+          gender,
           fullName,
-          jobPosition,
+          jobPosition: positionsJson,
           phone,
           contactEmail,
           address,
@@ -523,6 +568,9 @@ export const CvFormPage = () => {
           education,
           experience: experienceJson,
           projects: projectsJson,
+          major,
+          majorGroup,
+          majorCode,
           isDefault,
         };
         await cvApi.update(initial.id, dto);
@@ -540,8 +588,13 @@ export const CvFormPage = () => {
       } else {
         const dto: CreateCvDto = {
           userId,
+          studentId,
+          class: className,
+          academicYear,
+          birthday,
+          gender,
           fullName,
-          jobPosition,
+          jobPosition: positionsJson,
           phone,
           contactEmail,
           address,
@@ -552,6 +605,9 @@ export const CvFormPage = () => {
           education,
           experience: experienceJson,
           projects: projectsJson,
+          major,
+          majorGroup,
+          majorCode,
           isDefault,
         };
         await cvApi.create(dto);
@@ -584,7 +640,7 @@ export const CvFormPage = () => {
     );
   }
 
-  // ─── Chế độ Sửa CV tải từ file: chỉ cho đổi tiêu đề, mặc định, thay file ───
+  // ─── Chế độ Sửa CV tải từ file ───
   if (isEdit && initial && initial.source === "file") {
     const handleSubmitFileOnly = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -612,7 +668,7 @@ export const CvFormPage = () => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Tiêu đề CV (tên hiển thị danh sách)"
+              placeholder="Tiêu đề CV"
               className="min-w-[180px] max-w-[240px] px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             />
             <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-md">
@@ -627,7 +683,7 @@ export const CvFormPage = () => {
               <Upload size={16} />
               {file ? file.name : initial?.fileOriginalName ? `File: ${initial.fileOriginalName}` : "Thay file CV"}
             </button>
-            <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
           </header>
           {error && (
             <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5 bg-red-50 text-red-700 text-sm border-b border-red-100">
@@ -639,7 +695,7 @@ export const CvFormPage = () => {
               {renderAnalysisPanel()}
               <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
                 <AlertCircle size={20} className="flex-shrink-0" />
-                <span>CV này được tải từ file (PDF/DOC). Bạn chỉ có thể đổi tiêu đề, đặt mặc định hoặc thay file mới; không thể chỉnh sửa nội dung bên trong file.</span>
+                <span>CV này được tải từ file. Bạn chỉ có thể đổi tiêu đề hoặc thay file; không thể chỉnh sửa nội dung bên trong file.</span>
               </div>
               <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-lg bg-slate-50 border border-slate-200">
                 <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="w-4 h-4 accent-blue-500 rounded" />
@@ -652,56 +708,55 @@ export const CvFormPage = () => {
     );
   }
 
-  // ─── Chế độ Sửa CV (tạo từ form): form giữa trang, cấu trúc giống CV thực tế (điền như Word) ───
-  if (isEdit && initial) {
-    return (
-      <div className="min-h-screen bg-slate-200/70 flex flex-col">
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          {/* Thanh công cụ: Quay lại | Tiêu đề | Lưu | Tải file CV | Font | Zoom */}
-          <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-2 shadow-sm">
-            <button type="button" onClick={() => navigate("/student/cv")} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-              <ArrowLeft size={18} /> Quay lại
+  // ─── Chế độ Sửa CV (tạo từ form) hoặc Tạo mới từ form ───
+  return (
+    <div className="min-h-screen bg-slate-200/70 flex flex-col">
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-2 shadow-sm">
+          <button type="button" onClick={() => navigate("/student/cv")} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
+            <ArrowLeft size={18} /> Quay lại
+          </button>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Tiêu đề CV"
+            className="min-w-[180px] max-w-[240px] px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+          />
+          <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-md">
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+            {isEdit ? "Lưu thay đổi" : "Tạo CV"}
+          </button>
+          {!isEdit && (
+            <button type="button" onClick={() => setTab(tab === "text" ? "file" : "text")} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50">
+              {tab === "text" ? <Upload size={16} /> : <Loader2 size={16} />}
+              {tab === "text" ? "Tải CV từ file" : "Điền form như CV"}
             </button>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Tiêu đề CV (tên hiển thị danh sách)"
-              className="min-w-[180px] max-w-[240px] px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            />
-            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-md">
-              {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-              Lưu
-            </button>
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className={`flex items-center gap-1.5 px-4 py-1.5 text-sm rounded-md border ${file ? "border-green-400 bg-green-50 text-green-800" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}
-            >
-              <Upload size={16} />
-              {file ? file.name : initial?.fileOriginalName ? `File: ${initial.fileOriginalName}` : "Tải CV từ file"}
-            </button>
-            <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-            <select value={previewFont} onChange={(e) => setPreviewFont(e.target.value)} className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40" title="Font chữ">
-              <option value="Times New Roman">Times New Roman</option>
-              <option value="Georgia">Georgia</option>
-              <option value="Segoe UI">Segoe UI</option>
-              <option value="Arial">Arial</option>
-            </select>
-            <div className="flex items-center gap-0.5 border border-slate-200 rounded-md overflow-hidden bg-white">
-              <button type="button" onClick={() => setZoom((z) => Math.max(70, z - 10))} className="p-1.5 text-slate-600 hover:bg-slate-100" title="Thu nhỏ"><ZoomOut size={14} /></button>
-              <span className="px-2 text-xs font-medium text-slate-600 min-w-[2.2rem] text-center">{zoom}%</span>
-              <button type="button" onClick={() => setZoom((z) => Math.min(120, z + 10))} className="p-1.5 text-slate-600 hover:bg-slate-100" title="Phóng to"><ZoomIn size={14} /></button>
-            </div>
-          </header>
-
-          {error && (
-            <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5 bg-red-50 text-red-700 text-sm border-b border-red-100">
-              <AlertCircle size={18} className="flex-shrink-0" /> {error}
-            </div>
           )}
+          {tab === "text" && (
+            <>
+              <select value={previewFont} onChange={(e) => setPreviewFont(e.target.value)} className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40">
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Segoe UI">Segoe UI</option>
+                <option value="Arial">Arial</option>
+              </select>
+              <div className="flex items-center gap-0.5 border border-slate-200 rounded-md overflow-hidden bg-white">
+                <button type="button" onClick={() => setZoom((z) => Math.max(70, z - 10))} className="p-1.5 text-slate-600 hover:bg-slate-100"><ZoomOut size={14} /></button>
+                <span className="px-2 text-xs font-medium text-slate-600 min-w-[2.2rem] text-center">{zoom}%</span>
+                <button type="button" onClick={() => setZoom((z) => Math.min(120, z + 10))} className="p-1.5 text-slate-600 hover:bg-slate-100"><ZoomIn size={14} /></button>
+              </div>
+            </>
+          )}
+        </header>
 
-          {/* Khung form giữa trang — cấu trúc giống CV thực tế */}
+        {error && (
+          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5 bg-red-50 text-red-700 text-sm border-b border-red-100">
+            <AlertCircle size={18} className="flex-shrink-0" /> {error}
+          </div>
+        )}
+
+        {tab === "text" ? (
           <div className="flex-1 overflow-auto py-6 px-4 flex justify-center">
             <div
               className="bg-white shadow-lg rounded-sm p-8 md:p-10 max-w-[210mm] w-full"
@@ -722,13 +777,15 @@ export const CvFormPage = () => {
                   placeholder="Họ và tên"
                   className="w-full text-center text-2xl font-bold text-black tracking-wide bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 placeholder:text-slate-400"
                 />
-                <input
-                  type="text"
-                  value={jobPosition}
-                  onChange={(e) => setJobPosition(e.target.value)}
-                  placeholder="Vị trí / Chức danh"
-                  className="w-full text-center text-sm font-semibold text-black tracking-wide mt-1 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 placeholder:text-slate-400"
-                />
+                <div className="max-w-md mx-auto mt-1">
+                  <TagInput
+                    label=""
+                    tags={jobPositions}
+                    onChange={setJobPositions}
+                    placeholder="Vị trí ứng tuyển (ví dụ: Frontend Developer)"
+                    colorClass="bg-white text-blue-700 border-blue-200"
+                  />
+                </div>
                 <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 mt-2 text-[11px] text-slate-600">
                   <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Số điện thoại" className="w-28 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
                   <span className="text-slate-400">◇</span>
@@ -736,16 +793,81 @@ export const CvFormPage = () => {
                   <span className="text-slate-400">◇</span>
                   <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Địa chỉ" className="w-28 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
                 </div>
+                <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 mt-1 text-[11px] text-slate-500 italic">
+                  <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className="bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center" title="Ngày sinh" />
+                  <span className="text-slate-400">◇</span>
+                  <select value={gender} onChange={(e) => setGender(e.target.value)} className="bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center appearance-none cursor-pointer">
+                    <option value="">Giới tính</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
                 <input
-                  type="month"
+                  type="url"
                   value={linkedIn}
                   onChange={(e) => setLinkedIn(e.target.value)}
+                  placeholder="LinkedIn: linkedin.com/in/..."
                   className="w-full max-w-md mx-auto mt-1 text-[11px] text-slate-600 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400"
                 />
               </header>
-              Mô tả
+
+              {/* TDMU INFO */}
+              <section className="mb-4 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <h2 className="text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <GraduationCap size={13} /> THÔNG TIN SINH VIÊN TDMU
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">MSSV</label>
+                    <input type="text" value={studentId} onChange={(e) => setStudentId(e.target.value)} placeholder="Mã số sinh viên" className="w-full text-[11px] bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Lớp</label>
+                    <input type="text" value={className} onChange={(e) => setClassName(e.target.value)} placeholder="Ví dụ: D21PM01" className="w-full text-[11px] bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Niên khóa</label>
+                    <input type="text" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} placeholder="Ví dụ: 2021 - 2025" className="w-full text-[11px] bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Nhóm ngành</label>
+                    <select 
+                      value={majorGroup} 
+                      onChange={(e) => {
+                        setMajorGroup(e.target.value);
+                        setMajor(""); // Reset major when group changes
+                      }} 
+                      className="w-full text-[11px] bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none"
+                    >
+                      <option value="">Chọn Nhóm ngành</option>
+                      {majorGroups.map(g => (
+                        <option key={g.nhom} value={g.nhom}>{g.nhom}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Ngành học</label>
+                    <select 
+                      value={major} 
+                      onChange={(e) => setMajor(e.target.value)} 
+                      disabled={!majorGroup}
+                      className="w-full text-[11px] bg-white border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400 focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                    >
+                      <option value="">Chọn Ngành học</option>
+                      {majorsInGroup.map(m => (
+                        <option key={m.ten} value={m.ten}>{m.ten}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </section>
+
               {/* OBJECTIVE */}
               <section className="mb-4">
+                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-1 pb-0.5 border-b border-black">OBJECTIVE</h2>
                 <textarea
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
@@ -757,7 +879,7 @@ export const CvFormPage = () => {
 
               {/* EDUCATION */}
               <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">EDUCATION</h2>
+                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-1 pb-0.5 border-b border-black">EDUCATION</h2>
                 <textarea
                   value={education}
                   onChange={(e) => setEducation(e.target.value)}
@@ -769,8 +891,8 @@ export const CvFormPage = () => {
 
               {/* SKILLS */}
               <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">SKILLS</h2>
-                <div className="min-h-[2.5rem] flex flex-wrap gap-1.5 items-center text-[11px]">
+                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-1 pb-0.5 border-b border-black">SKILLS</h2>
+                <div className="min-h-[2rem] flex flex-wrap gap-1.5 items-center text-[11px]">
                   {skills.map((s, i) => (
                     <span key={i} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
                       {s}
@@ -780,7 +902,7 @@ export const CvFormPage = () => {
                   <input
                     type="text"
                     placeholder="+ Thêm kỹ năng (Enter)"
-                    className="flex-1 min-w-[100px] bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-[11px] placeholder:text-slate-400"
+                    className="flex-1 min-w-[100px] bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-[11px]"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === "Tab") {
                         e.preventDefault();
@@ -789,19 +911,14 @@ export const CvFormPage = () => {
                         (e.target as HTMLInputElement).value = "";
                       }
                     }}
-                    onBlur={(e) => {
-                      const v = e.target.value.trim();
-                      if (v && !skills.includes(v)) setSkills([...skills, v]);
-                      e.target.value = "";
-                    }}
                   />
                 </div>
               </section>
 
               {/* EXPERIENCE */}
               <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">EXPERIENCE</h2>
-                <div className="min-h-[2.5rem] flex flex-wrap gap-1.5 items-center text-[11px]">
+                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-1 pb-0.5 border-b border-black">EXPERIENCE</h2>
+                <div className="min-h-[2rem] flex flex-wrap gap-1.5 items-center text-[11px]">
                   {experience.map((e, i) => (
                     <span key={i} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-green-50 text-green-800 border border-green-200">
                       {e}
@@ -811,7 +928,7 @@ export const CvFormPage = () => {
                   <input
                     type="text"
                     placeholder="+ Thêm kinh nghiệm (Enter)"
-                    className="flex-1 min-w-[120px] bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-[11px] placeholder:text-slate-400"
+                    className="flex-1 min-w-[120px] bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-[11px]"
                     onKeyDown={(ev) => {
                       if (ev.key === "Enter" || ev.key === "Tab") {
                         ev.preventDefault();
@@ -819,11 +936,6 @@ export const CvFormPage = () => {
                         if (v && !experience.includes(v)) setExperience([...experience, v]);
                         (ev.target as HTMLInputElement).value = "";
                       }
-                    }}
-                    onBlur={(ev) => {
-                      const v = ev.target.value.trim();
-                      if (v && !experience.includes(v)) setExperience([...experience, v]);
-                      ev.target.value = "";
                     }}
                   />
                 </div>
@@ -837,169 +949,37 @@ export const CvFormPage = () => {
               </label>
             </div>
           </div>
-        </form>
-      </div>
-    );
-  }
-
-  // ─── Tạo CV mới theo form: cùng form giữa trang, cấu trúc như CV thực tế ───
-  if (!isEdit && tab === "text") {
-    return (
-      <div className="min-h-screen bg-slate-200/70 flex flex-col">
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-2 shadow-sm">
-            <button type="button" onClick={() => navigate("/student/cv")} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-              <ArrowLeft size={18} /> Quay lại
-            </button>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Tiêu đề CV (tên hiển thị danh sách)"
-              className="min-w-[180px] max-w-[240px] px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            />
-            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-md">
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-              Tạo CV
-            </button>
-            <button type="button" onClick={() => setTab("file")} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50">
-              <Upload size={16} /> Tải CV từ file
-            </button>
-          </header>
-          {error && (
-            <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5 bg-red-50 text-red-700 text-sm border-b border-red-100">
-              <AlertCircle size={18} className="flex-shrink-0" /> {error}
-            </div>
-          )}
-          <div className="flex-1 overflow-auto py-6 px-4 flex justify-center">
-            <div className="bg-white shadow-lg rounded-sm p-8 md:p-10 max-w-[210mm] w-full" style={{ fontFamily: previewFont }}>
-              <style>{VIEW_CV_STYLE}</style>
-              <header className="text-center mb-6 pb-2">
-                <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Họ và tên" className="w-full text-center text-2xl font-bold text-black tracking-wide bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 placeholder:text-slate-400" />
-                <input type="text" value={jobPosition} onChange={(e) => setJobPosition(e.target.value)} placeholder="Vị trí / Chức danh" className="w-full text-center text-sm font-semibold text-black tracking-wide mt-1 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 placeholder:text-slate-400" />
-                <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 mt-2 text-[11px] text-slate-600">
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Số điện thoại" className="w-28 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
-                  <span className="text-slate-400">◇</span>
-                  <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email" className="w-36 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
-                  <span className="text-slate-400">◇</span>
-                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Địa chỉ" className="w-28 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
+        ) : (
+          <div className="flex-1 overflow-auto py-8 px-4 flex justify-center">
+            <div className="bg-white shadow-lg rounded-lg border border-slate-200 p-8 max-w-[480px] w-full space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide">Tải CV từ file</h3>
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+                  onClick={() => fileRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${dragging ? "border-blue-500 bg-blue-50" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50/80"
+                    } ${file ? "border-green-300 bg-green-50/50" : ""}`}
+                >
+                  <div className={`mx-auto w-12 h-12 rounded-xl flex items-center justify-center mb-2 ${file ? "bg-green-100" : "bg-slate-100"}`}>
+                    <Upload size={22} className={file ? "text-green-600" : "text-slate-500"} />
+                  </div>
+                  {file ? (
+                    <p className="text-sm font-semibold text-green-700">{file.name}</p>
+                  ) : (
+                    <p className="text-sm font-medium text-slate-700">Kéo thả hoặc nhấp để chọn file</p>
+                  )}
+                  <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
                 </div>
-                <input type="url" value={linkedIn} onChange={(e) => setLinkedIn(e.target.value)} placeholder="LinkedIn: linkedin.com/in/..." className="w-full max-w-md mx-auto mt-1 text-[11px] text-slate-600 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-center placeholder:text-slate-400" />
-              </header>
-              <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">OBJECTIVE</h2>
-                <textarea value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Mục tiêu nghề nghiệp, điểm mạnh..." rows={3} className="w-full text-[11px] text-slate-800 leading-relaxed bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:outline-none rounded p-1 resize-none placeholder:text-slate-400" />
-              </section>
-              <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">EDUCATION</h2>
-                <textarea value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Trường, ngành, năm tốt nghiệp (dự kiến)..." rows={2} className="w-full text-[11px] text-slate-800 leading-relaxed bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:outline-none rounded p-1 resize-none placeholder:text-slate-400" />
-              </section>
-              <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">SKILLS</h2>
-                <div className="min-h-[2.5rem] flex flex-wrap gap-1.5 items-center text-[11px]">
-                  {skills.map((s, i) => (
-                    <span key={i} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
-                      {s}
-                      <button type="button" onClick={() => setSkills(skills.filter((_, j) => j !== i))} className="hover:opacity-70"><X size={12} /></button>
-                    </span>
-                  ))}
-                  <input type="text" placeholder="+ Thêm kỹ năng (Enter)" className="flex-1 min-w-[100px] bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-[11px] placeholder:text-slate-400"
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); const v = (e.target as HTMLInputElement).value.trim(); if (v && !skills.includes(v)) setSkills([...skills, v]); (e.target as HTMLInputElement).value = ""; } }}
-                    onBlur={(e) => { const v = e.target.value.trim(); if (v && !skills.includes(v)) setSkills([...skills, v]); e.target.value = ""; }} />
-                </div>
-              </section>
-              <section className="mb-4">
-                <h2 className="text-[11px] font-bold text-black uppercase tracking-wider mb-2 pb-1 border-b border-black">EXPERIENCE</h2>
-                <div className="min-h-[2.5rem] flex flex-wrap gap-1.5 items-center text-[11px]">
-                  {experience.map((e, i) => (
-                    <span key={i} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-green-50 text-green-800 border border-green-200">
-                      {e}
-                      <button type="button" onClick={() => setExperience(experience.filter((_, j) => j !== i))} className="hover:opacity-70"><X size={12} /></button>
-                    </span>
-                  ))}
-                  <input type="text" placeholder="+ Thêm kinh nghiệm (Enter)" className="flex-1 min-w-[120px] bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none py-0.5 text-[11px] placeholder:text-slate-400"
-                    onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === "Tab") { ev.preventDefault(); const v = (ev.target as HTMLInputElement).value.trim(); if (v && !experience.includes(v)) setExperience([...experience, v]); (ev.target as HTMLInputElement).value = ""; } }}
-                    onBlur={(ev) => { const v = ev.target.value.trim(); if (v && !experience.includes(v)) setExperience([...experience, v]); ev.target.value = ""; }} />
-                </div>
-              </section>
-              {renderProjectsSection()}
-              <label className="flex items-center gap-2 mt-4 text-[11px] text-slate-600 cursor-pointer">
-                <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="w-3.5 h-3.5 accent-blue-500 rounded" />
-                Đặt làm CV mặc định khi ứng tuyển
+              </div>
+              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="w-4 h-4 accent-blue-500 rounded" />
+                <span className="text-sm font-medium text-slate-700">Đặt làm CV mặc định khi ứng tuyển</span>
               </label>
             </div>
           </div>
-        </form>
-      </div>
-    );
-  }
-
-  // ─── Tải CV từ file (create only) — layout giống form nhập ở web ───
-  return (
-    <div className="min-h-screen bg-slate-200/70 flex flex-col">
-      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-        <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-2 shadow-sm">
-          <button type="button" onClick={() => navigate("/student/cv")} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-            <ArrowLeft size={18} /> Quay lại
-          </button>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Tiêu đề CV (tên hiển thị danh sách)"
-            className="min-w-[180px] max-w-[240px] px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-          />
-          <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-md">
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-            Tạo CV
-          </button>
-          <button type="button" onClick={() => setTab("text")} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50">
-            <Upload size={16} /> Điền form như CV
-          </button>
-        </header>
-        {error && (
-          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5 bg-red-50 text-red-700 text-sm border-b border-red-100">
-            <AlertCircle size={18} className="flex-shrink-0" /> {error}
-          </div>
         )}
-        <div className="flex-1 overflow-auto py-8 px-4 flex justify-center">
-          <div className="bg-white shadow-lg rounded-lg border border-slate-200 p-8 max-w-[480px] w-full space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide">Tải CV từ file</h3>
-              {renderAnalysisPanel()}
-              <div
-                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-                onClick={() => fileRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${dragging ? "border-blue-500 bg-blue-50" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50/80"
-                  } ${file ? "border-green-300 bg-green-50/50" : ""}`}
-              >
-                <div className={`mx-auto w-12 h-12 rounded-xl flex items-center justify-center mb-2 ${file ? "bg-green-100" : "bg-slate-100"}`}>
-                  <Upload size={22} className={file ? "text-green-600" : "text-slate-500"} />
-                </div>
-                {file ? (
-                  <>
-                    <p className="text-sm font-semibold text-green-700 flex items-center justify-center gap-2">
-                      <CheckCircle2 size={16} /> {file.name}
-                    </p>
-                    <p className="text-xs text-green-600 mt-0.5">Nhấp hoặc kéo file khác để thay đổi</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm font-medium text-slate-700">Kéo thả hoặc nhấp để chọn file</p>
-                    <p className="text-xs text-slate-500 mt-0.5">PDF, DOC, DOCX — tối đa 10 MB</p>
-                  </>
-                )}
-                <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-              </div>
-            </div>
-            <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-lg bg-slate-50 border border-slate-200">
-              <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="w-4 h-4 accent-blue-500 rounded" />
-              <span className="text-sm font-medium text-slate-700">Đặt làm CV mặc định khi ứng tuyển</span>
-            </label>
-          </div>
-        </div>
       </form>
     </div>
   );

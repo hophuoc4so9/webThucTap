@@ -12,6 +12,11 @@ export interface CvProjectItem {
 export interface Cv {
   id: number;
   userId: number;
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
   fullName?: string;
   jobPosition?: string;
   phone?: string;
@@ -34,6 +39,9 @@ export interface Cv {
   languages?: string;
   /** JSON string — array of social link strings */
   socialLinks?: string;
+  major?: string;
+  majorGroup?: string;
+  majorCode?: string;
   filePath?: string;
   fileOriginalName?: string;
   fileMimeType?: string;
@@ -57,6 +65,11 @@ export interface CvListResponse {
 
 export interface CreateCvDto {
   userId: number;
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
   fullName?: string;
   jobPosition?: string;
   phone?: string;
@@ -72,10 +85,18 @@ export interface CreateCvDto {
   certifications?: string;
   languages?: string;
   socialLinks?: string;
+  major?: string;
+  majorGroup?: string;
+  majorCode?: string;
   isDefault?: boolean;
 }
 
 export interface UpdateCvDto {
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
   fullName?: string;
   jobPosition?: string;
   phone?: string;
@@ -91,6 +112,9 @@ export interface UpdateCvDto {
   certifications?: string;
   languages?: string;
   socialLinks?: string;
+  major?: string;
+  majorGroup?: string;
+  majorCode?: string;
   isDefault?: boolean;
 }
 
@@ -99,6 +123,11 @@ export interface CvParsedData {
   email: string;
   phone: string;
   address: string;
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
   skills: string[];
   experience: string[];
   education: string[];

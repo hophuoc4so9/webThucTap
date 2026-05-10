@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/slices/authSlice";
 import type { RootState, AppDispatch } from "@/store";
+import { NotificationBell } from "./NotificationBell";
 
 export const AdminHeader = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,10 +39,7 @@ export const AdminHeader = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* <button className="relative p-2 hover:bg-gray-100 rounded-lg">
-          <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button> */}
+        <NotificationBell />
 
         <div className="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-lg">
           <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">

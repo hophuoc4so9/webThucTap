@@ -10,6 +10,7 @@ const menuItems = [
   { icon: Briefcase, label: "Quản lý tin tuyển dụng", path: "/company/jobs" },
   { icon: FolderOpen, label: "Đặt hàng dự án", path: "/company/projects" },
   { icon: FileText, label: "Ứng viên & Hồ sơ", path: "/company/applications" },
+  { icon: Building2, label: "Quản lý nhân viên", path: "/company/employees" },
   { icon: Settings, label: "Cài đặt công ty", path: "/company/settings" },
 
 ];

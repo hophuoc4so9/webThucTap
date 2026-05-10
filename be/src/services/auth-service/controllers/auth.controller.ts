@@ -76,6 +76,11 @@ export class AuthController {
     return this.authService.getUserById(payload.id);
   }
 
+  @MessagePattern("users_get_by_ids")
+  getByIds(@Payload() payload: { ids: number[] }) {
+    return this.authService.getUsersByIds(payload.ids);
+  }
+
   @MessagePattern("user_update_profile")
   updateProfile(@Payload() payload: { id: number; dto: { name?: string } }) {
     return this.authService.updateUserProfile(payload.id, payload.dto);
@@ -111,5 +116,15 @@ export class AuthController {
   @MessagePattern("auth_google_login")
   async googleLogin(@Payload() payload: { token: string }) {
     return this.authService.googleLogin(payload.token);
+  }
+
+  @MessagePattern("auth_verify_otp")
+  async verifyOtp(@Payload() payload: { email: string; otp: string }) {
+    return this.authService.verifyOtp(payload.email, payload.otp);
+  }
+
+  @MessagePattern("auth_resend_otp")
+  async resendOtp(@Payload() payload: { email: string }) {
+    return this.authService.resendOtp(payload.email);
   }
 }

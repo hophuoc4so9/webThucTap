@@ -6,6 +6,26 @@ export class CreateCvDto {
 
   @IsOptional()
   @IsString()
+  studentId?: string;
+
+  @IsOptional()
+  @IsString()
+  class?: string;
+
+  @IsOptional()
+  @IsString()
+  academicYear?: string;
+
+  @IsOptional()
+  @IsString()
+  birthday?: string;
+
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @IsOptional()
+  @IsString()
   fullName?: string;
 
   @IsOptional()

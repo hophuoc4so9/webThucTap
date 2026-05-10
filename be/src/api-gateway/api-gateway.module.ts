@@ -54,6 +54,15 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
           queueOptions: { durable: false },
         },
       },
+      {
+        name: "OCR_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: ["amqp://rabbitmq:5672"],
+          queue: "ocr_queue",
+          queueOptions: { durable: false },
+        },
+      },
     ]),
   ],
   controllers: [

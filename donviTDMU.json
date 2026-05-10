@@ -1,209 +1,196 @@
 {
-  "ten_truong": "Đại học Thủ Dầu Một",
+  "ten_truong": "Trường Đại học Thủ Dầu Một",
   "he_dao_tao": "Đại học chính quy",
   "du_lieu_nganh": [
     {
-      "nhom": "SƯ PHẠM",
+      "nhom": "Viện Công nghệ số",
       "nganh_hoc": [
         {
-          "ten": "SƯ PHẠM NGỮ VĂN",
-          "id_news": "2800"
+          "ten": "Công nghệ thông tin"
         },
         {
-          "ten": "GIÁO DỤC TIỂU HỌC",
-          "id_news": "1404"
+          "ten": "Hệ thống thông tin"
         },
         {
-          "ten": "GIÁO DỤC MẦM NON",
-          "id_news": "1403"
+          "ten": "Kỹ thuật phần mềm"
+        },
+        {
+          "ten": "Trí tuệ nhân tạo và Khoa học dữ liệu"
         }
       ]
     },
     {
-      "nhom": "KINH TẾ",
+      "nhom": "Khoa Công nghiệp Văn hóa",
       "nganh_hoc": [
         {
-          "ten": "THƯƠNG MẠI ĐIỆN TỬ",
-          "id_news": "3087"
+          "ten": "Âm nhạc"
         },
         {
-          "ten": "KIỂM TOÁN",
-          "id_news": "3086"
+          "ten": "Du lịch"
         },
         {
-          "ten": "MARKETING",
-          "id_news": "3085"
+          "ten": "Mỹ thuật"
         },
         {
-          "ten": "LOGISTICS VÀ QUẢN LÝ CHUỖI CUNG ỨNG",
-          "id_news": "2753"
+          "ten": "Thiết kế đồ họa"
         },
         {
-          "ten": "QUẢN LÝ CÔNG NGHIỆP",
-          "id_news": "1394"
+          "ten": "Truyền thông đa phương tiện"
         },
         {
-          "ten": "QUẢN TRỊ KINH DOANH",
-          "id_news": "1382"
-        },
-        {
-          "ten": "TÀI CHÍNH - NGÂN HÀNG",
-          "id_news": "1381"
-        },
-        {
-          "ten": "KẾ TOÁN",
-          "id_news": "1380"
+          "ten": "Văn hóa học"
         }
       ]
     },
     {
-      "nhom": "NGOẠI NGỮ",
+      "nhom": "Viện Công nghệ Xanh và Bền vững",
       "nganh_hoc": [
         {
-          "ten": "NGÔN NGỮ HÀN QUỐC",
-          "id_news": "2956"
+          "ten": "Công nghệ sinh học"
         },
         {
-          "ten": "NGÔN NGỮ TRUNG QUỐC",
-          "id_news": "1401"
+          "ten": "Công nghệ thực phẩm"
         },
         {
-          "ten": "NGÔN NGỮ ANH",
-          "id_news": "1399"
+          "ten": "Hoá học"
+        },
+        {
+          "ten": "Kỹ thuật môi trường"
+        },
+        {
+          "ten": "Khoa học môi trường"
+        },
+        {
+          "ten": "Quản lý đất đai"
+        },
+        {
+          "ten": "Quản lý tài nguyên và môi trường"
         }
       ]
     },
     {
-      "nhom": "ÂM NHẠC - MỸ THUẬT",
+      "nhom": "Viện Kỹ thuật Công nghệ",
       "nganh_hoc": [
         {
-          "ten": "TRUYỀN THÔNG ĐA PHƯƠNG TIỆN",
-          "id_news": "2957"
+          "ten": "Công nghệ kỹ thuật ô tô"
         },
         {
-          "ten": "ÂM NHẠC",
-          "id_news": "2821"
+          "ten": "Kỹ thuật cơ điện tử"
         },
         {
-          "ten": "DU LỊCH",
-          "id_news": "2795"
+          "ten": "Kỹ thuật điện"
         },
         {
-          "ten": "THIẾT KẾ ĐỒ HỌA",
-          "id_news": "2695"
+          "ten": "Kỹ thuật điều khiển và tự động hoá"
         }
       ]
     },
     {
-      "nhom": "TỰ NHIÊN - THỰC PHẨM",
+      "nhom": "Trường Kinh tế Tài chính",
       "nganh_hoc": [
         {
-          "ten": "TOÁN HỌC",
-          "id_news": "2960"
+          "ten": "Kế toán"
         },
         {
-          "ten": "CÔNG NGHỆ SINH HỌC",
-          "id_news": "2959"
+          "ten": "Kiểm toán"
         },
         {
-          "ten": "CÔNG NGHỆ THỰC PHẨM",
-          "id_news": "2796"
+          "ten": "Logistics và quản lý chuỗi cung ứng"
         },
         {
-          "ten": "HÓA HỌC",
-          "id_news": "1387"
+          "ten": "Marketing"
+        },
+        {
+          "ten": "Quản lý công nghiệp"
+        },
+        {
+          "ten": "Quản trị kinh doanh"
+        },
+        {
+          "ten": "Tài chính - Ngân hàng"
+        },
+        {
+          "ten": "Thương mại điện tử"
         }
       ]
     },
     {
-      "nhom": "KHOA HỌC QUẢN LÝ",
+      "nhom": "Khoa Kiến trúc - Xây dựng",
       "nganh_hoc": [
         {
-          "ten": "TÂM LÝ HỌC",
-          "id_news": "2703"
+          "ten": "Công nghệ chế biến lâm sản"
         },
         {
-          "ten": "QUẢN LÝ ĐẤT ĐAI",
-          "id_news": "1441"
+          "ten": "Kiến trúc"
         },
         {
-          "ten": "LUẬT",
-          "id_news": "1398"
+          "ten": "Kỹ thuật xây dựng"
         },
         {
-          "ten": "GIÁO DỤC HỌC",
-          "id_news": "1397"
-        },
-        {
-          "ten": "QUẢN LÝ NHÀ NƯỚC",
-          "id_news": "1393"
-        },
-        {
-          "ten": "QUẢN LÝ TÀI NGUYÊN VÀ MÔI TRƯỜNG",
-          "id_news": "1392"
-        },
-        {
-          "ten": "KỸ THUẬT MÔI TRƯỜNG",
-          "id_news": "1379"
+          "ten": "Quy hoạch vùng và đô thị"
         }
       ]
     },
     {
-      "nhom": "KỸ THUẬT - CÔNG NGHỆ",
+      "nhom": "Trường Luật và Quản lý",
       "nganh_hoc": [
         {
-          "ten": "CÔNG NGHỆ THÔNG TIN",
-          "id_news": "2819"
+          "ten": "Công tác xã hội"
         },
         {
-          "ten": "CÔNG NGHỆ KỸ THUẬT Ô TÔ",
-          "id_news": "2748"
+          "ten": "Luật"
         },
         {
-          "ten": "KỸ THUẬT ĐIỀU KHIỂN VÀ TỰ ĐỘNG HÓA",
-          "id_news": "2705"
+          "ten": "Quan hệ quốc tế"
         },
         {
-          "ten": "KỸ THUẬT CƠ ĐIỆN TỬ",
-          "id_news": "2693"
+          "ten": "Quản lý nhà nước"
         },
         {
-          "ten": "KỸ THUẬT ĐIỆN",
-          "id_news": "1383"
-        },
-        {
-          "ten": "KỸ THUẬT PHẦN MỀM",
-          "id_news": "1377"
+          "ten": "Quốc tế học"
         }
       ]
     },
     {
-      "nhom": "KIẾN TRÚC - XÂY DỰNG",
+      "nhom": "Khoa Ngoại ngữ",
       "nganh_hoc": [
         {
-          "ten": "CÔNG NGHỆ CHẾ BIẾN LÂM SẢN",
-          "id_news": "2698"
+          "ten": "Ngôn ngữ Anh"
         },
         {
-          "ten": "KIẾN TRÚC",
-          "id_news": "1385"
+          "ten": "Ngôn ngữ Hàn Quốc"
         },
         {
-          "ten": "KỸ THUẬT XÂY DỰNG",
-          "id_news": "1384"
+          "ten": "Ngôn ngữ Trung Quốc"
         }
       ]
     },
     {
-      "nhom": "XÃ HỘI VÀ NHÂN VĂN",
+      "nhom": "Khoa Sư phạm",
       "nganh_hoc": [
         {
-          "ten": "QUAN HỆ QUỐC TẾ",
-          "id_news": "2701"
+          "ten": "Giáo dục học"
         },
         {
-          "ten": "CÔNG TÁC XÃ HỘI",
-          "id_news": "1402"
+          "ten": "Giáo dục Mầm non"
+        },
+        {
+          "ten": "Giáo dục Tiểu học"
+        },
+        {
+          "ten": "Sư phạm Lịch sử"
+        },
+        {
+          "ten": "Sư phạm Ngữ văn"
+        },
+        {
+          "ten": "Tâm lý học"
+        },
+        {
+          "ten": "Toán học"
+        },
+        {
+          "ten": "Văn học"
         }
       ]
     }

@@ -51,5 +51,6 @@ EXPOSE 8005
 ENV NODE_ENV=production
 ENV NODE_OPTIONS=--max-old-space-size=1024
 ENV EMBEDDING_PROVIDER=local
+ENV XENOVA_CACHE_DIR=./.models
 
 CMD ["node", "dist/main.js"]

@@ -135,6 +135,21 @@ export class MailService {
     await this.sendMail(params.to, "Bị từ chối", "Rejected", this.buildTemplate(content));
   }
 
+  async sendOtp(to: string, otp: string) {
+    const content = `
+      <h3 style="color:#4f46e5;">Xác thực tài khoản</h3>
+      <p>Mã xác thực (OTP) của bạn là:</p>
+      <div style="text-align:center;margin:30px 0;">
+        <span style="font-size:32px;font-weight:bold;letter-spacing:5px;color:#4f46e5;background:#f0f7ff;padding:10px 20px;border-radius:12px;border:2px dashed #4f46e5;">
+          ${otp}
+        </span>
+      </div>
+      <p style="font-size:13px;color:#777;">Mã này sẽ hết hạn sau 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>
+    `;
+
+    await this.sendMail(to, "Mã xác thực TDMU Jobs", "Xác thực OTP", this.buildTemplate(content));
+  }
+
   // ================= CORE SEND =================
   private async sendMail(to: string, subject: string, text: string, html?: string) {
     if (!this.transporter) {

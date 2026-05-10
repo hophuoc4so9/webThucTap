@@ -90,4 +90,14 @@ export const userApi = {
   remove: async (id: number): Promise<void> => {
     await axiosClient.delete(`users/${id}`);
   },
+
+  verifyOtp: async (payload: { email: string; otp: string }): Promise<any> => {
+    const res = await axiosClient.post("auth/verify-otp", payload);
+    return res.data;
+  },
+
+  resendOtp: async (payload: { email: string }): Promise<any> => {
+    const res = await axiosClient.post("auth/resend-otp", payload);
+    return res.data;
+  },
 };

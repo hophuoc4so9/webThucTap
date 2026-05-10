@@ -74,14 +74,31 @@ services:
         condition: service_healthy
       forecast-service:
         condition: service_started
+    volumes:
+      - ./data-crawl/donviTDMU_phan_cap.json:/app/data/donviTDMU_phan_cap.json
     networks: [be]
 
   forecast-service:
     build:
-      context: ./fastapi-forecast-service
+      context: ./ai-services/forecast-service
       dockerfile: Dockerfile
     expose: ["8099"]
     restart: unless-stopped
+    networks: [be]
+
+  ocr-service:
+    build:
+      context: ./ai-services/ocr-service
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - UPLOADS_DIR=/uploads
+    volumes:
+      - uploads:/uploads
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks: [be]
 
   ai-search-service:
@@ -185,6 +202,7 @@ services:
       REDIS_URL: redis://redis:6379
       CACHE_PREFIX: webthuctap
       CV_AI_CACHE_TTL_SECONDS: 86400
+      FASTAPI_LLM_URL: http://llm-service:8000
     depends_on:
       postgres-cv:
         condition: service_healthy

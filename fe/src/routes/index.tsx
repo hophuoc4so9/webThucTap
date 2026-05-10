@@ -35,6 +35,7 @@ import { CompanyProjectsPage } from "@/features/company/pages/ProjectsPage/index
 import { ProjectFormPage } from "@/features/company/pages/ProjectsPage/ProjectFormPage";
 import { ProjectApplicantsPage } from "@/features/company/pages/ProjectsPage/ProjectApplicantsPage";
 import { CompanyOnboardingPage } from "@/features/company/pages/OnboardingPage/index";
+import { EmployeesPage as CompanyEmployeesPage } from "@/features/company/pages/EmployeesPage/index";
 
 // Admin Pages
 import { AdminDashboard } from "@/features/admin/pages/Dashboard/index";
@@ -116,6 +117,7 @@ export const router = createBrowserRouter([
         element: <Navigate to="/company/applications" replace />,
       },
       { path: "applications", element: <CompanyApplicationsPage /> },
+      { path: "employees", element: <CompanyEmployeesPage /> },
       { path: "projects", element: <CompanyProjectsPage /> },
       { path: "projects/new", element: <ProjectFormPage /> },
       { path: "projects/:id/edit", element: <ProjectFormPage /> },

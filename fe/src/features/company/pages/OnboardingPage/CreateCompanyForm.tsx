@@ -23,6 +23,10 @@ export const CreateCompanyForm = ({ onBack }: Props) => {
     address: "",
     shortDescription: "",
     description: "",
+    taxCode: "",
+    charterCapital: "",
+    representativeName: "",
+    licenseAddress: "",
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -40,10 +44,42 @@ export const CreateCompanyForm = ({ onBack }: Props) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "license") => {
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "license") => {
     if (e.target.files && e.target.files[0]) {
-      if (type === "logo") setLogoFile(e.target.files[0]);
-      else setLicenseFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (type === "logo") {
+        setLogoFile(file);
+      } else {
+        setLicenseFile(file);
+        // Tự động phân tích khi upload giấy phép
+        handleAnalyze(file);
+      }
+    }
+  };
+
+  const handleAnalyze = async (file: File) => {
+    setAnalyzing(true);
+    setError("");
+    try {
+      const res = await companyApi.analyzeLicense(file);
+      if (res.success && res.data) {
+        const info = res.data;
+        setFormData((prev) => ({
+          ...prev,
+          name: info.name_vn || prev.name,
+          address: info.address || prev.address,
+          taxCode: info.tax_code || prev.taxCode,
+          charterCapital: info.charter_capital || prev.charterCapital,
+          representativeName: info.representative || prev.representativeName,
+          licenseAddress: info.address || prev.licenseAddress,
+        }));
+      }
+    } catch (err) {
+      console.error("Phân tích giấy phép thất bại:", err);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -132,24 +168,37 @@ export const CreateCompanyForm = ({ onBack }: Props) => {
                   className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
                   <Upload className="text-gray-400 mb-2" size={24} />
-                  <span className="text-sm text-gray-600">{licenseFile ? licenseFile.name : "Nhấn để chọn file"}</span>
+                  <span className="text-sm text-gray-600">
+                    {analyzing ? "Đang phân tích thông tin..." : (licenseFile ? licenseFile.name : "Nhấn để chọn file")}
+                  </span>
                   <input type="file" ref={licenseInputRef} className="hidden" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, "license")} />
                 </div>
+                {analyzing && (
+                  <div className="mt-2 text-[11px] text-blue-600 flex items-center gap-1 italic">
+                    <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    Hệ thống đang tự động trích xuất thông tin từ giấy phép...
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SampleInput label="Tên công ty *" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Công ty TNHH ABC" />
+              <SampleInput label="Mã số thuế" name="taxCode" value={formData.taxCode} onChange={handleChange} placeholder="Tự động trích xuất từ giấy phép" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SampleInput label="Người đại diện" name="representativeName" value={formData.representativeName} onChange={handleChange} placeholder="Tên người đại diện pháp luật" />
+              <SampleInput label="Vốn điều lệ" name="charterCapital" value={formData.charterCapital} onChange={handleChange} placeholder="VD: 8.000.000.000 đồng" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SampleInput label="Email công ty *" type="email" name="companyEmail" value={formData.companyEmail} onChange={handleChange} placeholder="VD: contact@abc.com" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SampleInput label="Số điện thoại *" name="phone" value={formData.phone} onChange={handleChange} placeholder="VD: 0123456789" />
-              <SampleInput label="Website" name="website" value={formData.website} onChange={handleChange} placeholder="VD: https://abc.com" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SampleInput label="Lĩnh vực hoạt động" name="industry" value={formData.industry} onChange={handleChange} placeholder="VD: IT, Ngân hàng" />
+              <SampleInput label="Website" name="website" value={formData.website} onChange={handleChange} placeholder="VD: https://abc.com" />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Quy mô</label>
                 <select
@@ -166,6 +215,8 @@ export const CreateCompanyForm = ({ onBack }: Props) => {
                 </select>
               </div>
             </div>
+            
+            <SampleInput label="Lĩnh vực hoạt động" name="industry" value={formData.industry} onChange={handleChange} placeholder="VD: IT, Ngân hàng" />
 
             <SampleInput label="Địa chỉ" name="address" value={formData.address} onChange={handleChange} placeholder="Nhập địa chỉ đầy đủ" />
             

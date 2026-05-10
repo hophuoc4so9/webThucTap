@@ -477,7 +477,7 @@ export class MarketTrendService {
 
   private async fetchForecast(series: { date: string; value: number }[], horizon: number) {
     if (!series.length) return [];
-    const url = process.env.FORECAST_SERVICE_URL || "http://fastapi-llm-service:8099";
+    const url = process.env.FORECAST_SERVICE_URL || "http://forecast-service:8099";
 
     try {
       const response = await axios.post(

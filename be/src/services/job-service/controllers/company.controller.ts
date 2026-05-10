@@ -8,13 +8,9 @@ import { UpdateCompanyDto } from "../dto/update-company.dto";
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
-  @MessagePattern("company_ping")
-  ping() {
-    return {
-      status: "ok",
-      service: "job-service/company",
-      timestamp: new Date().toISOString(),
-    };
+  @MessagePattern("company_ocr_result")
+  async handleOcrResult(@Payload() data: any) {
+    return this.companyService.handleOcrResult(data);
   }
 
   @MessagePattern("company_create")
@@ -130,10 +126,40 @@ export class CompanyController {
     return this.companyService.getCompanyMembers(payload.companyId);
   }
 
+  /** Cập nhật role cho thành viên */
+  @MessagePattern("company_update_member_role")
+  updateMemberRole(@Payload() payload: { memberId: number; role: any }) {
+    return this.companyService.updateMemberRole(payload.memberId, payload.role);
+  }
+
+  /** Đuổi việc thành viên */
+  @MessagePattern("company_remove_member")
+  removeMember(@Payload() payload: { memberId: number }) {
+    return this.companyService.removeMember(payload.memberId);
+  }
+
+  /** Chuyển quyền sở hữu */
+  @MessagePattern("company_transfer_ownership")
+  transferOwnership(@Payload() payload: { companyId: number; newOwnerMemberId: number }) {
+    return this.companyService.transferOwnership(payload.companyId, payload.newOwnerMemberId);
+  }
+
   /** Lấy trạng thái onboarding của user */
   @MessagePattern("company_get_onboarding_status")
   getOnboardingStatus(@Payload() payload: { userId: number }) {
     return this.companyService.getOnboardingStatus(payload.userId);
+  }
+
+  /** Lấy thông báo cho admin/user */
+  @MessagePattern("company_get_notifications")
+  getNotifications(@Payload() payload: { userId?: number }) {
+    return this.companyService.getNotifications(payload?.userId);
+  }
+
+  /** Đánh dấu thông báo đã đọc */
+  @MessagePattern("company_mark_notification_read")
+  markNotificationRead(@Payload() payload: { id: number }) {
+    return this.companyService.markNotificationRead(payload.id);
   }
 }
 

@@ -4,6 +4,7 @@ import {
   Post,
   Put,
   Delete,
+  Patch,
   Body,
   Param,
   Query,
@@ -43,7 +44,10 @@ function multerStorage() {
 
 @Controller("companies")
 export class CompanyController {
-  constructor(@Inject("JOB_SERVICE") private readonly jobClient: ClientProxy) {}
+  constructor(
+    @Inject("JOB_SERVICE") private readonly jobClient: ClientProxy,
+    @Inject("OCR_SERVICE") private readonly ocrClient: ClientProxy,
+  ) {}
 
   /** GET /companies?page=&limit=&name= (chỉ công ty đã APPROVED) */
   @Get()
@@ -199,6 +203,10 @@ export class CompanyController {
         description: body.description,
         phone: body.phone,
         shortDescription: body.shortDescription,
+        taxCode: body.taxCode,
+        charterCapital: body.charterCapital,
+        representativeName: body.representativeName,
+        licenseAddress: body.licenseAddress,
         logo: logoUrl,
         businessLicense: licenseUrl,
       };
@@ -362,6 +370,144 @@ export class CompanyController {
           memberId,
           reason: body.reason,
         }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/:id/members */
+  @Get(":id/members")
+  async getMembers(@Param("id", ParseIntPipe) companyId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_members", { companyId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PATCH /companies/members/:memberId/role */
+  @Patch("members/:memberId/role")
+  async updateMemberRole(
+    @Param("memberId", ParseIntPipe) memberId: number,
+    @Body() body: { role: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_update_member_role", {
+          memberId,
+          role: body.role,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** DELETE /companies/members/:memberId */
+  @Delete("members/:memberId")
+  async removeMember(@Param("memberId", ParseIntPipe) memberId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_remove_member", { memberId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /companies/:id/transfer-ownership */
+  @Post(":id/transfer-ownership")
+  async transferOwnership(
+    @Param("id", ParseIntPipe) companyId: number,
+    @Body() body: { newOwnerMemberId: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_transfer_ownership", {
+          companyId,
+          newOwnerMemberId: body.newOwnerMemberId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /companies/analyze-license (OCR analysis for pre-filling) */
+  @Post("analyze-license")
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: "license", maxCount: 1 }], {
+      storage: multerStorage(),
+    }),
+  )
+  async analyzeLicense(
+    @UploadedFiles() files: { license?: Express.Multer.File[] },
+  ) {
+    try {
+      const license = files?.license?.[0];
+      if (!license) {
+        throw new HttpException("Vui lòng tải lên giấy phép", 400);
+      }
+
+      // Send to OCR service via RabbitMQ (Request-Response)
+      const res = await firstValueFrom(
+        this.ocrClient.send("company_ocr_request", {
+          licensePath: `/api/uploads/${license.filename}`,
+        }),
+      );
+      
+      // Parse result
+      let info = {};
+      try {
+        if (res && res.ocrData) {
+          const ocr = JSON.parse(res.ocrData);
+          info = ocr.info || ocr;
+        }
+      } catch (e) {}
+
+      return { success: true, data: info, raw: res };
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/notifications?userId= */
+  @Get("notifications")
+  async getNotifications(@Query("userId") userId?: string) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_notifications", {
+          userId: userId ? +userId : undefined,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PATCH /companies/notifications/:id/read */
+  @Patch("notifications/:id/read")
+  async markNotificationRead(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_mark_notification_read", { id }),
       );
     } catch (err: any) {
       const { statusCode = 500, message = "Lỗi máy chủ" } =

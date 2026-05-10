@@ -15,6 +15,11 @@ export interface CompanyItem {
   rejectReason?: string | null;
   ownerId?: number | null;
   businessLicense?: string | null;
+  taxCode?: string | null;
+  ocrData?: string | null;
+  apiData?: string | null;
+  verificationMethod?: "auto" | "manual";
+  isAutoVerified?: boolean;
   jobCount?: number;
   createdAt?: string;
 }
@@ -34,6 +39,11 @@ export interface CompanyMemberItem {
   status: "pending" | "approved" | "rejected";
   rejectReason?: string | null;
   createdAt?: string;
+  user?: {
+    id: number;
+    email: string;
+    name?: string | null;
+  };
 }
 
 export const companyApi = {
@@ -154,6 +164,70 @@ export const companyApi = {
       `companies/join/${memberId}/reject`,
       { reason },
     );
+    return res.data;
+  },
+
+  /** Lấy danh sách thành viên của công ty */
+  getMembers: async (companyId: number): Promise<CompanyMemberItem[]> => {
+    const res = await axiosClient.get<CompanyMemberItem[]>(
+      `companies/${companyId}/members`,
+    );
+    return res.data;
+  },
+
+  /** Cập nhật quyền cho thành viên */
+  updateMemberRole: async (
+    memberId: number,
+    role: "admin" | "member",
+  ): Promise<CompanyMemberItem> => {
+    const res = await axiosClient.patch<CompanyMemberItem>(
+      `companies/members/${memberId}/role`,
+      { role },
+    );
+    return res.data;
+  },
+
+  /** Xoá thành viên khỏi công ty */
+  removeMember: async (memberId: number): Promise<{ message: string }> => {
+    const res = await axiosClient.delete<{ message: string }>(
+      `companies/members/${memberId}`,
+    );
+    return res.data;
+  },
+
+  /** Chuyển quyền sở hữu */
+  transferOwnership: async (
+    companyId: number,
+    newOwnerMemberId: number,
+  ): Promise<{ message: string }> => {
+    const res = await axiosClient.post<{ message: string }>(
+      `companies/${companyId}/transfer-ownership`,
+      { newOwnerMemberId },
+    );
+    return res.data;
+  },
+
+  /** Phân tích giấy phép (OCR) để điền nhanh form */
+  analyzeLicense: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append("license", file);
+    const res = await axiosClient.post<any>("companies/analyze-license", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  /** Lấy danh sách thông báo */
+  getNotifications: async (userId?: number): Promise<any[]> => {
+    const res = await axiosClient.get<any[]>("companies/notifications", {
+      params: { userId },
+    });
+    return res.data;
+  },
+
+  /** Đánh dấu thông báo đã đọc */
+  markNotificationRead: async (id: number): Promise<any> => {
+    const res = await axiosClient.patch<any>(`companies/notifications/${id}/read`);
     return res.data;
   },
 };

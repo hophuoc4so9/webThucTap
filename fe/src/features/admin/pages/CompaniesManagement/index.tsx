@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, CheckCircle, XCircle, Building2, ExternalLink, Eye, Globe, Mail, Phone, MapPin, Briefcase as JobIcon } from "lucide-react";
+import { Search, CheckCircle, XCircle, Building2, ExternalLink, Eye, Globe, Mail, Phone, MapPin, Briefcase as JobIcon, ShieldCheck } from "lucide-react";
 import { companyApi, type CompanyItem } from "@/api/api/services/company.api";
 import { AppPagination } from "@/components/common/AppPagination";
 
@@ -235,14 +235,21 @@ const CompaniesManagement = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_BADGE[c.status || "pending"]}`}>
-                        {STATUS_LABELS[c.status || "pending"]}
-                      </span>
-                      {c.status === "rejected" && c.rejectReason && (
-                        <p className="text-xs text-red-500 mt-1 max-w-[150px] truncate" title={c.rejectReason}>
-                          Lý do: {c.rejectReason}
-                        </p>
-                      )}
+                      <div className="flex flex-col gap-1.5">
+                        <span className={`inline-flex items-center w-fit px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_BADGE[c.status || "pending"]}`}>
+                          {STATUS_LABELS[c.status || "pending"]}
+                        </span>
+                        {c.isAutoVerified && c.status === "approved" && (
+                          <span className="inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-tight">
+                            <ShieldCheck size={10} /> AI Verified
+                          </span>
+                        )}
+                        {c.status === "rejected" && c.rejectReason && (
+                          <p className="text-xs text-red-500 mt-0.5 max-w-[150px] truncate" title={c.rejectReason}>
+                            Lý do: {c.rejectReason}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -366,6 +373,89 @@ const CompaniesManagement = () => {
                 <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Mô tả công ty</h4>
                 <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
                   {selectedCompany.description || "Không có mô tả."}
+                </div>
+              </div>
+
+              {/* Verification Information */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Thông tin xác thực tự động</h4>
+                  {selectedCompany.isAutoVerified ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                      <CheckCircle size={14} /> Đã xác thực tự động khớp
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+                      {selectedCompany.taxCode ? "Chờ xác thực lại" : "Chưa trích xuất được"}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* OCR Result */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-500 uppercase">Dữ liệu trích xuất (OCR)</span>
+                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded font-bold uppercase tracking-tighter">AI Extraction</span>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedCompany.ocrData && selectedCompany.ocrData.startsWith('{') ? (() => {
+                        try {
+                          const ocr = JSON.parse(selectedCompany.ocrData);
+                          const info = ocr.info || ocr;
+                          return (
+                            <div className="space-y-1.5">
+                              <p className="text-sm text-gray-700"><strong>Mã số thuế:</strong> <span className="font-mono text-blue-700 bg-blue-50 px-1.5 rounded">{info.tax_code || "N/A"}</span></p>
+                              <p className="text-[12px] text-gray-700"><strong>Tên công ty:</strong> {info.name_vn || "N/A"}</p>
+                              <p className="text-[12px] text-gray-700"><strong>Địa chỉ:</strong> {info.address || "N/A"}</p>
+                              <p className="text-[12px] text-gray-700"><strong>Vốn điều lệ:</strong> {info.charter_capital || "N/A"}</p>
+                              <p className="text-[12px] text-gray-700"><strong>Người đại diện:</strong> {info.representative || "N/A"}</p>
+                              {ocr.raw && (
+                                <details className="mt-2">
+                                  <summary className="text-[10px] text-gray-400 cursor-pointer hover:text-gray-600">Xem văn bản thô</summary>
+                                  <div className="text-[10px] text-gray-400 mt-1 max-h-24 overflow-y-auto bg-white p-1 border rounded italic">
+                                    {ocr.raw}
+                                  </div>
+                                </details>
+                              )}
+                            </div>
+                          );
+                        } catch (e) {
+                          return <div className="text-[11px] text-gray-500 italic">{selectedCompany.ocrData}</div>;
+                        }
+                      })() : (
+                        <>
+                          <p className="text-sm text-gray-700"><strong>Mã số thuế:</strong> <span className="font-mono text-blue-700 bg-blue-50 px-1.5 rounded">{selectedCompany.taxCode || "N/A"}</span></p>
+                          <div className="text-[11px] text-gray-500 max-h-32 overflow-y-auto bg-white p-2 border rounded border-gray-100 italic">
+                            {selectedCompany.ocrData || "Không có dữ liệu văn bản trích xuất."}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* VietQR API Result */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-500 uppercase">Dữ liệu từ API VietQR (Thuế)</span>
+                      <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded font-bold uppercase tracking-tighter">Official Source</span>
+                    </div>
+                    {selectedCompany.apiData ? (() => {
+                      const api = JSON.parse(selectedCompany.apiData);
+                      if (api.code === "00" && api.data) {
+                        return (
+                          <div className="space-y-2 text-sm text-gray-700">
+                            <p><strong>Tên:</strong> {api.data.name}</p>
+                            <p><strong>Địa chỉ:</strong> {api.data.address}</p>
+                            <p><strong>Trạng thái:</strong> <span className="text-green-600 font-semibold">{api.data.status || "Đang hoạt động"}</span></p>
+                          </div>
+                        );
+                      }
+                      return <p className="text-sm text-red-500 italic">API lỗi: {api.desc || "Không xác định"}</p>;
+                    })() : (
+                      <p className="text-sm text-gray-400 italic py-4 text-center">Chưa có thông tin từ API.</p>
+                    )}
+                  </div>
                 </div>
               </div>
 

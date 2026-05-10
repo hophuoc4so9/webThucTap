@@ -33,6 +33,14 @@ export const cvApi = {
     return res.data;
   },
 
+  /** Lấy CV mặc định của user */
+  getDefault: async (userId: number): Promise<Cv | null> => {
+    const res = await axiosClient.get<Cv | null>(`cvs/default`, {
+      params: { userId },
+    });
+    return res.data;
+  },
+
   /** Tạo CV dạng text */
   create: async (dto: CreateCvDto): Promise<Cv> => {
     const res = await axiosClient.post<Cv>("cvs", dto);

@@ -202,6 +202,11 @@ export class GemmaService {
           email: "string",
           phone: "string",
           address: "string",
+          studentId: "string",
+          class: "string",
+          academicYear: "string",
+          birthday: "string (YYYY-MM-DD)",
+          gender: "string",
           skills: ["string"],
           experience: ["string"],
           education: ["string"],
@@ -818,6 +823,10 @@ export class GemmaService {
   private parseTtlSeconds(value: string | undefined, fallback: number): number {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(60, Math.min(60 * 60 * 24 * 7, Math.round(parsed)));
+  }
+}
+ck;
     return Math.max(60, Math.min(60 * 60 * 24 * 7, Math.round(parsed)));
   }
 }

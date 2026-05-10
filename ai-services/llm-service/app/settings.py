@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     service_name: str = "fastapi-llm-service"
     listen_host: str = "0.0.0.0"
-    listen_port: int = 8099
+    listen_port: int = 8000
 
     llama_server_url: str = "http://localhost:8001"
     llama_server_model: str = "unsloth/gemma-4-E4B-it-GGUF"

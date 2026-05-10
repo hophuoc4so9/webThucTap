@@ -3,6 +3,26 @@ import { IsOptional, IsString, IsBoolean } from "class-validator";
 export class UpdateCvDto {
   @IsOptional()
   @IsString()
+  studentId?: string;
+
+  @IsOptional()
+  @IsString()
+  class?: string;
+
+  @IsOptional()
+  @IsString()
+  academicYear?: string;
+
+  @IsOptional()
+  @IsString()
+  birthday?: string;
+
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @IsOptional()
+  @IsString()
   fullName?: string;
 
   @IsOptional()

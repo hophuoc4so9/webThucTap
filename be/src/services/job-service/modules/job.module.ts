@@ -11,6 +11,7 @@ import { ProjectApplication } from "../entities/project-application.entity";
 import { UserJobInteraction } from "../entities/user-job-interaction.entity";
 import { JobEmbeddingQueue } from "../entities/job-embedding-queue.entity";
 import { MarketTrendCache } from "../entities/market-trend-cache.entity";
+import { Notification } from "../entities/notification.entity";
 import { JobController } from "../controllers/job.controller";
 import { MarketTrendController } from "../controllers/market-trend.controller";
 import { CompanyController } from "../controllers/company.controller";
@@ -47,6 +48,7 @@ import { CacheService } from "../services/cache.service";
       UserJobInteraction,
       JobEmbeddingQueue,
       MarketTrendCache,
+      Notification,
     ]),
     ClientsModule.register([
       {
@@ -64,6 +66,15 @@ import { CacheService } from "../services/cache.service";
         options: {
           urls: ["amqp://rabbitmq:5672"],
           queue: "auth_queue",
+          queueOptions: { durable: false },
+        },
+      },
+      {
+        name: "OCR_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: ["amqp://rabbitmq:5672"],
+          queue: "ocr_queue",
           queueOptions: { durable: false },
         },
       },

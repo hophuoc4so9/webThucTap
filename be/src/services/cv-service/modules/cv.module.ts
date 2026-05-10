@@ -37,6 +37,15 @@ import { CacheService } from "../services/cache.service";
           queueOptions: { durable: false },
         },
       },
+      {
+        name: "OCR_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL || "amqp://rabbitmq:5672"],
+          queue: "ocr_queue",
+          queueOptions: { durable: false },
+        },
+      },
     ]),
   ],
   controllers: [CvController, ApplicationController],

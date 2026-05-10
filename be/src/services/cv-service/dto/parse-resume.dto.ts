@@ -3,6 +3,11 @@ export interface ParsedResumeData {
   email: string;
   phone: string;
   address: string;
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
   skills: string[];
   experience: string[];
   education: string[];

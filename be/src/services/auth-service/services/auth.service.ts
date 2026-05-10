@@ -29,12 +29,16 @@ export class AuthService {
     });
     if (existing)
       throw new RpcException({ statusCode: 400, message: "Email đã tồn tại" });
+
     const hashed = await bcrypt.hash(dto.password, 10);
     const validRoles = Object.values(UserRole) as string[];
     const role =
       dto.role && validRoles.includes(dto.role)
         ? (dto.role as UserRole)
         : UserRole.STUDENT;
+
+    const isTdmuEmail = dto.email.toLowerCase().endsWith("@student.tdmu.edu.vn");
+    
     const user = this.userRepo.create({
       email: dto.email,
       password: hashed,
@@ -42,9 +46,62 @@ export class AuthService {
       role,
       position: dto.position?.trim() || null,
       location: dto.location?.trim() || null,
+      isVerified: isTdmuEmail, // Auto verify if TDMU email
     });
+
+    if (!isTdmuEmail) {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otpCode = otp;
+      user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+      await this.userRepo.save(user);
+      await this.mailService.sendOtp(user.email, otp);
+      return { 
+        message: "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.",
+        requiresVerification: true 
+      };
+    }
+
     await this.userRepo.save(user);
-    return { message: "Đăng ký thành công!" };
+    return { message: "Đăng ký thành công!", requiresVerification: false };
+  }
+
+  async verifyOtp(email: string, otp: string) {
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user)
+      throw new RpcException({ statusCode: 404, message: "Không tìm thấy người dùng" });
+
+    if (user.isVerified)
+      return { message: "Tài khoản đã được xác thực" };
+
+    if (!user.otpCode || user.otpCode !== otp)
+      throw new RpcException({ statusCode: 400, message: "Mã OTP không chính xác" });
+
+    if (!user.otpExpiresAt || user.otpExpiresAt < new Date())
+      throw new RpcException({ statusCode: 400, message: "Mã OTP đã hết hạn" });
+
+    user.isVerified = true;
+    user.otpCode = null;
+    user.otpExpiresAt = null;
+    await this.userRepo.save(user);
+
+    return { message: "Xác thực tài khoản thành công!" };
+  }
+
+  async resendOtp(email: string) {
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user)
+      throw new RpcException({ statusCode: 404, message: "Không tìm thấy người dùng" });
+
+    if (user.isVerified)
+      throw new RpcException({ statusCode: 400, message: "Tài khoản đã được xác thực" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otpCode = otp;
+    user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    await this.userRepo.save(user);
+    await this.mailService.sendOtp(user.email, otp);
+
+    return { message: "Đã gửi lại mã OTP!" };
   }
 
 
@@ -141,10 +198,24 @@ export class AuthService {
       email: user.email,
       role: user.role,
       name: user.name ?? null,
+      isVerified: user.isVerified,
       recruiterStatus: user.recruiterStatus,
       companyName: user.companyName ?? null,
       companyWebsite: user.companyWebsite ?? null,
     };
+  }
+
+  async getUsersByIds(ids: number[]) {
+    if (!ids || ids.length === 0) return [];
+    
+    const users = await this.userRepo.findByIds(ids);
+    return users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name ?? null,
+      recruiterStatus: user.recruiterStatus,
+    }));
   }
 
   async updateUserProfile(id: number, dto: { name?: string }) {
