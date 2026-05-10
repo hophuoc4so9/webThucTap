@@ -45,3 +45,6 @@ build/
 .models/
 *.onnx
 .gemini
+*.md
+
+!README.md
