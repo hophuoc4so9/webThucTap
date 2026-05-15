@@ -1,0 +1,115 @@
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Inject,
+  HttpException,
+} from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
+import { firstValueFrom } from "rxjs";
+
+@Controller("auth")
+export class AuthController {
+  constructor(
+    @Inject("AUTH_SERVICE") private readonly authServiceClient: ClientProxy,
+  ) {}
+
+  /** GET /auth/health  */
+  @Get("health")
+  health() {
+    return {
+      status: "ok",
+      service: "api-gateway",
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /** GET /auth/ping-service */
+  @Get("ping-service")
+  pingService() {
+    return firstValueFrom(this.authServiceClient.send("auth_ping", {}));
+  }
+
+  @Post("login")
+  async login(@Body() dto: any) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_login", dto),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("register")
+  async register(@Body() dto: any) {
+    try {
+      const result = await firstValueFrom(
+        this.authServiceClient.send("auth_register", dto),
+      );
+      return { success: true, ...result };
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("google")
+  async googleLogin(@Body() body: { token: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_google_login", { token: body.token }),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("verify-otp")
+  async verifyOtp(@Body() body: { email: string; otp: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_verify_otp", body),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("resend-otp")
+  async resendOtp(@Body() body: { email: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_resend_otp", body),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  @Post("test-email")
+  async testEmail(@Body() body: { email: string }) {
+    try {
+      return await firstValueFrom(
+        this.authServiceClient.send("auth_send_company_approved_email", { 
+          userId: 499, // User hophuoc987654321@gmail.com
+          companyName: "TDMU Jobs Test" 
+        }),
+      );
+    } catch (err : any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+}

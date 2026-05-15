@@ -1,0 +1,9 @@
+node_modules
+dist
+npm-debug.log
+.git
+.gitignore
+# .env and .env.* are removed from here so Vite can read them during build
+*.md
+.DS_Store
+coverage

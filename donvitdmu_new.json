@@ -1,0 +1,101 @@
+{
+  "truong": "Trường Đại học Thủ Dầu Một",
+  "don_vi_dao_tao": [
+    {
+      "ten": "Viện Công nghệ số",
+      "nganh": [
+        "Công nghệ thông tin",
+        "Hệ thống thông tin",
+        "Kỹ thuật phần mềm",
+        "Trí tuệ nhân tạo và Khoa học dữ liệu"
+      ]
+    },
+    {
+      "ten": "Khoa Công nghiệp Văn hóa",
+      "nganh": [
+        "Âm nhạc",
+        "Du lịch",
+        "Mỹ thuật",
+        "Thiết kế đồ họa",
+        "Truyền thông đa phương tiện",
+        "Văn hóa học"
+      ]
+    },
+    {
+      "ten": "Viện Công nghệ Xanh và Bền vững",
+      "nganh": [
+        "Công nghệ sinh học",
+        "Công nghệ thực phẩm",
+        "Hoá học",
+        "Kỹ thuật môi trường",
+        "Khoa học môi trường",
+        "Quản lý đất đai",
+        "Quản lý tài nguyên và môi trường"
+      ]
+    },
+    {
+      "ten": "Viện Kỹ thuật Công nghệ",
+      "nganh": [
+        "Công nghệ kỹ thuật ô tô",
+        "Kỹ thuật cơ điện tử",
+        "Kỹ thuật điện",
+        "Kỹ thuật điều khiển và tự động hoá"
+      ]
+    },
+    {
+      "ten": "Trường Kinh tế Tài chính",
+      "nganh": [
+        "Kế toán",
+        "Kiểm toán",
+        "Logistics và quản lý chuỗi cung ứng",
+        "Marketing",
+        "Quản lý công nghiệp",
+        "Quản trị kinh doanh",
+        "Tài chính - Ngân hàng",
+        "Thương mại điện tử"
+      ]
+    },
+    {
+      "ten": "Khoa Kiến trúc - Xây dựng",
+      "nganh": [
+        "Công nghệ chế biến lâm sản",
+        "Kiến trúc",
+        "Kỹ thuật xây dựng",
+        "Quy hoạch vùng và đô thị"
+      ]
+    },
+    {
+      "ten": "Trường Luật và Quản lý",
+      "nganh": [
+        "Công tác xã hội",
+        "Luật",
+        "Quan hệ quốc tế",
+        "Quản lý nhà nước",
+        "Quốc tế học"
+      ]
+    },
+    {
+      "ten": "Khoa Ngoại ngữ",
+      "nganh": [
+        "Ngôn ngữ Anh",
+        "Ngôn ngữ Hàn Quốc",
+        "Ngôn ngữ Trung Quốc"
+      ]
+      
+    },
+    {
+      "ten": "Khoa Sư phạm",
+      "nganh": [
+        "Giáo dục học",
+        "Giáo dục Mầm non",
+        "Giáo dục Tiểu học",
+        "Sư phạm Lịch sử",
+        "Sư phạm Ngữ văn",
+        "Tâm lý học",
+        "Toán học",
+        "Văn học"
+      ]
+      
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+HỌ VÀ TÊN: Trần Thị B
+VỊ TRÍ MONG MUỐN: Backend Developer
+SỐ ĐIỆN THOẠI: 0912345678
+EMAIL: tranthib@example.com
+ĐỊA CHỈ: Hà Nội
+LINKEDIN: https://www.linkedin.com/in/tranthib
+
+TÓM TẮT:
+Backend developer có kinh nghiệm xây dựng API và hệ thống xử lý dữ liệu với NestJS, Node.js và PostgreSQL. Có khả năng thiết kế luồng nghiệp vụ rõ ràng, tối ưu truy vấn và phối hợp tốt với frontend.
+
+KỸ NĂNG:
+- NestJS
+- Node.js
+- TypeScript
+- PostgreSQL
+- Redis
+- RabbitMQ
+- REST API
+- Docker
+
+KINH NGHIỆM:
+- Xây dựng API cho hệ thống quản lý ứng tuyển và hồ sơ CV.
+- Phát triển microservice, xử lý message queue và cache dữ liệu.
+- Tối ưu truy vấn cơ sở dữ liệu và tăng độ ổn định của hệ thống.
+
+DỰ ÁN:
+1. Recruitment Platform
+- Phát triển API cho ứng tuyển, quản lý CV và đánh giá độ phù hợp.
+- Tích hợp RabbitMQ giữa các dịch vụ và hỗ trợ triển khai bằng Docker.
+- Công nghệ: NestJS, PostgreSQL, RabbitMQ, Redis.
+
+2. CV Suggestion Service
+- Xây dựng luồng AI góp ý CV và so khớp CV với công việc.
+- Trả về kết quả phân tích JSON để frontend hiển thị trực tiếp.
+- Công nghệ: NestJS, Gemini API, TypeScript.
+
+HỌC VẤN:
+- Đại học Bách Khoa Hà Nội
+- Chuyên ngành: Công nghệ thông tin
+- Năm tốt nghiệp: 2025

@@ -1,0 +1,100 @@
+[
+  {
+    "input_total": 65067,
+    "accepted": 32088,
+    "rejected": 16720,
+    "acceptance_rate": "49.3%",
+    "score_stats": {
+      "min": -10,
+      "max": 60,
+      "mean": 25.7,
+      "median": 30.0
+    },
+    "employment_types": {
+      "full-time": 29556,
+      "internship": 2129,
+      "part-time": 310,
+      "remote": 76,
+      "freelance": 17
+    },
+    "top_locations": {
+      "Hà Nội": 11221,
+      "Hồ Chí Minh": 10843,
+      "Đồng Nai": 723,
+      "Bình Dương": 706,
+      "Đà Nẵng": 627,
+      "Hải Phòng": 581,
+      "Bắc Ninh": 523,
+      "Tây Ninh": 367,
+      "Hưng Yên": 357,
+      "Long An": 291,
+      "Nghệ An": 235,
+      "Quảng Ninh": 232,
+      "Khánh Hòa": 189,
+      "Cần Thơ": 178,
+      "Bà Rịa - Vũng Tàu": 167
+    },
+    "top_skills": {
+      "Giao tiếp": 14226,
+      "Excel": 7215,
+      "Làm việc nhóm": 4980,
+      "Tiếng Anh": 4876,
+      "Word": 4477,
+      "BHXH": 2213,
+      "MISA": 1899,
+      "AutoCAD": 1548,
+      "Tiếng Trung": 1327,
+      "Photoshop": 1318,
+      "PowerPoint": 1251,
+      "English": 899,
+      "Thuyết trình": 898,
+      "Communication": 788,
+      "Canva": 767,
+      "Digital Marketing": 628,
+      "SEO": 623,
+      "Thuế GTGT": 622,
+      "CRM": 601,
+      "Illustrator": 592,
+      "Social Media": 554,
+      "ERP": 488,
+      "Teamwork": 413,
+      "SketchUp": 380,
+      "Revit": 362,
+      "Facebook Ads": 360,
+      "Content Marketing": 359,
+      "Thuế TNCN": 350,
+      "After Effects": 340,
+      "Tiếng Nhật": 328
+    },
+    "top_skill_categories": {
+      "Soft Skills": 17175,
+      "Business/Office": 8252,
+      "Languages": 6788,
+      "Accounting/Finance": 4307,
+      "Design": 3540,
+      "Marketing": 1892,
+      "Programming": 485,
+      "AI/ML/Data": 278,
+      "Database": 223,
+      "Cloud/DevOps": 189,
+      "Web Framework": 173,
+      "Mobile": 112,
+      "Testing/QA": 41
+    },
+    "top_rejection_reasons": {
+      "-experience_pattern": 9118,
+      "-experience_high": 8260,
+      "-requirement_senior": 6877,
+      "-title_blacklist_word": 6284,
+      "-title_blacklist_exact": 4493,
+      "-salary_high": 1523,
+      "-age_min_high": 737
+    },
+    "sources": {
+      "topcv": 15933,
+      "careerviet": 7991,
+      "timviec365": 6721,
+      "vieclam24h": 1443
+    }
+  }
+]

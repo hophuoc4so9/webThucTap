@@ -1,0 +1,198 @@
+{
+  "ten_truong": "Trường Đại học Thủ Dầu Một",
+  "he_dao_tao": "Đại học chính quy",
+  "du_lieu_nganh": [
+    {
+      "nhom": "Viện Công nghệ số",
+      "nganh_hoc": [
+        {
+          "ten": "Công nghệ thông tin"
+        },
+        {
+          "ten": "Hệ thống thông tin"
+        },
+        {
+          "ten": "Kỹ thuật phần mềm"
+        },
+        {
+          "ten": "Trí tuệ nhân tạo và Khoa học dữ liệu"
+        }
+      ]
+    },
+    {
+      "nhom": "Khoa Công nghiệp Văn hóa",
+      "nganh_hoc": [
+        {
+          "ten": "Âm nhạc"
+        },
+        {
+          "ten": "Du lịch"
+        },
+        {
+          "ten": "Mỹ thuật"
+        },
+        {
+          "ten": "Thiết kế đồ họa"
+        },
+        {
+          "ten": "Truyền thông đa phương tiện"
+        },
+        {
+          "ten": "Văn hóa học"
+        }
+      ]
+    },
+    {
+      "nhom": "Viện Công nghệ Xanh và Bền vững",
+      "nganh_hoc": [
+        {
+          "ten": "Công nghệ sinh học"
+        },
+        {
+          "ten": "Công nghệ thực phẩm"
+        },
+        {
+          "ten": "Hoá học"
+        },
+        {
+          "ten": "Kỹ thuật môi trường"
+        },
+        {
+          "ten": "Khoa học môi trường"
+        },
+        {
+          "ten": "Quản lý đất đai"
+        },
+        {
+          "ten": "Quản lý tài nguyên và môi trường"
+        }
+      ]
+    },
+    {
+      "nhom": "Viện Kỹ thuật Công nghệ",
+      "nganh_hoc": [
+        {
+          "ten": "Công nghệ kỹ thuật ô tô"
+        },
+        {
+          "ten": "Kỹ thuật cơ điện tử"
+        },
+        {
+          "ten": "Kỹ thuật điện"
+        },
+        {
+          "ten": "Kỹ thuật điều khiển và tự động hoá"
+        }
+      ]
+    },
+    {
+      "nhom": "Trường Kinh tế Tài chính",
+      "nganh_hoc": [
+        {
+          "ten": "Kế toán"
+        },
+        {
+          "ten": "Kiểm toán"
+        },
+        {
+          "ten": "Logistics và quản lý chuỗi cung ứng"
+        },
+        {
+          "ten": "Marketing"
+        },
+        {
+          "ten": "Quản lý công nghiệp"
+        },
+        {
+          "ten": "Quản trị kinh doanh"
+        },
+        {
+          "ten": "Tài chính - Ngân hàng"
+        },
+        {
+          "ten": "Thương mại điện tử"
+        }
+      ]
+    },
+    {
+      "nhom": "Khoa Kiến trúc - Xây dựng",
+      "nganh_hoc": [
+        {
+          "ten": "Công nghệ chế biến lâm sản"
+        },
+        {
+          "ten": "Kiến trúc"
+        },
+        {
+          "ten": "Kỹ thuật xây dựng"
+        },
+        {
+          "ten": "Quy hoạch vùng và đô thị"
+        }
+      ]
+    },
+    {
+      "nhom": "Trường Luật và Quản lý",
+      "nganh_hoc": [
+        {
+          "ten": "Công tác xã hội"
+        },
+        {
+          "ten": "Luật"
+        },
+        {
+          "ten": "Quan hệ quốc tế"
+        },
+        {
+          "ten": "Quản lý nhà nước"
+        },
+        {
+          "ten": "Quốc tế học"
+        }
+      ]
+    },
+    {
+      "nhom": "Khoa Ngoại ngữ",
+      "nganh_hoc": [
+        {
+          "ten": "Ngôn ngữ Anh"
+        },
+        {
+          "ten": "Ngôn ngữ Hàn Quốc"
+        },
+        {
+          "ten": "Ngôn ngữ Trung Quốc"
+        }
+      ]
+    },
+    {
+      "nhom": "Khoa Sư phạm",
+      "nganh_hoc": [
+        {
+          "ten": "Giáo dục học"
+        },
+        {
+          "ten": "Giáo dục Mầm non"
+        },
+        {
+          "ten": "Giáo dục Tiểu học"
+        },
+        {
+          "ten": "Sư phạm Lịch sử"
+        },
+        {
+          "ten": "Sư phạm Ngữ văn"
+        },
+        {
+          "ten": "Tâm lý học"
+        },
+        {
+          "ten": "Toán học"
+        },
+        {
+          "ten": "Văn học"
+        }
+      ]
+    }
+  ]
+}

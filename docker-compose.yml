@@ -1,0 +1,256 @@
+services:
+  api-gateway:
+    build: ./be
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_started
+      job-service:
+        condition: service_started
+      cv-service:
+        condition: service_started
+      ai-search-service:
+        condition: service_started
+    volumes:
+      - uploads:/uploads
+    networks: [be]
+
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
+        - VITE_GOOGLE_CLIENT_ID=911905736347-gkm7hqptftcjo82ln6j31eh5qnf52q7o.apps.googleusercontent.com
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - api-gateway
+    networks: [be]
+
+  auth-service:
+    build:
+      context: ./be/src/services/auth-service
+      dockerfile: Dockerfile
+    expose: ["8001"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/auth-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation"
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    networks: [be]
+
+  job-service:
+    build:
+      context: ./be/src/services/job-service
+      dockerfile: Dockerfile
+    expose: ["8003"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/job-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation"
+      REDIS_URL: redis://redis:6379
+      CACHE_PREFIX: webthuctap
+      FORECAST_SERVICE_URL: http://forecast-service:8099
+    depends_on:
+      postgres-job:
+        condition: service_healthy
+      forecast-service:
+        condition: service_started
+    volumes:
+      - ./data-crawl/donviTDMU_phan_cap.json:/app/data/donviTDMU_phan_cap.json
+    networks: [be]
+
+  forecast-service:
+    build:
+      context: ./ai-services/forecast-service
+      dockerfile: Dockerfile
+    expose: ["8099"]
+    restart: unless-stopped
+    networks: [be]
+
+  ocr-service:
+    build:
+      context: ./ai-services/ocr-service
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_URL=amqps://qlxikfzx:tNqyVZByocbcJVnYhA4juaUaRTluV1lQ@capybara.lmq.cloudamqp.com/qlxikfzx
+      - UPLOADS_DIR=/uploads
+    volumes:
+      - uploads:/uploads
+    restart: unless-stopped
+    networks: [be]
+
+  ai-search-service:
+    build:
+      context: ./be/src/services/ai-search-service
+      dockerfile: Dockerfile
+    expose: ["8005"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/ai-search-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation --max-old-space-size=2048"
+      DB_HOST: postgres-job
+      DB_PORT: 5432
+      DB_DATABASE: jobdb
+      EMBEDDING_PROVIDER: local
+      REDIS_URL: redis://redis:6379
+      CACHE_PREFIX: webthuctap
+      RECOMMENDATION_CACHE_TTL_SECONDS: 600
+    depends_on:
+      postgres-job:
+        condition: service_healthy
+    # Cache embedding model to avoid re-downloading
+    volumes:
+      - huggingface-model-cache:/root/.cache/huggingface
+    networks: [be]
+
+  postgres-auth:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phuoc123456
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [be]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  postgres-job:
+    image: pgvector/pgvector:pg15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phuoc123456
+      POSTGRES_DB: jobdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata-job:/var/lib/postgresql/data
+    networks: [be]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jobdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  cv-service:
+    build:
+      context: ./be/src/services/cv-service
+      dockerfile: Dockerfile
+    expose: ["8004"]
+    restart: unless-stopped
+    env_file:
+      - ./be/src/services/cv-service/.env
+    environment:
+      NODE_OPTIONS: "--no-deprecation"
+      REDIS_URL: redis://redis:6379
+      CACHE_PREFIX: webthuctap
+      FASTAPI_LLM_URL: http://llm-service:8000
+    depends_on:
+      postgres-cv:
+        condition: service_healthy
+      llm-service:
+        condition: service_started
+    volumes:
+      - uploads:/uploads
+    networks: [be]
+
+  postgres-cv:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phuoc123456
+      POSTGRES_DB: cvdb
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata-cv:/var/lib/postgresql/data
+    networks: [be]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cvdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks: [be]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    networks: [be]
+
+  llm-service:
+    build:
+      context: ./ai-services/llm-service
+      dockerfile: Dockerfile
+    expose: ["8000"]
+    restart: unless-stopped
+    environment:
+      - GEMMA_API_KEY=${GEMMA_API_KEY}
+      - MAX_INPUT_CHARS=12000
+      - MAX_OUTPUT_TOKENS=1536
+      - QUEUE_CONCURRENCY=1
+    # Note: depends_on llama-server removed to allow using Gemini API only
+    networks: [be]
+
+#   llama-server:
+#     image: ghcr.io/ggml-org/llama.cpp:server
+#     expose: ["8001"]
+#     restart: unless-stopped
+#     command:
+#       - -hf
+#       - ggml-org/gemma-3-4b-it-GGUF:Q4_K_M
+#       - --alias
+#       - gemma-3-4b-it-q4_k_m
+#       - --host
+#       - 0.0.0.0
+#       - --port
+#       - "8001"
+#       - --ctx-size
+#       - "${LLAMA_CTX_SIZE:-4096}"
+#       - --parallel
+#       - "${LLAMA_PARALLEL:-1}"
+#       - --threads
+#       - "${LLAMA_THREADS:-6}"
+#       - --jinja
+#       - --no-webui
+#     volumes:
+#       - llama-model-cache:/root/.cache/llama.cpp
+#     networks: [be]
+
+networks:
+  be:
+    driver: bridge
+volumes:
+  pgdata:
+  pgdata-job:
+  pgdata-cv:
+  uploads:
+  huggingface-model-cache:
+  llama-model-cache:

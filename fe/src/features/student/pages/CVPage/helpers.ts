@@ -1,0 +1,332 @@
+import type { Cv, CvProjectItem } from "@/features/student/types";
+
+export const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+export const FILE_COLOR: Record<string, string> = {
+  pdf: "bg-red-50 text-red-600",
+  doc: "bg-blue-50 text-blue-600",
+  docx: "bg-blue-50 text-blue-600",
+};
+
+export const fileExt = (name?: string) =>
+  name?.split(".").pop()?.toLowerCase() ?? "";
+
+/** Chuẩn bị mảng skills từ CV */
+export const getCvSkills = (cv: Cv): string[] => {
+  try {
+    return JSON.parse(cv.skills ?? "[]") as string[];
+  } catch {
+    return cv.skills ? cv.skills.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  }
+};
+
+/** Chuẩn bị mảng experience từ CV */
+export const getCvExperiences = (cv: Cv): string[] => {
+  try {
+    const p = JSON.parse(cv.experience ?? "[]");
+    return Array.isArray(p) ? p : [];
+  } catch {
+    return cv.experience ? [cv.experience] : [];
+  }
+};
+
+const normalizeProject = (raw: unknown): CvProjectItem | null => {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw as Record<string, unknown>;
+  const name = String(obj.name ?? "").trim();
+  const role = String(obj.role ?? "").trim();
+  const description = String(obj.description ?? "").trim();
+  const technologiesRaw = obj.technologies;
+  const technologies = Array.isArray(technologiesRaw)
+    ? technologiesRaw.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const startDate = String(obj.startDate ?? "").trim() || undefined;
+  const endDate = String(obj.endDate ?? "").trim() || undefined;
+  const link = String(obj.link ?? "").trim() || undefined;
+
+  if (!name && !role && !description && technologies.length === 0 && !startDate && !endDate && !link) {
+    return null;
+  }
+  return {
+    name,
+    role,
+    description,
+    technologies,
+    startDate,
+    endDate,
+    link,
+  };
+};
+
+/** Chuẩn bị mảng projects từ CV */
+export const getCvProjects = (cv: Cv): CvProjectItem[] => {
+  try {
+    const parsed = JSON.parse(cv.projects ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeProject).filter(Boolean) as CvProjectItem[];
+  } catch {
+    return [];
+  }
+};
+
+const parseJsonStringArray = (value?: string | null): string[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item).trim()).filter(Boolean);
+    }
+  } catch {
+    return value.split(/[,;\n]/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+};
+
+export const getCvCertifications = (cv: Cv): string[] => parseJsonStringArray(cv.certifications);
+
+export const getCvLanguages = (cv: Cv): string[] => parseJsonStringArray(cv.languages);
+
+export const getCvActivities = (cv: Cv): string[] => parseJsonStringArray(cv.activities);
+
+export const getCvAwards = (cv: Cv): string[] => parseJsonStringArray(cv.awards);
+
+export const getCvSocialLinks = (cv: Cv): string[] => {
+  const links = parseJsonStringArray(cv.socialLinks);
+  const linkedIn = cv.linkedIn?.trim();
+  if (linkedIn && !links.some((item) => item.includes(linkedIn))) {
+    return [linkedIn, ...links];
+  }
+  return links;
+};
+
+const escapeHtml = (s: string): string =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+/** HTML nội dung CV — định dạng theo mẫu chuẩn (tên hoa, contact ⋄, OBJECTIVE / EDUCATION / SKILLS / EXPERIENCE / PROJECTS) */
+export const getCvPrintBodyHtml = (cv: Cv): string => {
+  const skills = getCvSkills(cv);
+  const experiences = getCvExperiences(cv);
+  const projects = getCvProjects(cv);
+  const certifications = getCvCertifications(cv);
+  const languages = getCvLanguages(cv);
+  const socialLinks = getCvSocialLinks(cv);
+  const activities = getCvActivities(cv);
+  const awards = getCvAwards(cv);
+  
+  const rawName = cv.fullName || cv.title || "Hồ sơ xin việc";
+  const name = escapeHtml(rawName).toUpperCase();
+
+  // Xử lý Job Positions
+  let positions = "";
+  try {
+    const parsed = JSON.parse(cv.jobPosition ?? "[]");
+    positions = Array.isArray(parsed) ? parsed.join(" | ") : String(cv.jobPosition ?? "");
+  } catch {
+    positions = String(cv.jobPosition ?? "");
+  }
+  const position = positions ? escapeHtml(positions).toUpperCase() : "";
+
+  const contactParts: string[] = [];
+  if (cv.phone) contactParts.push(`<span class="contact-item">${escapeHtml(cv.phone)}</span>`);
+  if (cv.contactEmail) contactParts.push(`<span class="contact-item">${escapeHtml(cv.contactEmail)}</span>`);
+  if (cv.address) contactParts.push(`<span class="contact-item">${escapeHtml(cv.address)}</span>`);
+  
+  const personalParts: string[] = [];
+  if (cv.birthday) personalParts.push(`<span>Ngày sinh: ${fmtDate(cv.birthday)}</span>`);
+  if (cv.gender) personalParts.push(`<span>Giới tính: ${escapeHtml(cv.gender)}</span>`);
+
+  const contactLine = contactParts.length
+    ? `<div class="contact-line">${contactParts.join('<span class="contact-sep"> ◇ </span>')}</div>`
+    : "";
+  const personalLine = personalParts.length
+    ? `<div class="contact-line" style="font-style: italic; margin-top: -2px;">${personalParts.join('<span class="contact-sep"> ◇ </span>')}</div>`
+    : "";
+  const linkedInLine = cv.linkedIn
+    ? `<div class="linkedin-line">LinkedIn: ${escapeHtml(cv.linkedIn)}</div>`
+    : "";
+
+  const section = (title: string, body: string) =>
+    body ? `<section class="pdf-section"><h2 class="pdf-section-title">${escapeHtml(title)}</h2><div class="pdf-section-body">${body}</div></section>` : "";
+
+  // TDMU Info Section
+  const tdmuInfo = [];
+  if (cv.studentId) tdmuInfo.push(`<li><strong>MSSV:</strong> ${escapeHtml(cv.studentId)}</li>`);
+  if (cv.class) tdmuInfo.push(`<li><strong>Lớp:</strong> ${escapeHtml(cv.class)}</li>`);
+  if (cv.academicYear) tdmuInfo.push(`<li><strong>Niên khóa:</strong> ${escapeHtml(cv.academicYear)}</li>`);
+  if (cv.major) tdmuInfo.push(`<li><strong>Ngành học:</strong> ${escapeHtml(cv.major)} (${escapeHtml(cv.majorGroup ?? "")})</li>`);
+  if (cv.gpa) tdmuInfo.push(`<li><strong>GPA:</strong> ${escapeHtml(cv.gpa)}</li>`);
+  
+  const tdmuBody = tdmuInfo.length ? `<ul class="pdf-bullet-list">${tdmuInfo.join("")}</ul>` : "";
+
+  const objectiveBody = cv.careerObjective ? `<p class="pdf-p">${escapeHtml(cv.careerObjective).replace(/\n/g, "<br>")}</p>` : "";
+  const summaryBody = cv.summary ? `<p class="pdf-p">${escapeHtml(cv.summary).replace(/\n/g, "<br>")}</p>` : "";
+  
+  const skillsBody = skills.length
+    ? `<ul class="pdf-bullet-list">${skills.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>`
+    : "";
+  const educationBody = cv.education ? `<p class="pdf-p">${escapeHtml(cv.education).replace(/\n/g, "<br>")}</p>` : "";
+  const expBody = experiences.length
+    ? `<ul class="pdf-bullet-list">${experiences.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul>`
+    : "";
+  const activityBody = activities.length
+    ? `<ul class="pdf-bullet-list">${activities.map((a) => `<li>${escapeHtml(a)}</li>`).join("")}</ul>`
+    : "";
+  const awardBody = awards.length
+    ? `<ul class="pdf-bullet-list">${awards.map((a) => `<li>${escapeHtml(a)}</li>`).join("")}</ul>`
+    : "";
+  const certBody = certifications.length
+    ? `<ul class="pdf-bullet-list">${certifications.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`
+    : "";
+  const langBody = languages.length
+    ? `<ul class="pdf-bullet-list">${languages.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
+    : "";
+  const socialBody = socialLinks.length
+    ? `<ul class="pdf-bullet-list">${socialLinks.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>`
+    : "";
+  const projectBody = projects.length
+    ? `<div>${projects
+        .map((p) => {
+          const heading = [p.name, p.role ? `(${p.role})` : ""].filter(Boolean).join(" ");
+          const date = p.startDate || p.endDate
+            ? `<p class="pdf-p"><strong>Thời gian:</strong> ${escapeHtml(p.startDate ?? "")} - ${escapeHtml(p.endDate ?? "Hiện tại")}</p>`
+            : "";
+          const tech = p.technologies.length
+            ? `<p class="pdf-p"><strong>Công nghệ:</strong> ${p.technologies.map((t) => escapeHtml(t)).join(", ")}</p>`
+            : "";
+          const link = p.link
+            ? `<p class="pdf-p"><strong>Link:</strong> ${escapeHtml(p.link)}</p>`
+            : "";
+          const desc = p.description
+            ? `<p class="pdf-p">${escapeHtml(p.description).replace(/\n/g, "<br>")}</p>`
+            : "";
+          return `<div class="pdf-project-item"><p class="pdf-p"><strong>${escapeHtml(heading || "Dự án")}</strong></p>${date}${tech}${link}${desc}</div>`;
+        })
+        .join("")}</div>`
+    : "";
+
+  return `
+  <div class="pdf-cv pdf-cv-template">
+    <header class="pdf-header">
+      <h1 class="pdf-name">${name}</h1>
+      ${position ? `<p class="pdf-position">${position}</p>` : ""}
+      ${contactLine}
+      ${personalLine}
+      ${linkedInLine}
+    </header>
+    ${section("THÔNG TIN SINH VIÊN", tdmuBody)}
+    ${section("MỤC TIÊU NGHỀ NGHIỆP", objectiveBody)}
+    ${section("TÓM TẮT BẢN THÂN", summaryBody)}
+    ${section("HỌC VẤN", educationBody)}
+    ${section("KỸ NĂNG", skillsBody)}
+    ${section("GIẢI THƯỞNG", awardBody)}
+    ${section("HOẠT ĐỘNG", activityBody)}
+    ${section("CHỨNG CHỈ", certBody)}
+    ${section("KINH NGHIỆM", expBody)}
+    ${section("NGOẠI NGỮ", langBody)}
+    ${section("DỰ ÁN", projectBody)}
+  </div>
+  `;
+};
+
+/** Object giống Cv từ state form — dùng cho xem trước khi sửa */
+export const formStateToCv = (state: {
+  fullName: string;
+  jobPosition: string;
+  phone: string;
+  contactEmail: string;
+  address: string;
+  linkedIn: string;
+  title: string;
+  summary: string;
+  skills: string[];
+  education: string;
+  experience: string[];
+  projects: CvProjectItem[];
+  studentId?: string;
+  class?: string;
+  academicYear?: string;
+  birthday?: string;
+  gender?: string;
+  major?: string;
+  majorGroup?: string;
+  majorCode?: string;
+}): Partial<Cv> => ({
+  fullName: state.fullName,
+  jobPosition: state.jobPosition,
+  phone: state.phone,
+  contactEmail: state.contactEmail,
+  address: state.address,
+  linkedIn: state.linkedIn,
+  title: state.title,
+  summary: state.summary,
+  skills: JSON.stringify(state.skills),
+  education: state.education,
+  experience: JSON.stringify(state.experience),
+  projects: JSON.stringify(state.projects),
+  studentId: state.studentId,
+  class: state.class,
+  academicYear: state.academicYear,
+  birthday: state.birthday,
+  gender: state.gender,
+  major: state.major,
+  majorGroup: state.majorGroup,
+  majorCode: state.majorCode,
+});
+
+/** Style chung cho khung xem CV (view + edit preview) — document, section gạch dưới */
+export const VIEW_CV_STYLE = `
+  .cv-view-document { font-family: 'Times New Roman', 'Segoe UI', serif; color: #1a1a1a; line-height: 1.5; max-width: 210mm; margin: 0 auto; padding: 24px 28px; background: #fff; min-height: 60vh; }
+  .pdf-cv { line-height: 1.55; }
+  .pdf-header { text-align: center; margin-bottom: 22px; }
+  .pdf-name { font-size: 24px; font-weight: 700; color: #000; letter-spacing: 0.04em; margin-bottom: 4px; line-height: 1.15; }
+  .pdf-position { font-size: 12px; font-weight: 600; color: #000; margin-bottom: 10px; letter-spacing: 0.03em; }
+  .contact-line { font-size: 11px; color: #333; margin-bottom: 4px; }
+  .contact-sep { color: #888; margin: 0 6px; }
+  .linkedin-line { font-size: 11px; color: #333; }
+  .pdf-section { margin-bottom: 18px; }
+  .pdf-section-title { font-size: 11px; font-weight: 700; color: #000; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1.2px solid #000; display: block; }
+  .pdf-section-body { font-size: 11px; color: #2d2d2d; line-height: 1.55; }
+  .pdf-p { margin: 0 0 8px; line-height: 1.55; }
+  .pdf-project-item { margin-bottom: 10px; }
+  .pdf-pre { white-space: pre-wrap; line-height: 1.55; margin: 0; }
+  .pdf-bullet-list { list-style: none; padding-left: 0; margin: 0; }
+  .pdf-bullet-list li { position: relative; padding-left: 14px; margin-bottom: 6px; line-height: 1.5; }
+  .pdf-bullet-list li::before { content: "•"; position: absolute; left: 0; font-weight: 700; color: #000; }
+  @media print { .cv-view-header { display: none !important; } .cv-view-document { box-shadow: none; } }
+`;
+
+/** Full HTML document cho CV (in / iframe) — mẫu đẹp, chuyên nghiệp */
+export const getCvPrintFullHtml = (cv: Cv): string => {
+  const style = `
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:595px;margin:0 auto;padding:36px 40px;color:#1a1a1a;font-size:11px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+    .pdf-cv-template{line-height:1.55;}
+    .pdf-header{text-align:center;margin-bottom:22px;padding-bottom:0;}
+    .pdf-name{font-size:24px;font-weight:700;color:#000;letter-spacing:0.04em;margin-bottom:4px;line-height:1.15;}
+    .pdf-position{font-size:12px;font-weight:600;color:#000;margin-bottom:10px;letter-spacing:0.03em;}
+    .contact-line{font-size:11px;color:#333;margin-bottom:4px;}
+    .contact-sep{color:#888;font-weight:400;margin:0 6px;}
+    .linkedin-line{font-size:11px;color:#333;}
+    .pdf-section{margin-bottom:18px;}
+    .pdf-section-title{font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;padding-bottom:4px;border-bottom:1.2px solid #000;display:block;}
+    .pdf-section-body{font-size:11px;color:#2d2d2d;line-height:1.55;}
+    .pdf-p{margin:0 0 8px;line-height:1.55;}
+    .pdf-project-item{margin-bottom:10px;}
+    .pdf-pre{white-space:pre-wrap;line-height:1.55;margin:0;}
+    .pdf-bullet-list{list-style:none;padding-left:0;margin:0;}
+    .pdf-bullet-list li{position:relative;padding-left:14px;margin-bottom:6px;line-height:1.5;}
+    .pdf-bullet-list li::before{content:"•";position:absolute;left:0;font-weight:700;color:#000;}
+    @media print{body{padding:24px 32px;} .pdf-section{margin-bottom:16px;}}
+  `;
+  const title = (cv.title || cv.fullName || "CV").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${title}</title><style>${style}</style></head><body>${getCvPrintBodyHtml(cv)}</body></html>`;
+};

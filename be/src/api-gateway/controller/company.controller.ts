@@ -1,0 +1,595 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Patch,
+  Body,
+  Param,
+  Query,
+  Inject,
+  HttpException,
+  ParseIntPipe,
+  UseInterceptors,
+  UploadedFiles,
+  Req,
+} from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
+import { firstValueFrom } from "rxjs";
+import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import { extname, join } from "path";
+import { existsSync, mkdirSync } from "fs";
+import { Request } from "express";
+
+const UPLOADS_DIR = "/uploads";
+
+function ensureDir(dir: string) {
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+}
+
+function multerStorage() {
+  return diskStorage({
+    destination: (_req, _file, cb) => {
+      ensureDir(UPLOADS_DIR);
+      cb(null, UPLOADS_DIR);
+    },
+    filename: (_req, file, cb) => {
+      const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, `company-${unique}${extname(file.originalname)}`);
+    },
+  });
+}
+
+@Controller("companies")
+export class CompanyController {
+  constructor(
+    @Inject("JOB_SERVICE") private readonly jobClient: ClientProxy,
+    @Inject("CV_SERVICE") private readonly cvClient: ClientProxy,
+    @Inject("OCR_SERVICE") private readonly ocrClient: ClientProxy,
+  ) {}
+
+  /** GET /companies/candidates - Tìm kiếm ứng viên */
+  @Get("candidates")
+  async searchCandidates(
+    @Query("jobId") jobId?: number,
+    @Query("major") major?: string,
+    @Query("skills") skills?: string,
+    @Query("page") page = 1,
+    @Query("limit") limit = 10,
+  ) {
+    try {
+      const skillsArray = skills ? skills.split(",").map((s) => s.trim()) : [];
+      return await firstValueFrom(
+        this.cvClient.send("cv_search_candidates", {
+          jobId: jobId ? +jobId : undefined,
+          major,
+          skills: skillsArray,
+          page: +page,
+          limit: +limit,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/candidates/:id - Xem chi tiết ứng viên */
+  @Get("candidates/:id")
+  async getCandidateDetail(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(
+        this.cvClient.send("cv_find_one_public", { id }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies?page=&limit=&name= (chỉ công ty đã APPROVED) */
+  @Get()
+  async findAll(
+    @Query("page") page = 1,
+    @Query("limit") limit = 20,
+    @Query("name") name?: string,
+  ) {
+    try {
+      const res = await firstValueFrom(
+        this.jobClient.send("company_find_all", {
+          page: +page,
+          limit: +limit,
+          name,
+        }),
+      );
+      if (res && res.data) {
+        res.data = res.data.map((c: any) => ({
+          ...c,
+          logo: this.fixUploadUrl(c.logo),
+        }));
+      }
+      return res;
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/admin?page=&limit=&status=&name= (admin – filter theo status) */
+  @Get("admin")
+  async findAllAdmin(
+    @Query("page") page = 1,
+    @Query("limit") limit = 20,
+    @Query("status") status?: string,
+    @Query("name") name?: string,
+    @Query("sortByJobs") sortByJobs?: string,
+  ) {
+    try {
+      const res = await firstValueFrom(
+        this.jobClient.send("company_find_all_admin", {
+          page: +page,
+          limit: +limit,
+          status,
+          name,
+          sortByJobs,
+        }),
+      );
+      // Fix URLs for business license and logo
+      if (res && res.data) {
+        res.data = res.data.map((c: any) => ({
+          ...c,
+          businessLicense: this.fixUploadUrl(c.businessLicense),
+          logo: this.fixUploadUrl(c.logo),
+        }));
+      }
+      return res;
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/featured?limit= (nhà tuyển dụng tiêu biểu) */
+  @Get("featured")
+  async findFeatured(@Query("limit") limit = 8) {
+    try {
+      const res = await firstValueFrom(
+        this.jobClient.send("company_find_featured", { limit: +limit }),
+      );
+      if (res && res.data) {
+        res.data = res.data.map((c: any) => this.mapCompany(c));
+      }
+      return res;
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lá»—i mÃ¡y chá»§" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/notifications?userId= */
+  @Get("notifications")
+  async getNotifications(@Query("userId") userId?: string) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_notifications", {
+          userId: userId ? +userId : undefined,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PATCH /companies/notifications/:id/read */
+  @Patch("notifications/:id/read")
+  async markNotificationRead(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_mark_notification_read", { id }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PATCH /companies/notifications/read-all */
+  @Patch("notifications/read-all")
+  async markAllNotificationsRead(@Query("userId") userId?: string) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_mark_all_notifications_read", {
+          userId: userId ? +userId : undefined,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/:id */
+  @Get(":id")
+  async findOne(@Param("id", ParseIntPipe) id: number) {
+    try {
+      const res = await firstValueFrom(
+        this.jobClient.send("company_find_one", { id }),
+      );
+      return this.mapCompany(res);
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /companies (tạo công ty thông thường – seed/admin) */
+  @Post()
+  async create(@Body() dto: any) {
+    try {
+      return await firstValueFrom(this.jobClient.send("company_create", dto));
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /**
+   * POST /companies/onboarding
+   * HR tạo công ty mới từ trang onboarding (multipart form):
+   *   - logo (file, tuỳ chọn)
+   *   - businessLicense (file, bắt buộc để admin xét duyệt)
+   *   - các field text khác (name, companyEmail, website, industry, size, address, description, phone, ownerId)
+   */
+  @Post("onboarding")
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: "logo", maxCount: 1 },
+        { name: "businessLicense", maxCount: 1 },
+      ],
+      { storage: multerStorage() },
+    ),
+  )
+  async createOnboarding(
+    @UploadedFiles()
+    files: {
+      logo?: Express.Multer.File[];
+      businessLicense?: Express.Multer.File[];
+    },
+    @Body() body: any,
+    @Req() req: Request,
+  ) {
+    try {
+      const logoUrl = files?.logo?.[0]
+        ? `/api/uploads/${files.logo[0].filename}`
+        : undefined;
+      const licenseUrl = files?.businessLicense?.[0]
+        ? `/api/uploads/${files.businessLicense[0].filename}`
+        : undefined;
+
+      const ownerId = body.ownerId ? +body.ownerId : undefined;
+      const dto = {
+        name: body.name,
+        companyEmail: body.companyEmail,
+        website: body.website,
+        industry: body.industry,
+        size: body.size,
+        address: body.address,
+        description: body.description,
+        phone: body.phone,
+        shortDescription: body.shortDescription,
+        taxCode: body.taxCode,
+        charterCapital: body.charterCapital,
+        representativeName: body.representativeName,
+        licenseAddress: body.licenseAddress,
+        logo: logoUrl,
+        businessLicense: licenseUrl,
+      };
+
+      const res = await firstValueFrom(
+        this.jobClient.send("company_create_onboarding", { ownerId, dto }),
+      );
+      return this.mapCompany(res);
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /companies/:id (cập nhật thông tin công ty) */
+  @Put(":id")
+  async update(@Param("id", ParseIntPipe) id: number, @Body() dto: any) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_update", { id, dto }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** DELETE /companies/:id */
+  @Delete(":id")
+  async remove(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_remove", { id }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /companies/:id/approve (admin duyệt công ty) */
+  @Put(":id/approve")
+  async approveCompany(@Param("id", ParseIntPipe) id: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_approve", { id }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /companies/:id/reject (admin từ chối công ty) */
+  @Put(":id/reject")
+  async rejectCompany(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { reason?: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_reject", { id, reason: body.reason }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /companies/:id/join (HR gửi yêu cầu join công ty) */
+  @Post(":id/join")
+  async joinRequest(
+    @Param("id", ParseIntPipe) companyId: number,
+    @Body() body: { userId: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_join_request", {
+          userId: body.userId,
+          companyId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/:id/join-requests (lấy danh sách join requests) */
+  @Get(":id/join-requests")
+  async getJoinRequests(@Param("id", ParseIntPipe) companyId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_join_requests", { companyId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/member/:userId (lấy công ty của user) */
+  @Get("member/:userId")
+  async getMemberCompany(@Param("userId", ParseIntPipe) userId: number) {
+    try {
+      const res = await firstValueFrom(
+        this.jobClient.send("company_get_member_company", { userId }),
+      );
+      return this.mapCompany(res);
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/onboarding/status/:userId */
+  @Get("onboarding/status/:userId")
+  async getOnboardingStatus(@Param("userId", ParseIntPipe) userId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_onboarding_status", { userId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /companies/join/:memberId/approve */
+  @Put("join/:memberId/approve")
+  async approveJoin(@Param("memberId", ParseIntPipe) memberId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_approve_join", { memberId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PUT /companies/join/:memberId/reject */
+  @Put("join/:memberId/reject")
+  async rejectJoin(
+    @Param("memberId", ParseIntPipe) memberId: number,
+    @Body() body: { reason?: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_reject_join", {
+          memberId,
+          reason: body.reason,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** GET /companies/:id/members */
+  @Get(":id/members")
+  async getMembers(@Param("id", ParseIntPipe) companyId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_get_members", { companyId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** PATCH /companies/members/:memberId/role */
+  @Patch("members/:memberId/role")
+  async updateMemberRole(
+    @Param("memberId", ParseIntPipe) memberId: number,
+    @Body() body: { role: string },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_update_member_role", {
+          memberId,
+          role: body.role,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** DELETE /companies/members/:memberId */
+  @Delete("members/:memberId")
+  async removeMember(@Param("memberId", ParseIntPipe) memberId: number) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_remove_member", { memberId }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /companies/:id/transfer-ownership */
+  @Post(":id/transfer-ownership")
+  async transferOwnership(
+    @Param("id", ParseIntPipe) companyId: number,
+    @Body() body: { newOwnerMemberId: number },
+  ) {
+    try {
+      return await firstValueFrom(
+        this.jobClient.send("company_transfer_ownership", {
+          companyId,
+          newOwnerMemberId: body.newOwnerMemberId,
+        }),
+      );
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+  /** POST /companies/analyze-license (OCR analysis for pre-filling) */
+  @Post("analyze-license")
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: "license", maxCount: 1 }], {
+      storage: multerStorage(),
+    }),
+  )
+  async analyzeLicense(
+    @UploadedFiles() files: { license?: Express.Multer.File[] },
+  ) {
+    try {
+      const license = files?.license?.[0];
+      if (!license) {
+        throw new HttpException("Vui lòng tải lên giấy phép", 400);
+      }
+
+      // Send to OCR service via RabbitMQ (Request-Response)
+      const res = await firstValueFrom(
+        this.ocrClient.send("company_ocr_request", {
+          licensePath: `/api/uploads/${license.filename}`,
+        }),
+      );
+      
+      // Parse result
+      let info = {};
+      try {
+        if (res && res.ocrData) {
+          const ocr = JSON.parse(res.ocrData);
+          info = ocr.info || ocr;
+        }
+      } catch (e) {}
+
+      return { success: true, data: info, raw: res };
+    } catch (err: any) {
+      const { statusCode = 500, message = "Lỗi máy chủ" } =
+        err?.error ?? err ?? {};
+      throw new HttpException({ success: false, message }, statusCode);
+    }
+  }
+
+
+
+  private fixUploadUrl(url?: string | null) {
+    if (!url) return url;
+    if (url.startsWith("http://localhost/uploads")) {
+      return url.replace("http://localhost/uploads", "/api/uploads");
+    }
+    return url;
+  }
+
+  private mapCompany(c: any) {
+    if (!c) return c;
+    return {
+      ...c,
+      logo: this.fixUploadUrl(c.logo),
+      businessLicense: this.fixUploadUrl(c.businessLicense),
+    };
+  }
+}
