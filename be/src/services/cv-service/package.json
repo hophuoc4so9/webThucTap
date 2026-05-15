@@ -31,6 +31,9 @@
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
+    "@types/pdf-parse": "^1.1.5",
+    "install": "^0.13.0",
+    "npm": "^11.14.1",
     "typescript": "^5.9.3"
   }
 }
